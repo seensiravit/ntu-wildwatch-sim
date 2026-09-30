@@ -34,8 +34,10 @@
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
+    drawScene(ctx, cfg, P, sx);
     drawDecor(ctx, cfg, P, sx);
-    drawRoad(ctx, cfg, sx, sy, P);
+    drawRoad(ctx, cfg, sx, P);
+    drawLabels(ctx, cfg, P, sx);
     drawLinks(ctx, cfg, P, sx);
     drawCones(ctx, cfg, P, sx);
     drawSignals(ctx, cfg, P, sx);
@@ -135,53 +137,145 @@
     ctx.fillText(Math.round(WW.car.currentKmh()) + " km/h", cp.x, cp.y - Wd - 5 * sx);
   }
 
-  function drawRoad(ctx, cfg, sx, sy, P) {
+  // Road follows the centerline polyline (Nanyang Drive around Yunnan Garden).
+  function drawRoad(ctx, cfg, sx, P) {
     const pal = cfg.palettes.night;
-    const c = P(cfg.road.corner);
+    const cl = cfg.road.centerline.map(P);
     const w = cfg.road.roadWidth * sx;
-    // Soft shoulder, then the road surface.
+    ctx.lineJoin = "round";
     ctx.lineCap = "round";
+    // Soft shoulder, then the road surface.
     ctx.strokeStyle = "rgba(0,0,0,0.35)";
     ctx.lineWidth = w + 8 * sx;
-    strokeL(ctx, c);
+    strokePath(ctx, cl);
     ctx.strokeStyle = pal.road;
     ctx.lineWidth = w;
-    strokeL(ctx, c);
+    strokePath(ctx, cl);
 
-    // Solid lane-edge lines (outer + inner of the L).
-    const hw = w / 2;
+    // Solid lane-edge lines (offset both sides of each segment).
     ctx.strokeStyle = cfg.road.edgeColor;
     ctx.lineWidth = Math.max(1, 1.5 * sx);
-    ctx.beginPath();
-    ctx.moveTo(0, c.y - hw); ctx.lineTo(c.x + hw, c.y - hw); ctx.lineTo(c.x + hw, 0);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(0, c.y + hw); ctx.lineTo(c.x - hw, c.y + hw); ctx.lineTo(c.x - hw, 0);
-    ctx.stroke();
-
-    // Zebra crossing on the horizontal stretch.
-    const cw = cfg.road.crosswalk;
-    const cwx = cw.x * sx, sw = 6 * sx, gap = 8 * sx;
-    const span = cw.stripes * sw + (cw.stripes - 1) * gap;
-    ctx.fillStyle = "rgba(214,214,200,0.5)";
-    for (let i = 0; i < cw.stripes; i++) {
-      ctx.fillRect(cwx - span / 2 + i * (sw + gap), c.y - hw + 4 * sx, sw, w - 8 * sx);
+    for (let i = 0; i < cl.length - 1; i++) {
+      const a = cl[i], b = cl[i + 1];
+      const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len * (w / 2), ny = dx / len * (w / 2);
+      for (const s of [1, -1]) {
+        ctx.beginPath();
+        ctx.moveTo(a.x + nx * s, a.y + ny * s);
+        ctx.lineTo(b.x + nx * s, b.y + ny * s);
+        ctx.stroke();
+      }
     }
+
+    drawCrosswalk(ctx, cl, w, cfg.road.crosswalkT, cfg.road.crosswalkStripes, sx);
 
     // Dashed centre line
     ctx.strokeStyle = pal.marking;
     ctx.lineWidth = Math.max(1, 2 * sx);
     ctx.setLineDash([cfg.road.dashLen * sx, cfg.road.gapLen * sx]);
-    strokeL(ctx, c);
+    strokePath(ctx, cl);
     ctx.setLineDash([]);
   }
 
-  function strokeL(ctx, c) {
+  function strokePath(ctx, pts) {
     ctx.beginPath();
-    ctx.moveTo(0, c.y);
-    ctx.lineTo(c.x, c.y);
-    ctx.lineTo(c.x, 0);
+    pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
     ctx.stroke();
+  }
+
+  // Point + unit direction at fraction t along a canvas-space polyline.
+  function alongPath(cl, t) {
+    let total = 0;
+    for (let i = 0; i < cl.length - 1; i++) total += Math.hypot(cl[i + 1].x - cl[i].x, cl[i + 1].y - cl[i].y);
+    let target = t * total, acc = 0;
+    for (let i = 0; i < cl.length - 1; i++) {
+      const a = cl[i], b = cl[i + 1], len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      if (target <= acc + len) {
+        const f = (target - acc) / len;
+        return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, ux: (b.x - a.x) / len, uy: (b.y - a.y) / len };
+      }
+      acc += len;
+    }
+    const a = cl[cl.length - 2], b = cl[cl.length - 1], len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    return { x: b.x, y: b.y, ux: (b.x - a.x) / len, uy: (b.y - a.y) / len };
+  }
+
+  function drawCrosswalk(ctx, cl, w, t, stripes, sx) {
+    const p = alongPath(cl, t);
+    const nx = -p.uy, ny = p.ux;          // across the road
+    const hw = w / 2, barHalf = 3 * sx, spacing = 12 * sx;
+    ctx.fillStyle = "rgba(214,214,200,0.5)";
+    for (let j = 0; j < stripes; j++) {
+      const o = (j - (stripes - 1) / 2) * spacing;
+      const cx = p.x + p.ux * o, cy = p.y + p.uy * o;
+      ctx.beginPath();
+      ctx.moveTo(cx + nx * hw + p.ux * barHalf, cy + ny * hw + p.uy * barHalf);
+      ctx.lineTo(cx + nx * hw - p.ux * barHalf, cy + ny * hw - p.uy * barHalf);
+      ctx.lineTo(cx - nx * hw - p.ux * barHalf, cy - ny * hw - p.uy * barHalf);
+      ctx.lineTo(cx - nx * hw + p.ux * barHalf, cy - ny * hw + p.uy * barHalf);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // Yunnan Garden scene drawn under the road: park, PIE, lake, pagoda.
+  function drawScene(ctx, cfg, P, sx) {
+    const pal = cfg.palettes.night, S = cfg.scene;
+    fillPoly(ctx, S.gardenArea.map(P), pal.garden);
+
+    // Pan-Island Expressway: faint band with lane dashes.
+    const a = P(S.pie.a), b = P(S.pie.b);
+    ctx.lineCap = "butt";
+    ctx.strokeStyle = pal.pie;
+    ctx.lineWidth = S.pie.width * sx;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.strokeStyle = "rgba(190,190,170,0.14)";
+    ctx.lineWidth = Math.max(1, 1 * sx);
+    ctx.setLineDash([12 * sx, 12 * sx]);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    fillPoly(ctx, S.lake.map(P), pal.water);
+    drawPagoda(ctx, P(S.pagoda), sx);
+  }
+
+  function drawPagoda(ctx, p, sx) {
+    ctx.fillStyle = "#8a3f30"; // three stacked roofs
+    for (let k = 0; k < 3; k++) {
+      const y = p.y - k * 7 * sx, half = (11 - k * 3) * sx;
+      ctx.beginPath();
+      ctx.moveTo(p.x, y - 7 * sx);
+      ctx.lineTo(p.x + half, y);
+      ctx.lineTo(p.x - half, y);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = "#5a4632";
+    ctx.fillRect(p.x - 3 * sx, p.y, 6 * sx, 6 * sx);
+  }
+
+  function drawLabels(ctx, cfg, P, sx) {
+    cfg.scene.labels.forEach((l) => {
+      const p = P({ x: l.x, y: l.y });
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      if (l.angle) ctx.rotate(WW.geo.degToRad(l.angle));
+      ctx.fillStyle = l.color;
+      ctx.font = Math.round(l.size * sx) + "px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(l.text, 0, 0);
+      ctx.restore();
+    });
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function fillPoly(ctx, pts, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+    ctx.closePath();
+    ctx.fill();
   }
 
   function drawCones(ctx, cfg, P, sx) {

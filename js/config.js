@@ -13,12 +13,28 @@
 (function () {
   const WW = window.WW || (window.WW = {});
 
+  // Nanyang Drive as it bends around the SW corner of Yunnan Garden: enters from
+  // the top (north) along the garden's west edge, curves at the corner, then runs
+  // diagonally along the south edge (parallel to the PIE) and exits east.
+  // Shared by both the road surface and the car's path (single-lane demo).
+  const NANYANG_DRIVE = [
+    { x: 232, y: -40 },
+    { x: 236, y: 150 },
+    { x: 248, y: 280 },
+    { x: 272, y: 372 },
+    { x: 322, y: 446 },
+    { x: 420, y: 500 },
+    { x: 580, y: 536 },
+    { x: 800, y: 562 },
+    { x: 1050, y: 588 },
+  ];
+
   WW.config = {
     // ---- Branding / framing (shown in the header + on the map) -----------
     brand: {
       title: "NTU WildWatch",
       tagline: "Wildlife road-crossing early-warning — live simulation",
-      location: "Nanyang Ave (simulated) · night",
+      location: "Nanyang Drive · Yunnan Garden (simulated) · night",
       insight: "Why it works: cameras detect wildlife beyond the reach of the driver's headlights.",
     },
 
@@ -45,66 +61,64 @@
       height: 700,
     },
 
-    // ---- Road: L-shape. Horizontal (left edge -> corner), then vertical
-    // (corner -> top edge). roadWidth spans both lanes. -------------------
+    // ---- Road: Nanyang Drive centerline polyline (bends around Yunnan Garden).
+    // The renderer draws the surface/edges/centre-line along `centerline`.
     road: {
-      corner: { x: 750, y: 450 },
-      roadWidth: 90,
-      laneWidth: 45,
-      dashLen: 24, // centre-line dash length
+      centerline: NANYANG_DRIVE,
+      roadWidth: 84,
+      laneWidth: 42,
+      dashLen: 24,          // centre-line dash length
       gapLen: 20,
-      edgeColor: "#5b6473",           // solid lane-edge lines
-      crosswalk: { x: 640, stripes: 5 }, // zebra crossing on the horizontal road
+      edgeColor: "#5b6473", // solid lane-edge lines
+      crosswalkT: 0.62,     // zebra crossing at 62% along the road
+      crosswalkStripes: 5,
     },
 
-    // ---- Car route: polyline the (single) car follows, in its lane.
-    // Enter left -> along the horizontal -> turn at corner -> up -> exit top.
-    carPath: [
-      { x: -40, y: 472 }, // spawn just off the left edge, lower lane
-      { x: 772, y: 472 }, // approach corner along horizontal
-      { x: 772, y: -40 }, // turn up, exit off the top edge
-    ],
+    // ---- Car route = the road centerline (single-lane demo). Enters top,
+    // rounds the bend, exits east.
+    carPath: NANYANG_DRIVE,
 
-    // ---- Cameras (fixed in v1). Cone derived from facingAngle/fov/range. --
+    // ---- Cameras at the Yunnan Garden crossing hotspots. Each sits on the
+    // outer side of Nanyang Drive, looking back toward the garden edge so
+    // wildlife emerging from the park is caught as it reaches the road. ------
     cameras: [
       {
         id: "cam1",
-        name: "Cam 1",
-        x: 850,
-        y: 470,
-        facingAngleDeg: 175, // look west, toward the corner
-        fovDeg: 60,
-        range: 260,
+        name: "Cam 1 · West edge",
+        x: 148,
+        y: 250,
+        facingAngleDeg: 18,  // look east, across the west stretch into the garden
+        fovDeg: 58,
+        range: 215,
         linkedSignalId: "signal1",
       },
       {
         id: "cam2",
-        name: "Cam 2",
-        x: 850,
-        y: 200,
-        facingAngleDeg: 185, // look west, across the upper vertical stretch
-        fovDeg: 55,
-        range: 220,
+        name: "Cam 2 · South bend",
+        x: 660,
+        y: 614,
+        facingAngleDeg: 286, // look north, across the south stretch into the garden
+        fovDeg: 62,
+        range: 240,
         linkedSignalId: "signal2",
       },
     ],
 
-    // ---- Signals (fixed in v1). Each sits UPSTREAM of its camera's zone
-    // along the car path, and owns a warning zone the car uses to slow. ----
+    // ---- Warning signs, each UPSTREAM of its camera's zone along the car path.
     signals: [
       {
         id: "signal1",
-        name: "Signal 1",
-        x: 480,
-        y: 415,
+        name: "Signal 1 · West",
+        x: 262,
+        y: 120,
         linkedCameraId: "cam1",
         message: "WILDLIFE AHEAD – SLOW DOWN",
       },
       {
         id: "signal2",
-        name: "Signal 2",
-        x: 715,
-        y: 360,
+        name: "Signal 2 · Bend",
+        x: 330,
+        y: 428,
         linkedCameraId: "cam2",
         message: "WILDLIFE AHEAD – SLOW DOWN",
       },
@@ -162,12 +176,14 @@
       maxConcurrent: 5,    // cap on simultaneous auto-demo animals
       // Entry points around the verge; each auto-spawn picks one at random and a
       // random species. dirDeg sends the animal across / toward the road.
+      // Animals emerge from Yunnan Garden and cross Nanyang Drive within the
+      // camera-covered stretches (so the system can warn). A presenter can still
+      // drop one in an uncovered spot to show a coverage gap.
       spawns: [
-        { x: 700, y: 660, dirDeg: -90 }, // up into the corner (cam 1)
-        { x: 430, y: 665, dirDeg: -90 }, // up across the horizontal road
-        { x: 180, y: 660, dirDeg: -90 }, // up across the horizontal road (left)
-        { x: 930, y: 300, dirDeg: 180 }, // left toward the vertical road (cam 2)
-        { x: 930, y: 150, dirDeg: 180 }, // left toward the upper vertical road
+        { x: 430, y: 235, dirDeg: 182 }, // garden -> west stretch (cam 1)
+        { x: 430, y: 320, dirDeg: 178 }, // garden -> west stretch (cam 1)
+        { x: 610, y: 460, dirDeg: 104 }, // garden -> south bend (cam 2)
+        { x: 720, y: 455, dirDeg: 110 }, // garden -> south stretch (cam 2)
       ],
     },
 
@@ -179,6 +195,9 @@
         marking: "#4a4230",
         tree: "#122b1c",
         sky: "#05070b",
+        garden: "#12271a",  // Yunnan Garden park fill (a touch lighter than grass)
+        water: "#0f2740",   // Nanyang Lake
+        pie: "#242a24",     // Pan-Island Expressway asphalt
       },
       day: {
         grass: "#2f6b3a",
@@ -189,11 +208,37 @@
       },
     },
 
-    // Simple decoration (trees/bushes), off-road, purely cosmetic.
+    // ---- Yunnan Garden scene (drawn under the road) ---------------------
+    scene: {
+      // Park area filling the inside of the road bend (upper-right).
+      gardenArea: [
+        { x: 300, y: -40 }, { x: 1050, y: -40 }, { x: 1050, y: 560 },
+        { x: 800, y: 536 }, { x: 580, y: 508 }, { x: 420, y: 470 },
+        { x: 330, y: 414 }, { x: 292, y: 300 }, { x: 286, y: -40 },
+      ],
+      // Nanyang Lake (irregular blob inside the garden).
+      lake: [
+        { x: 470, y: 150 }, { x: 600, y: 120 }, { x: 700, y: 165 },
+        { x: 720, y: 250 }, { x: 640, y: 315 }, { x: 520, y: 300 },
+        { x: 452, y: 225 },
+      ],
+      pagoda: { x: 560, y: 380 }, // Nanyang University Memorial Pagoda
+      // Pan-Island Expressway: faint diagonal band beyond the south edge.
+      pie: { a: { x: 360, y: 735 }, b: { x: 1080, y: 505 }, width: 78 },
+      labels: [
+        { text: "YUNNAN GARDEN", x: 830, y: 250, size: 20, color: "rgba(150,200,160,0.55)" },
+        { text: "Nanyang Lake", x: 585, y: 232, size: 13, color: "rgba(150,190,220,0.7)" },
+        { text: "NANYANG DRIVE", x: 150, y: 360, size: 12, color: "rgba(200,208,220,0.45)", angle: 90 },
+        { text: "PAN-ISLAND EXPRESSWAY", x: 720, y: 640, size: 12, color: "rgba(200,208,220,0.4)", angle: -17 },
+      ],
+    },
+
+    // Garden trees/bushes (denser along the road edge), purely cosmetic.
     decor: [
-      { x: 120, y: 120 }, { x: 300, y: 180 }, { x: 560, y: 110 },
-      { x: 180, y: 600 }, { x: 420, y: 640 }, { x: 900, y: 560 },
-      { x: 620, y: 250 }, { x: 900, y: 90 },
+      { x: 340, y: 170 }, { x: 360, y: 380 }, { x: 300, y: 470 },
+      { x: 470, y: 430 }, { x: 640, y: 470 }, { x: 820, y: 480 },
+      { x: 940, y: 430 }, { x: 900, y: 150 }, { x: 780, y: 90 },
+      { x: 470, y: 360 }, { x: 700, y: 400 }, { x: 990, y: 300 },
     ],
   };
 })();

@@ -18,12 +18,13 @@ offline. No install, no build step, no internet, no dependencies.
 
 ## 3-step presenter demo
 
-1. **Drag an animal** from the tray (Macaque / Wild boar / Pangolin) onto the road
-   near the corner. It appears semi-transparent with a **direction arrow** — drag
-   the arrow tip to aim it across the road.
-2. **Click the animal** to release it. It starts walking. When it enters **Cam 1's**
-   view cone, the camera card shows **Detecting**, a thermal blob appears, **Signal 1
-   flashes** `WILDLIFE AHEAD – SLOW DOWN`, and a **detection log** entry is recorded.
+1. **Drag an animal** from the tray (Macaque / Wild boar / Pangolin) onto Nanyang
+   Drive where it borders Yunnan Garden. It appears semi-transparent with a
+   **direction arrow** — drag the arrow tip to aim it across the road.
+2. **Click the animal** to release it. It starts walking. When it enters a camera's
+   view cone (**Cam 1 · West edge** or **Cam 2 · South bend**), the camera card shows
+   **Detecting**, a thermal blob appears, its **signal flashes**
+   `WILDLIFE AHEAD – SLOW DOWN`, and a **detection log** entry is recorded.
 3. **Watch the car** loop around the road. As it passes the flashing sign its speed
    drops from **50 → 20 km/h**. If an animal is walking on the road directly ahead,
    the car **stops and waits**, then resumes once the road is clear.
@@ -44,10 +45,14 @@ Extra controls: **Pause** freezes the simulation (drag/drop still works while pa
 ## Editing the scene (`js/config.js`)
 
 Everything about the scene lives in **`js/config.js`**, in logical map units on a
-`1000 × 700` grid. Nothing is hard-coded in the rendering or logic files, so you can
-reshape the demo by editing config alone:
+`1000 × 700` grid. The current map is **Nanyang Drive around Yunnan Garden**; the road
+is a **centerline polyline** (`NANYANG_DRIVE`) so it can follow any real road shape.
+Nothing is hard-coded in the rendering or logic files, so you can reshape the demo by
+editing config alone:
 
-- **Road shape / car route** — `road.corner` and the `carPath` polyline points.
+- **Road shape / car route** — the `NANYANG_DRIVE` polyline (used by both
+  `road.centerline` and `carPath`); `road.crosswalkT` places the crossing.
+- **Garden scene** — `scene`: `gardenArea`, `lake`, `pagoda`, `pie`, and `labels`.
 - **Cameras** — `cameras[]`: each has `x, y, facingAngleDeg, fovDeg, range,
   linkedSignalId`. The view cone is drawn from the angle, field-of-view and range.
   (Angles are degrees, clockwise from east, with +y pointing down: `0`=right,
