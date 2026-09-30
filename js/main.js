@@ -144,17 +144,20 @@
   function wireControls() {
     const btnPause = document.getElementById("btn-pause");
     const btnReset = document.getElementById("btn-reset");
+    // Pause and System are meta-controls: they keep the scoreboard and any
+    // running auto-demo intact (System toggling is how you compare before/after).
     btnPause.addEventListener("click", () => {
-      noteInteraction();
+      idleMs = 0;
       paused = !paused;
       btnPause.textContent = paused ? "▶ Play" : "⏸ Pause";
     });
-    btnReset.addEventListener("click", () => { noteInteraction(); resetAll(); });
+    // Reset is the only control that clears the scoreboard + scene.
+    btnReset.addEventListener("click", () => { stopAttract(); resetAll(); idleMs = 0; });
 
     const btnSystem = document.getElementById("btn-system");
     btnSystem.addEventListener("click", () => {
-      noteInteraction();
-      setSystem(!WW.system.enabled);
+      idleMs = 0;                    // don't let the idle demo interrupt a comparison
+      setSystem(!WW.system.enabled); // keep stats + animals so ON vs OFF accumulates
     });
 
     const btnLegend = document.getElementById("btn-legend");
