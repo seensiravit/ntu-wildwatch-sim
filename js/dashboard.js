@@ -103,8 +103,12 @@
       tile("st-detected", "Animals detected", "") +
       tile("st-avoided", "Near-misses avoided", "safe") +
       tile("st-nearmiss", "Near-misses (system off)", "danger") +
-      tile("st-speed", "Avg speed at crossing", "") +
-      "</div>";
+      '<div class="stat"><div class="stat-num" id="st-speed">' +
+      '<span class="danger">–</span> → <span class="safe">–</span></div>' +
+      '<div class="stat-label">Avg km/h at crossing (off → on)</div></div>' +
+      "</div>" +
+      '<div class="stat-summary" id="stat-summary"></div>' +
+      '<div class="stat-insight">' + WW.config.brand.insight + "</div>";
   }
 
   function updateStats() {
@@ -112,8 +116,25 @@
     setNum("st-detected", s.detections);
     setNum("st-avoided", s.avoided);
     setNum("st-nearmiss", s.nearMiss);
+
+    const off = WW.stats.avgOffKmh(), on = WW.stats.avgOnKmh();
     const sp = document.getElementById("st-speed");
-    if (sp) sp.textContent = WW.stats.avgCrossingKmh() + " km/h";
+    if (sp) {
+      sp.innerHTML =
+        '<span class="danger">' + (off === null ? "–" : off) + "</span> → " +
+        '<span class="safe">' + (on === null ? "–" : on) + "</span>";
+    }
+
+    const sum = document.getElementById("stat-summary");
+    if (sum) {
+      if (s.nearMiss === 0 && s.avoided === 0) {
+        sum.textContent = "Toggle System OFF / ON to compare the same crossings.";
+      } else {
+        sum.textContent =
+          "Without the system: " + s.nearMiss + " near-miss" + (s.nearMiss === 1 ? "" : "es") +
+          ". With it: " + s.avoided + " avoided.";
+      }
+    }
   }
   function setNum(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
 
