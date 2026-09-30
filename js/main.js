@@ -36,8 +36,20 @@
     resetAll();
     wireControls();
     wireInput();
+    wireKeyboard();
 
     requestAnimationFrame(loop);
+  }
+
+  // Presenter shortcuts: Space = pause, R = reset, S = toggle system.
+  function wireKeyboard() {
+    window.addEventListener("keydown", (e) => {
+      if (e.target && e.target.tagName === "INPUT") return; // don't hijack the slider
+      const k = e.key.toLowerCase();
+      if (e.code === "Space" || k === " ") { e.preventDefault(); document.getElementById("btn-pause").click(); }
+      else if (k === "r") { document.getElementById("btn-reset").click(); }
+      else if (k === "s") { document.getElementById("btn-system").click(); }
+    });
   }
 
   // Match the backing store to the displayed size × DPR, then draw in CSS px.
@@ -185,6 +197,7 @@
     // Pointer events on the map -> animal drag/rotate/release (SPEC §5.2).
     canvas.addEventListener("pointerdown", (e) => {
       noteInteraction();
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {} // keep events past the edge
       const p = toLogical(e);
       WW.animals.onPointerDown(p.x, p.y);
     });

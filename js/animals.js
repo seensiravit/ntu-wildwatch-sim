@@ -105,8 +105,14 @@
 
   function onPointerUp(x, y) {
     if (!drag) return;
-    // A click on the body (little movement) releases it to Walking.
-    if (drag.mode === "body" && drag.moved < WW.config.tuning.dragReleaseThreshPx) {
+    const map = WW.config.map;
+    const outOfBounds = x < 0 || x > map.width || y < 0 || y > map.height;
+    if (drag.mode === "body" && outOfBounds) {
+      // Dragged off the map -> remove it (tidy the scene).
+      const i = list.indexOf(drag.animal);
+      if (i >= 0) list.splice(i, 1);
+    } else if (drag.mode === "body" && drag.moved < WW.config.tuning.dragReleaseThreshPx) {
+      // A click on the body (little movement) releases it to Walking.
       drag.animal.state = "walking";
     }
     drag = null;

@@ -19,6 +19,7 @@
       title: "NTU WildWatch",
       tagline: "Wildlife road-crossing early-warning — live simulation",
       location: "Nanyang Ave (simulated) · night",
+      insight: "Why it works: cameras detect wildlife beyond the reach of the driver's headlights.",
     },
 
     // ---- Legend / key (what the on-screen elements mean) ----------------

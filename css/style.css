@@ -188,7 +188,11 @@ html, body {
 .stat-num { font-size: 22px; font-weight: 700; line-height: 1.1; }
 .stat-num.danger { color: #ff6a5f; }
 .stat-num.safe { color: #46d17f; }
+.stat-num .danger { color: #ff6a5f; }
+.stat-num .safe { color: #46d17f; }
 .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.stat-summary { margin-top: 10px; font-size: 12px; color: var(--text); }
+.stat-insight { margin-top: 6px; font-size: 11px; color: var(--muted); font-style: italic; }
 .hint-dot {
   width: 8px;
   height: 8px;

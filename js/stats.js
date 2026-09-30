@@ -8,8 +8,10 @@
     detections: 0,   // animals seen by a camera (system on only)
     nearMiss: 0,     // dangerous encounters (car fast at an un-warned animal)
     avoided: 0,      // encounters where the car had already slowed (safe)
-    speedSum: 0,     // sum of car speed at each encounter (for the average)
-    speedCount: 0,
+    // Crossing speed bucketed by system state, so the with/without comparison
+    // is honest instead of a blended average.
+    speedSumOff: 0, speedCountOff: 0,
+    speedSumOn: 0,  speedCountOn: 0,
     markers: [],     // active "NEAR MISS" map markers: { x, y, bornMs }
   };
 
@@ -17,8 +19,8 @@
     state.detections = 0;
     state.nearMiss = 0;
     state.avoided = 0;
-    state.speedSum = 0;
-    state.speedCount = 0;
+    state.speedSumOff = 0; state.speedCountOff = 0;
+    state.speedSumOn = 0;  state.speedCountOn = 0;
     state.markers.length = 0;
   }
 
@@ -27,8 +29,8 @@
 
   // The car reached a walking animal. safe = it had slowed enough in time.
   function onEncounter(safe, x, y, kmh) {
-    state.speedSum += kmh;
-    state.speedCount++;
+    if (WW.system && WW.system.enabled) { state.speedSumOn += kmh; state.speedCountOn++; }
+    else { state.speedSumOff += kmh; state.speedCountOff++; }
     if (safe) {
       state.avoided++;
     } else {
@@ -37,9 +39,9 @@
     }
   }
 
-  function avgCrossingKmh() {
-    return state.speedCount ? Math.round(state.speedSum / state.speedCount) : 0;
-  }
+  // Average crossing speed per mode (null when no data yet).
+  function avgOffKmh() { return state.speedCountOff ? Math.round(state.speedSumOff / state.speedCountOff) : null; }
+  function avgOnKmh() { return state.speedCountOn ? Math.round(state.speedSumOn / state.speedCountOn) : null; }
 
   // Prune expired markers and return the live ones (for render.js).
   function activeMarkers() {
@@ -49,5 +51,5 @@
     return state.markers;
   }
 
-  WW.stats = { state, reset, onDetection, onEncounter, avgCrossingKmh, activeMarkers };
+  WW.stats = { state, reset, onDetection, onEncounter, avgOffKmh, avgOnKmh, activeMarkers };
 })();
