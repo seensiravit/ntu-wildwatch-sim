@@ -11,6 +11,7 @@
     s: 0,             // distance travelled along the path
     respawnTimer: 0,  // >0 while waiting to respawn after an exit
     visible: true,
+    braking: false,
   };
 
   let segs = [];        // [{ax,ay,bx,by,len,ux,uy}]
@@ -129,6 +130,9 @@
     let targetUnits = kmhToUnits(t.cruiseKmh);
     if (inActiveWarnZone()) targetUnits = kmhToUnits(t.warnKmh);
     if (animalAhead()) targetUnits = 0;
+
+    // Brake lights: on when stopping for an animal or actively slowing down.
+    state.braking = targetUnits === 0 || state.speedUnitsPerSec > targetUnits + 0.5;
 
     // Ease speed toward target with separate accel/decel.
     if (state.speedUnitsPerSec < targetUnits) {

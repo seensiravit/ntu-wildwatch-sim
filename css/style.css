@@ -87,12 +87,48 @@ html, body {
 }
 
 #map-wrap {
+  position: relative;
   flex: 1 1 68%;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 12px;
   min-width: 0;
+}
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px;
+  background: rgba(12, 16, 22, 0.82);
+  border: 1px solid var(--amber-dim);
+  border-radius: 999px;
+  color: #f2ead6;
+  font-size: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(3px);
+}
+.hint[hidden] { display: none; }
+.hint-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+  animation: hintpulse 1.6s ease-in-out infinite;
+}
+@keyframes hintpulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hint-dot { animation: none; }
 }
 
 #map {

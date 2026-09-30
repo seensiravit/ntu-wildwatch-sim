@@ -108,6 +108,11 @@
       confidenceMax: 97,
       logMaxEntries: 50,
 
+      // While the user is placing/aiming an animal (dragging, or an animal is
+      // still in the "placed" state), run the sim at this fraction of speed so
+      // the scene is easy to arrange. Set to 0 for a full freeze.
+      placingTimeScale: 0.15,
+
       headlight: { fovDeg: 40, range: 170, dimAlpha: 0.4 },
     },
 
@@ -120,6 +125,14 @@
       carLen: 36,          // car body length (along travel)
       carWidth: 18,        // car body width
       carColor: "#e8e2d0",
+    },
+
+    // ---- Attract / auto-demo mode ---------------------------------------
+    attract: {
+      idleStartMs: 6000,   // idle time before the demo auto-plays
+      spawnGapMs: 1600,    // pause between auto-spawned animals
+      // Scripted animal: enters from the verge and crosses into cam1's cone.
+      spawn: { speciesId: "macaque", x: 700, y: 645, dirDeg: -90 },
     },
 
     // ---- Palettes (night is the only active mode in v1; day kept for later)
