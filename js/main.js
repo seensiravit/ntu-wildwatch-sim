@@ -86,30 +86,27 @@
   // After a spell of no interaction, the demo plays itself on a loop so a
   // passer-by sees the detect -> warn -> slow chain without touching anything.
   function updateAttract(dt) {
+    const cfg = WW.config.attract;
     if (attractActive) {
-      if (WW.animals.list.length === 0) {
-        attractSpawnTimer -= dt * 1000;
-        if (attractSpawnTimer <= 0) {
-          spawnAttractAnimal();
-          attractSpawnTimer = WW.config.attract.spawnGapMs;
-        }
+      // Spawn animals from varied points until the concurrency cap is reached.
+      // (The System ON/OFF state is left as the user set it — no auto-switching.)
+      attractSpawnTimer -= dt * 1000;
+      if (attractSpawnTimer <= 0) {
+        if (WW.animals.list.length < cfg.maxConcurrent) spawnAttractAnimal();
+        attractSpawnTimer = cfg.spawnGapMs;
       }
     } else {
       idleMs += dt * 1000;
-      if (idleMs >= WW.config.attract.idleStartMs && WW.animals.list.length === 0) {
-        startAttract();
-      }
+      if (idleMs >= cfg.idleStartMs && WW.animals.list.length === 0) startAttract();
     }
   }
-
-  let attractSystemOn = true; // flips each auto-demo cycle to show before/after
 
   function startAttract() {
     attractActive = true;
     if (hintEl) hintEl.hidden = false;
+    const hintText = document.getElementById("hint-text");
+    if (hintText) hintText.textContent = "Drag an animal onto the road to try it yourself";
     attractSpawnTimer = 0;
-    attractSystemOn = true; // first cycle shows "with system" (OFF next)
-    spawnAttractAnimal();
   }
 
   function stopAttract() {
@@ -117,31 +114,19 @@
     if (hintEl) hintEl.hidden = true;
   }
 
+  // Spawn one auto-demo animal: random entry point + random species.
   function spawnAttractAnimal() {
-    // Alternate the system each cycle so an idle screen plays with/without it.
-    attractSystemOn = !attractSystemOn;
-    setSystem(attractSystemOn);
-    const hintText = document.getElementById("hint-text");
-    if (hintText) {
-      hintText.textContent = attractSystemOn
-        ? "With WildWatch: the camera warns and the car slows — drag an animal to try it"
-        : "Without WildWatch: the driver isn't warned — watch for a near-miss";
-    }
-    const s = WW.config.attract.spawn;
-    const a = WW.animals.create(s.speciesId, s.x, s.y);
-    if (a) { a.dirDeg = s.dirDeg; a.state = "walking"; }
+    const pts = WW.config.attract.spawns;
+    const p = pts[Math.floor(Math.random() * pts.length)];
+    const sp = WW.config.species[Math.floor(Math.random() * WW.config.species.length)];
+    const a = WW.animals.create(sp.id, p.x, p.y);
+    if (a) { a.dirDeg = p.dirDeg; a.state = "walking"; }
   }
 
   // Any real interaction cancels the auto-demo and hands control to the visitor.
   function noteInteraction() {
     idleMs = 0;
-    if (attractActive) {
-      stopAttract();
-      setSystem(true); // hand the visitor a working system
-      const hintText = document.getElementById("hint-text");
-      if (hintText) hintText.textContent = "Drag an animal onto the road to try it yourself";
-      resetAll();
-    }
+    if (attractActive) { stopAttract(); resetAll(); }
   }
 
   function wireControls() {
@@ -165,6 +150,19 @@
       const el = document.getElementById("legend");
       el.hidden = !el.hidden;
     });
+
+    // Spawn-rate knob: level 1 (slow) .. 10 (fast) -> auto-demo spawn gap.
+    // Changing it does NOT cancel the demo, so you can tune it live.
+    const rate = document.getElementById("rate");
+    if (rate) {
+      const gapForLevel = (lvl) => Math.round(3000 / lvl); // ms between spawns
+      rate.value = String(Math.max(1, Math.min(10,
+        Math.round(3000 / WW.config.attract.spawnGapMs))));
+      WW.config.attract.spawnGapMs = gapForLevel(Number(rate.value));
+      rate.addEventListener("input", () => {
+        WW.config.attract.spawnGapMs = gapForLevel(Number(rate.value));
+      });
+    }
   }
 
   function setSystem(on) {

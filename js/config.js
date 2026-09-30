@@ -157,9 +157,17 @@
     // ---- Attract / auto-demo mode ---------------------------------------
     attract: {
       idleStartMs: 6000,   // idle time before the demo auto-plays
-      spawnGapMs: 1600,    // pause between auto-spawned animals
-      // Scripted animal: enters from the verge and crosses into cam1's cone.
-      spawn: { speciesId: "macaque", x: 700, y: 645, dirDeg: -90 },
+      spawnGapMs: 850,     // time between auto-spawned animals (lower = faster)
+      maxConcurrent: 5,    // cap on simultaneous auto-demo animals
+      // Entry points around the verge; each auto-spawn picks one at random and a
+      // random species. dirDeg sends the animal across / toward the road.
+      spawns: [
+        { x: 700, y: 660, dirDeg: -90 }, // up into the corner (cam 1)
+        { x: 430, y: 665, dirDeg: -90 }, // up across the horizontal road
+        { x: 180, y: 660, dirDeg: -90 }, // up across the horizontal road (left)
+        { x: 930, y: 300, dirDeg: 180 }, // left toward the vertical road (cam 2)
+        { x: 930, y: 150, dirDeg: 180 }, // left toward the upper vertical road
+      ],
     },
 
     // ---- Palettes (night is the only active mode in v1; day kept for later)

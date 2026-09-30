@@ -77,6 +77,23 @@ html, body {
 
 .controls { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 
+.rate-knob {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-2);
+  font-size: 12px;
+  color: var(--muted);
+}
+.rate-knob input[type="range"] {
+  width: 96px;
+  accent-color: var(--amber);
+  cursor: pointer;
+}
+
 /* System ON/OFF toggle */
 .toggle {
   font-weight: 600;
