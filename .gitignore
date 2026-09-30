@@ -1,0 +1,6 @@
+CLAUDE.local.md
+
+# Local verification artifacts (Playwright / screenshots)
+.playwright-mcp/
+*.png
+!docs/*.png

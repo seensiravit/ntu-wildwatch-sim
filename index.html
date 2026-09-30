@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NTU WildWatch — Demo</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Top bar: animal tray + mode badges + controls -->
+    <header id="topbar">
+      <div id="tray" class="tray">
+        <span class="tray-label">Animals:</span>
+        <!-- Species chips are injected by dashboard.js from config -->
+      </div>
+      <div class="modes">
+        <span class="badge badge-on">Night mode</span>
+        <span class="badge badge-disabled">Day mode – next version</span>
+      </div>
+      <div class="controls">
+        <button id="btn-pause" type="button">⏸ Pause</button>
+        <button id="btn-reset" type="button">↺ Reset</button>
+      </div>
+    </header>
+
+    <!-- Main: map canvas + dashboard side panel -->
+    <main id="stage">
+      <section id="map-wrap">
+        <canvas id="map" width="1000" height="700"></canvas>
+      </section>
+      <aside id="dashboard">
+        <div id="camera-cards"></div>
+        <div id="signal-cards"></div>
+        <div id="log-card" class="card">
+          <div class="card-header">Detection log</div>
+          <ul id="log-list"></ul>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Classic script tags in dependency order. NO ES modules (file:// safe). -->
+  <script src="js/config.js"></script>
+  <script src="js/geometry.js"></script>
+  <script src="js/animals.js"></script>
+  <script src="js/car.js"></script>
+  <script src="js/detection.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+/* NTU WildWatch — layout shell.
+   Night palette. Map ~65-70% width, dashboard fills the rest.
+   Targets 1920x1080, scales down to 1366x768. */
+
+:root {
+  --bg: #0a0e14;
+  --panel: #121821;
+  --panel-2: #0e141c;
+  --border: #223042;
+  --text: #cfd8e3;
+  --muted: #7c8aa0;
+  --amber: #ffb020;
+  --amber-dim: #6b4c10;
+  --grey-pill: #2a3646;
+  --map-max: 1360px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ---- Top bar ---- */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.tray { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tray-label { color: var(--muted); font-size: 13px; }
+
+.tray-chip {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--panel-2);
+  cursor: grab;
+  user-select: none;
+  font-size: 14px;
+}
+.tray-chip:active { cursor: grabbing; }
+
+.modes { display: flex; gap: 8px; margin-left: auto; }
+.badge {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.badge-on { color: var(--amber); border-color: var(--amber-dim); }
+.badge-disabled { color: var(--muted); opacity: 0.6; }
+
+.controls { display: flex; gap: 8px; }
+.controls button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.controls button:hover { border-color: var(--amber-dim); }
+
+/* ---- Stage: map + dashboard ---- */
+#stage {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#map-wrap {
+  flex: 1 1 68%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  min-width: 0;
+}
+
+#map {
+  width: 100%;
+  max-width: var(--map-max);
+  height: auto;
+  aspect-ratio: 1000 / 700;
+  background: #05070b;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  touch-action: none;
+}
+
+#dashboard {
+  flex: 0 0 340px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- Cards ---- */
+.card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.pill {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  background: var(--grey-pill);
+  color: var(--muted);
+}
+.pill-active { background: var(--amber); color: #1a1200; }
+
+.card.detecting { border-color: var(--amber); }
+
+.sig-msg {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+  background: #1a1200;
+  border: 1px solid var(--amber-dim);
+  border-radius: 4px;
+  padding: 5px 8px;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.thermal { width: 100%; border-radius: 6px; display: block; background: #120a1e; }
+
+#log-card { flex: 1 1 auto; min-height: 120px; display: flex; flex-direction: column; }
+#log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+}
+#log-list li { padding: 3px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+
+/* Scale down for 1366x768 laptops */
+@media (max-width: 1440px) {
+  #dashboard { flex-basis: 300px; }
+}
