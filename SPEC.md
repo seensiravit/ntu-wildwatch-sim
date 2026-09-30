@@ -214,10 +214,11 @@ All values update live from the simulation state.
 
 - Day mode and a day/night toggle
 - The real NTU road map, which replaces the config geometry only
-- Before/after comparison ("without system" vs "with system")
+- ~~Before/after comparison ("without system" vs "with system")~~ — **landed early in
+  v1.2** as a System ON/OFF toggle with near-miss tally (see README)
 - Multiple cars and two-way traffic, including signals for both directions
 - Movable cameras and signals
-- Near-miss alerts and hotspot heatmap on the dashboard
+- ~~Near-miss alerts~~ (landed in v1.2) and hotspot heatmap on the dashboard
 - Prong 2 (rope bridges, culvert ledges, funnel fencing)
 - Any real detection model (YOLO etc.)
 

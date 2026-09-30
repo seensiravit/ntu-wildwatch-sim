@@ -28,8 +28,18 @@ offline. No install, no build step, no internet, no dependencies.
    drops from **50 → 20 km/h**. If an animal is walking on the road directly ahead,
    the car **stops and waits**, then resumes once the road is clear.
 
-Extra controls: **Pause** freezes the simulation (you can still drag/drop while
-paused); **Reset** clears all animals and the log and restarts the car.
+**The key message — flip `System: ON` to `OFF`.** With the system **off**, the
+cameras and signs are gone, the driver gets no early warning, and the car reaches the
+animal at full speed — a red **NEAR MISS** flashes. Turn it back **on** and the same
+crossing is detected early, the sign warns, the car slows, and the encounter is
+**avoided**. The **Impact** panel keeps score: animals detected, near-misses (system
+off) vs near-misses avoided (system on), and average speed at the crossing.
+
+If the booth screen is left idle, an **auto-demo** plays the with/without comparison on
+a loop; any interaction hands control back to the visitor.
+
+Extra controls: **Pause** freezes the simulation (drag/drop still works while paused);
+**Reset** clears animals, the log and the scoreboard; **Key** shows the legend.
 
 ## Editing the scene (`js/config.js`)
 

@@ -46,6 +46,18 @@
     if (!camState[WW.config.cameras[0].id]) reset(); // lazy init safety
     const t = WW.config.tuning;
 
+    // System OFF: the cameras/signs aren't installed — nothing detects or warns.
+    if (WW.system && !WW.system.enabled) {
+      WW.config.cameras.forEach((cam) => {
+        const cs = camState[cam.id];
+        cs.detecting = false;
+        cs.animalsInCone = [];
+        cs.episodes.clear();
+      });
+      WW.config.signals.forEach((sig) => { sigState[sig.id].flashing = false; });
+      return;
+    }
+
     WW.config.cameras.forEach((cam) => {
       const cs = camState[cam.id];
       const nowInCone = [];
@@ -62,6 +74,7 @@
           conf = randInt(t.confidenceMin, t.confidenceMax);
           cs.episodes.set(a.id, conf);
           addLog(cam, a, conf);                            // ENTER event
+          if (WW.stats) WW.stats.onDetection();
         }
 
         const d = WW.geo.dist(cam.x, cam.y, a.x, a.y);

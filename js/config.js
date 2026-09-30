@@ -14,6 +14,31 @@
   const WW = window.WW || (window.WW = {});
 
   WW.config = {
+    // ---- Branding / framing (shown in the header + on the map) -----------
+    brand: {
+      title: "NTU WildWatch",
+      tagline: "Wildlife road-crossing early-warning — live simulation",
+      location: "Nanyang Ave (simulated) · night",
+    },
+
+    // ---- Legend / key (what the on-screen elements mean) ----------------
+    legend: [
+      { kind: "cone",   label: "Camera coverage (edge-AI detection zone)" },
+      { kind: "sign",   label: "Warning sign — flashes when wildlife is detected" },
+      { kind: "thermal",label: "Simulated thermal camera view" },
+      { kind: "dim",    label: "Dimmed = beyond the driver's headlights" },
+    ],
+
+    // ---- Before/after system state --------------------------------------
+    system: { defaultEnabled: true },
+
+    // ---- Near-miss detection (system OFF danger indicator) --------------
+    nearMiss: {
+      dangerZoneLen: 150,   // how far ahead of the car counts as an encounter
+      dangerSpeedKmh: 35,   // above this at the encounter = near-miss, else "avoided"
+      markerMs: 1600,       // how long the red NEAR MISS marker stays on the map
+    },
+
     map: {
       width: 1000,
       height: 700,
@@ -27,6 +52,8 @@
       laneWidth: 45,
       dashLen: 24, // centre-line dash length
       gapLen: 20,
+      edgeColor: "#5b6473",           // solid lane-edge lines
+      crosswalk: { x: 640, stripes: 5 }, // zebra crossing on the horizontal road
     },
 
     // ---- Car route: polyline the (single) car follows, in its lane.

@@ -22,6 +22,27 @@
   function build() {
     const cfg = WW.config;
 
+    // Brand text (title highlights "Wild"; tagline + location from config)
+    const title = document.getElementById("brand-title");
+    if (title) {
+      title.innerHTML = cfg.brand.title.replace("Wild", '<span class="wild">Wild</span>');
+    }
+    const tagline = document.getElementById("brand-tagline");
+    if (tagline) tagline.textContent = cfg.brand.tagline;
+
+    // Legend / key overlay
+    const legend = document.getElementById("legend");
+    if (legend) {
+      cfg.legend.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "legend-row";
+        row.innerHTML = '<span class="legend-swatch sw-' + item.kind + '"></span>' + item.label;
+        legend.appendChild(row);
+      });
+    }
+
+    buildStats();
+
     // Tray chips (draggable species) — SPEC §5.1
     const tray = document.getElementById("tray");
     cfg.species.forEach((sp) => {
@@ -70,17 +91,51 @@
     logEl = document.getElementById("log-list");
   }
 
+  function buildStats() {
+    const el = document.getElementById("stats-card");
+    if (!el) return;
+    const tile = (id, label, cls) =>
+      '<div class="stat"><div class="stat-num ' + cls + '" id="' + id + '">0</div>' +
+      '<div class="stat-label">' + label + '</div></div>';
+    el.innerHTML =
+      '<div class="card-header">Impact</div>' +
+      '<div class="stats-grid">' +
+      tile("st-detected", "Animals detected", "") +
+      tile("st-avoided", "Near-misses avoided", "safe") +
+      tile("st-nearmiss", "Near-misses (system off)", "danger") +
+      tile("st-speed", "Avg speed at crossing", "") +
+      "</div>";
+  }
+
+  function updateStats() {
+    const s = WW.stats.state;
+    setNum("st-detected", s.detections);
+    setNum("st-avoided", s.avoided);
+    setNum("st-nearmiss", s.nearMiss);
+    const sp = document.getElementById("st-speed");
+    if (sp) sp.textContent = WW.stats.avgCrossingKmh() + " km/h";
+  }
+  function setNum(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+
   function update() {
     const cfg = WW.config;
     const det = WW.detection;
     const flashPill = det.flashOn(); // shared phase, freezes on pause
+    const systemOn = WW.system.enabled;
+
+    updateStats();
 
     // Camera cards + thermal feeds
     cfg.cameras.forEach((cam) => {
       const cs = det.camState[cam.id] || { detecting: false, animalsInCone: [] };
       const card = document.getElementById("card-" + cam.id);
       const pill = document.getElementById("pill-" + cam.id);
-      if (cs.detecting) {
+      card.classList.toggle("offline", !systemOn);
+      if (!systemOn) {
+        pill.textContent = "Offline";
+        pill.classList.remove("pill-active");
+        card.classList.remove("detecting");
+      } else if (cs.detecting) {
         pill.textContent = "Detecting";
         pill.classList.add("pill-active");
         card.classList.add("detecting");
@@ -95,6 +150,8 @@
     // Signal cards
     cfg.signals.forEach((sig) => {
       const ref = signalCards[sig.id];
+      const card = document.getElementById("card-" + sig.id);
+      card.classList.toggle("offline", !systemOn);
       const active = det.isSignalActive(sig.id);
       if (active) {
         ref.pill.textContent = "Flashing";

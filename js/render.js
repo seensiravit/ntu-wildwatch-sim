@@ -41,6 +41,8 @@
     drawSignals(ctx, cfg, P, sx);
     drawCar(ctx, cfg, P, sx);
     drawAnimals(ctx, cfg, P, sx);
+    drawNearMiss(ctx, P, sx);
+    if (!WW.system.enabled) drawSystemOff(ctx, W, H);
 
     // Vignette for depth (darkens the edges only).
     const v = ctx.createRadialGradient(W * 0.5, H * 0.5, Math.min(W, H) * 0.35, W * 0.5, H * 0.5, Math.max(W, H) * 0.62);
@@ -48,6 +50,13 @@
     v.addColorStop(1, "rgba(0,0,0,0.34)");
     ctx.fillStyle = v;
     ctx.fillRect(0, 0, W, H);
+
+    // Location label (bottom-right)
+    ctx.fillStyle = "rgba(207,216,227,0.45)";
+    ctx.font = Math.round(12 * sx) + "px system-ui, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(cfg.brand.location, W - 14, H - 12);
+    ctx.textAlign = "left";
   }
 
   function headlightCam() {
@@ -58,6 +67,7 @@
   // Faint link from each camera to the signal it controls: makes the
   // "this camera drives that sign" relationship visible; brightens on detect.
   function drawLinks(ctx, cfg, P, sx) {
+    if (!WW.system.enabled) return; // no camera->sign relationship without the system
     cfg.cameras.forEach((cam) => {
       const sig = cfg.signals.find((s) => s.id === cam.linkedSignalId);
       if (!sig) return;
@@ -138,6 +148,26 @@
     ctx.lineWidth = w;
     strokeL(ctx, c);
 
+    // Solid lane-edge lines (outer + inner of the L).
+    const hw = w / 2;
+    ctx.strokeStyle = cfg.road.edgeColor;
+    ctx.lineWidth = Math.max(1, 1.5 * sx);
+    ctx.beginPath();
+    ctx.moveTo(0, c.y - hw); ctx.lineTo(c.x + hw, c.y - hw); ctx.lineTo(c.x + hw, 0);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, c.y + hw); ctx.lineTo(c.x - hw, c.y + hw); ctx.lineTo(c.x - hw, 0);
+    ctx.stroke();
+
+    // Zebra crossing on the horizontal stretch.
+    const cw = cfg.road.crosswalk;
+    const cwx = cw.x * sx, sw = 6 * sx, gap = 8 * sx;
+    const span = cw.stripes * sw + (cw.stripes - 1) * gap;
+    ctx.fillStyle = "rgba(214,214,200,0.5)";
+    for (let i = 0; i < cw.stripes; i++) {
+      ctx.fillRect(cwx - span / 2 + i * (sw + gap), c.y - hw + 4 * sx, sw, w - 8 * sx);
+    }
+
     // Dashed centre line
     ctx.strokeStyle = pal.marking;
     ctx.lineWidth = Math.max(1, 2 * sx);
@@ -155,7 +185,14 @@
   }
 
   function drawCones(ctx, cfg, P, sx) {
+    const systemOn = WW.system.enabled;
     cfg.cameras.forEach((cam) => {
+      const cp0 = P(cam);
+      if (!systemOn) { // no system installed: greyed camera, no coverage cone
+        ctx.fillStyle = "#404a58";
+        dot(ctx, cp0.x, cp0.y, 5 * sx);
+        return;
+      }
       const cs = WW.detection.camState[cam.id];
       const detecting = cs && cs.detecting;
       const poly = WW.geo.conePolygon(cam.x, cam.y, cam.facingAngleDeg, cam.fovDeg, cam.range);
@@ -165,11 +202,26 @@
       ctx.fillStyle = detecting ? "rgba(255,176,32,0.22)" : "rgba(255,176,32,0.07)";
       ctx.fill();
       const cp = P(cam);
-      // Camera housing
-      ctx.fillStyle = detecting ? "#ffb020" : "#9fb0c4";
-      dot(ctx, cp.x, cp.y, 6 * sx);
-      if (detecting) { ctx.strokeStyle = "rgba(255,176,32,0.6)"; ctx.lineWidth = 2 * sx; ctx.beginPath(); ctx.arc(cp.x, cp.y, 9 * sx, 0, Math.PI * 2); ctx.stroke(); }
+      if (detecting) { // active "seeing" halo
+        ctx.strokeStyle = "rgba(255,176,32,0.6)"; ctx.lineWidth = 2 * sx;
+        ctx.beginPath(); ctx.arc(cp.x, cp.y, 11 * sx, 0, Math.PI * 2); ctx.stroke();
+      }
+      drawCamera(ctx, cp, cam.facingAngleDeg, sx, detecting);
     });
+  }
+
+  // Small pole-mounted camera pointing along its facing angle.
+  function drawCamera(ctx, cp, facingDeg, sx, detecting) {
+    ctx.save();
+    ctx.translate(cp.x, cp.y);
+    ctx.rotate(WW.geo.degToRad(facingDeg));
+    ctx.fillStyle = "#3a4655";                          // mount arm
+    ctx.fillRect(-9 * sx, -1.5 * sx, 9 * sx, 3 * sx);
+    ctx.fillStyle = detecting ? "#ffb020" : "#aeb9c8";  // body
+    roundRect(ctx, -3 * sx, -5 * sx, 12 * sx, 10 * sx, 2 * sx); ctx.fill();
+    ctx.fillStyle = "#0c0f14";                          // lens (front)
+    dot(ctx, 7 * sx, 0, 2.4 * sx);
+    ctx.restore();
   }
 
   function drawSignals(ctx, cfg, P, sx) {
@@ -196,8 +248,16 @@
         dot(ctx, s.x, s.y, 7 * sx);
       }
 
-      // LED message board (fades with intensity)
+      // Mounting post (drawn under the beacon/board so it reads as a roadside sign)
       const bw = 82 * sx, bh = 18 * sx, bx = s.x - bw / 2, by = s.y + 10 * sx;
+      ctx.strokeStyle = "#59636f";
+      ctx.lineWidth = 2.5 * sx;
+      ctx.beginPath();
+      ctx.moveTo(s.x, by + bh);
+      ctx.lineTo(s.x, by + bh + 16 * sx);
+      ctx.stroke();
+
+      // LED message board (fades with intensity)
       ctx.fillStyle = "#0c0f14";
       ctx.strokeStyle = "rgba(255,176,32," + (0.25 + 0.6 * inten).toFixed(3) + ")";
       ctx.lineWidth = Math.max(1, 1 * sx);
@@ -337,6 +397,40 @@
       ctx.fillStyle = "rgba(120,180,140,0.10)";        // faint moonlit highlight
       ctx.beginPath(); ctx.arc(s.x + r * 0.3, s.y - r * 0.3, r * 0.5, 0, Math.PI * 2); ctx.fill();
     });
+  }
+
+  // Red "NEAR MISS" markers where the car reached an un-warned animal.
+  function drawNearMiss(ctx, P, sx) {
+    const markers = WW.stats.activeMarkers();
+    const life = WW.config.nearMiss.markerMs;
+    const now = clockMs();
+    markers.forEach((m) => {
+      const s = P(m);
+      const age = (now - m.bornMs) / life; // 0..1
+      const rad = (8 + age * 26) * sx;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - age);
+      ctx.strokeStyle = "#ff3b30";
+      ctx.lineWidth = 3 * sx;
+      ctx.beginPath(); ctx.arc(s.x, s.y, rad, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "#ff5148";
+      ctx.font = "700 " + Math.round(12 * sx) + "px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("NEAR MISS", s.x, s.y - rad - 4 * sx);
+      ctx.restore();
+    });
+  }
+
+  // Watermark shown while the system is switched off.
+  function drawSystemOff(ctx, W, H) {
+    ctx.save();
+    ctx.fillStyle = "rgba(255,90,80,0.16)";
+    ctx.font = "800 " + Math.round(H * 0.09) + "px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("SYSTEM OFF", W / 2, H * 0.16);
+    ctx.restore();
+    ctx.textBaseline = "alphabetic";
   }
 
   // ---- small canvas helpers ----

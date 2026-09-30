@@ -13,6 +13,8 @@
   // View size in CSS pixels (the render coordinate space); backing store is
   // scaled by devicePixelRatio for crisp output on TVs / high-DPI laptops.
   WW.view = { w: 1000, h: 700 };
+  // Before/after state: is the WildWatch system installed & running?
+  WW.system = { enabled: true };
 
   // Attract / auto-demo state (SPEC purpose: read the flow in a few seconds).
   let hintEl = null;
@@ -29,6 +31,7 @@
     window.addEventListener("resize", resizeCanvas);
 
     hintEl = document.getElementById("hint");
+    WW.system.enabled = WW.config.system.defaultEnabled;
     WW.dashboard.build();
     resetAll();
     wireControls();
@@ -53,6 +56,7 @@
     WW.animals.clear();
     WW.car.reset();
     WW.detection.reset();
+    WW.stats.reset();
   }
 
   function loop(ts) {
@@ -98,10 +102,13 @@
     }
   }
 
+  let attractSystemOn = true; // flips each auto-demo cycle to show before/after
+
   function startAttract() {
     attractActive = true;
     if (hintEl) hintEl.hidden = false;
     attractSpawnTimer = 0;
+    attractSystemOn = true; // first cycle shows "with system" (OFF next)
     spawnAttractAnimal();
   }
 
@@ -111,6 +118,15 @@
   }
 
   function spawnAttractAnimal() {
+    // Alternate the system each cycle so an idle screen plays with/without it.
+    attractSystemOn = !attractSystemOn;
+    setSystem(attractSystemOn);
+    const hintText = document.getElementById("hint-text");
+    if (hintText) {
+      hintText.textContent = attractSystemOn
+        ? "With WildWatch: the camera warns and the car slows — drag an animal to try it"
+        : "Without WildWatch: the driver isn't warned — watch for a near-miss";
+    }
     const s = WW.config.attract.spawn;
     const a = WW.animals.create(s.speciesId, s.x, s.y);
     if (a) { a.dirDeg = s.dirDeg; a.state = "walking"; }
@@ -119,7 +135,13 @@
   // Any real interaction cancels the auto-demo and hands control to the visitor.
   function noteInteraction() {
     idleMs = 0;
-    if (attractActive) { stopAttract(); resetAll(); }
+    if (attractActive) {
+      stopAttract();
+      setSystem(true); // hand the visitor a working system
+      const hintText = document.getElementById("hint-text");
+      if (hintText) hintText.textContent = "Drag an animal onto the road to try it yourself";
+      resetAll();
+    }
   }
 
   function wireControls() {
@@ -131,6 +153,26 @@
       btnPause.textContent = paused ? "▶ Play" : "⏸ Pause";
     });
     btnReset.addEventListener("click", () => { noteInteraction(); resetAll(); });
+
+    const btnSystem = document.getElementById("btn-system");
+    btnSystem.addEventListener("click", () => {
+      noteInteraction();
+      setSystem(!WW.system.enabled);
+    });
+
+    const btnLegend = document.getElementById("btn-legend");
+    btnLegend.addEventListener("click", () => {
+      const el = document.getElementById("legend");
+      el.hidden = !el.hidden;
+    });
+  }
+
+  function setSystem(on) {
+    WW.system.enabled = on;
+    const btn = document.getElementById("btn-system");
+    btn.textContent = "System: " + (on ? "ON" : "OFF");
+    btn.classList.toggle("toggle-on", on);
+    btn.classList.toggle("toggle-off", !on);
   }
 
   // Map canvas coordinates (CSS pixels) -> logical map units.

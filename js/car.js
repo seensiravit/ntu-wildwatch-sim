@@ -17,6 +17,7 @@
   let segs = [];        // [{ax,ay,bx,by,len,ux,uy}]
   let total = 0;        // total path length
   let warnZones = [];   // [{signalId, start, end}] in path distance
+  const scored = new Set(); // animal ids already counted as an encounter
 
   function kmhToUnits(kmh) {
     return kmh / WW.config.tuning.unitsPerSecToKmh;
@@ -86,6 +87,7 @@
   function reset() {
     if (!segs.length) buildPath();
     buildWarnZones();
+    scored.clear();
     state.s = 0;
     state.speedUnitsPerSec = 0;
     state.respawnTimer = 0;
@@ -106,6 +108,32 @@
       }
     }
     return false;
+  }
+
+  // Score each car–animal encounter once: "avoided" if the car had slowed in
+  // time (system on), a "near-miss" if it was still fast (system off).
+  function detectEncounters() {
+    if (!WW.stats) return;
+    const nm = WW.config.nearMiss;
+    const halfLane = WW.config.road.laneWidth / 2;
+    const kmh = currentKmh();
+    const present = new Set();
+    for (const a of WW.animals.list) {
+      if (a.state !== "walking") continue;
+      present.add(a.id);
+      if (scored.has(a.id)) continue;
+      let near = false;
+      for (let ahead = 0; ahead <= nm.dangerZoneLen && !near; ahead += halfLane) {
+        const p = posAt(state.s + ahead);
+        if (WW.geo.dist(p.x, p.y, a.x, a.y) <= halfLane + a.radius) near = true;
+      }
+      if (near) {
+        scored.add(a.id);
+        WW.stats.onEncounter(kmh <= nm.dangerSpeedKmh, a.x, a.y, kmh);
+      }
+    }
+    // Forget animals that are gone so a fresh one can be scored later.
+    scored.forEach((id) => { if (!present.has(id)) scored.delete(id); });
   }
 
   function inActiveWarnZone() {
@@ -133,6 +161,9 @@
 
     // Brake lights: on when stopping for an animal or actively slowing down.
     state.braking = targetUnits === 0 || state.speedUnitsPerSec > targetUnits + 0.5;
+
+    // Score near-misses / avoided encounters against the CURRENT speed.
+    detectEncounters();
 
     // Ease speed toward target with separate accel/decel.
     if (state.speedUnitsPerSec < targetUnits) {
