@@ -1,0 +1,9 @@
+# Render Blueprint — deploys the demo as a static site (no build, no deps).
+# Render: New -> Blueprint -> pick this repo. index.html is served from the root.
+services:
+  - type: web
+    name: ntu-wildwatch-sim
+    runtime: static
+    buildCommand: ""      # nothing to build — plain HTML/CSS/JS
+    staticPublishPath: .  # index.html lives at the repo root
+    pullRequestPreviewsEnabled: true

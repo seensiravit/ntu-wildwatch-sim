@@ -16,6 +16,19 @@ offline. No install, no build step, no internet, no dependencies.
 > If you clone from GitHub, keep the folder structure intact (`index.html` next to
 > the `css/` and `js/` folders). Opening the file directly (`file://`) is supported.
 
+## Deploy (optional — Render static site)
+
+The demo is a plain static site, so it hosts anywhere with no build. To put it online
+with [Render](https://render.com) using the included `render.yaml`:
+
+1. Render dashboard → **New → Blueprint**.
+2. Connect this GitHub repo and apply the blueprint.
+3. It deploys to a URL like `https://ntu-wildwatch-sim.onrender.com` and
+   **auto-redeploys on every push to `main`**.
+
+No build command, no environment variables. (Manual alternative: **New → Static Site**,
+Build Command *empty*, Publish Directory `.`)
+
 ## 3-step presenter demo
 
 1. **Drag an animal** from the tray (Macaque / Wild boar / Pangolin) onto Nanyang
