@@ -41,7 +41,18 @@ html, body {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   flex: 0 0 auto;
+  /* Stay above the DED dashboard extension's full-screen overlay (z 2147482000)
+     but below its toasts (2147483001), so the header works in both views. */
+  position: relative;
+  z-index: 2147482500;
 }
+
+/* DED dashboard extension: its tabs are docked in our header (main.js). */
+.ww-tabs-slot { margin-left: auto; }
+.ww-tabs-slot:empty { display: none; }
+#ww-tabs-slot .ww-tabs { position: static; transform: none; box-shadow: none; }
+#ww-root .ww-dash { top: var(--topbar-h, 81px); padding-top: 24px; }
+#ww-root .ww-toasts { top: calc(var(--topbar-h, 81px) + 10px); }
 
 .brand { display: flex; flex-direction: column; gap: 2px; margin-right: 8px; }
 .brand-title {
@@ -136,6 +147,8 @@ html, body {
   justify-content: center;
   padding: 12px;
   min-width: 0;
+  /* Lets #map size itself to whichever of width/height runs out first (cq units). */
+  container-type: size;
 }
 
 .hint {
@@ -210,8 +223,9 @@ html, body {
 }
 
 #map {
-  width: 100%;
-  max-width: var(--map-max);
+  /* Fit inside the wrap on BOTH axes: plain width:100% let a wide-but-short
+     window push the canvas up over the header. 10/7 = the map's aspect ratio. */
+  width: min(100cqw, 100cqh * 10 / 7, var(--map-max));
   height: auto;
   aspect-ratio: 1000 / 700;
   background: #05070b;
@@ -285,7 +299,25 @@ html, body {
 }
 #log-list li { padding: 3px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
 
+/* Header labels never stack onto two lines. */
+#topbar button, #topbar .badge, #topbar .rate-knob, #ww-tabs-slot .ww-tab { white-space: nowrap; }
+
 /* Scale down for 1366x768 laptops */
 @media (max-width: 1440px) {
   #dashboard { flex-basis: 300px; }
+}
+
+/* Keep the header to a single row at laptop widths (it now also holds the
+   dashboard tabs): drop the tagline and tray label, tighten everything else. */
+@media (max-width: 1500px) {
+  #topbar { gap: 12px; padding: 8px 12px; }
+  .brand-sub, .tray-label { display: none; }
+  .tray { gap: 6px; flex-wrap: nowrap; }
+  .tray-chip { padding: 6px 10px; font-size: 13px; }
+  .controls { gap: 6px; }
+  .controls button { padding: 6px 9px; font-size: 13px; }
+  .rate-knob { padding: 4px 8px; font-size: 11px; gap: 6px; }
+  .rate-knob input[type="range"] { width: 64px; }
+  #topbar .badge { font-size: 11px; padding: 4px 8px; }
+  #ww-tabs-slot .ww-tab { padding: 6px 10px; font-size: 12px; }
 }

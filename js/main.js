@@ -28,7 +28,8 @@
     ctx = canvas.getContext("2d");
 
     resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    syncTopbarHeight();
+    window.addEventListener("resize", () => { resizeCanvas(); syncTopbarHeight(); });
 
     hintEl = document.getElementById("hint");
     WW.system.enabled = WW.config.system.defaultEnabled;
@@ -37,14 +38,53 @@
     wireControls();
     wireInput();
     wireKeyboard();
+    // The extension builds its UI in its own DOMContentLoaded handler, which runs
+    // after this one — so dock its tabs on the next tick.
+    setTimeout(integrateDashboard, 0);
 
     requestAnimationFrame(loop);
+  }
+
+  // ---- Team DED dashboard extension (wildwatch-dashboard.js) ---------------
+  // Move its "Simulation | DED Dashboard" tabs into our header so both views share
+  // one top bar (CSS keeps the header above its overlay).
+  function integrateDashboard() {
+    const tabs = document.querySelector("#ww-root .ww-tabs");
+    const slot = document.getElementById("ww-tabs-slot");
+    if (!tabs || !slot || !window.WildWatch) return; // extension absent: nothing to do
+    // Its tab colours come from CSS variables defined on #ww-root; carry them over
+    // (read from its own styles, so they follow any palette change upstream).
+    const rootStyle = getComputedStyle(document.getElementById("ww-root"));
+    for (const name of ["--ww-panel2", "--ww-line", "--ww-text", "--ww-muted", "--ww-accent"]) {
+      slot.style.setProperty(name, rootStyle.getPropertyValue(name));
+    }
+    slot.appendChild(tabs);
+    // Outside #ww-root its delegated click handler no longer sees the tabs, so
+    // drive them through its public API instead.
+    slot.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-view]");
+      if (btn) window.WildWatch.show(btn.dataset.view === "dash" ? "dashboard" : "sim");
+    });
+    syncTopbarHeight();
+  }
+
+  // Expose the header height to CSS so the extension's overlay starts below it.
+  function syncTopbarHeight() {
+    const h = document.getElementById("topbar").offsetHeight;
+    document.documentElement.style.setProperty("--topbar-h", h + "px");
+  }
+
+  function clearDashboard() {
+    try { if (window.WildWatch && typeof window.WildWatch.clear === "function") window.WildWatch.clear(); }
+    catch (e) { /* never let the extension break Reset */ }
   }
 
   // Presenter shortcuts: Space = pause, R = reset, S = toggle system.
   function wireKeyboard() {
     window.addEventListener("keydown", (e) => {
       if (e.target && e.target.tagName === "INPUT") return; // don't hijack the slider
+      // Leave keys alone inside the extension's UI (e.g. Space selects a map node).
+      if (e.target && e.target.closest && e.target.closest("#ww-root, #ww-tabs-slot")) return;
       const k = e.key.toLowerCase();
       if (e.code === "Space" || k === " ") { e.preventDefault(); document.getElementById("btn-pause").click(); }
       else if (k === "r") { document.getElementById("btn-reset").click(); }
@@ -152,7 +192,9 @@
       btnPause.textContent = paused ? "▶ Play" : "⏸ Pause";
     });
     // Reset is the only control that clears the scoreboard + scene.
-    btnReset.addEventListener("click", () => { stopAttract(); resetAll(); idleMs = 0; });
+    // (Also wipes the DED dashboard's saved history — kept out of resetAll() so a
+    // page load or the first interaction after the auto-demo doesn't erase it.)
+    btnReset.addEventListener("click", () => { stopAttract(); resetAll(); idleMs = 0; clearDashboard(); });
 
     const btnSystem = document.getElementById("btn-system");
     btnSystem.addEventListener("click", () => {

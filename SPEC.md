@@ -218,8 +218,12 @@ All values update live from the simulation state.
   v1.2** as a System ON/OFF toggle with near-miss tally (see README)
 - Multiple cars and two-way traffic, including signals for both directions
 - Movable cameras and signals
-- ~~Near-miss alerts~~ (landed in v1.2) and hotspot heatmap on the dashboard
-- Prong 2 (rope bridges, culvert ledges, funnel fencing)
+- ~~Near-miss alerts~~ (landed in v1.2) and ~~hotspot heatmap on the dashboard~~ —
+  **landed** via the team's DED dashboard extension (`wildwatch-dashboard.js`, the
+  "DED Dashboard" tab): campus hotspot map, risk-scored log and charts
+- Prong 2 (rope bridges, culvert ledges, funnel fencing) — still not simulated, but
+  the DED dashboard now **recommends** Prong 2 measures per hotspot (decision
+  support only)
 - Any real detection model (YOLO etc.)
 
 ## 13. Deliverables

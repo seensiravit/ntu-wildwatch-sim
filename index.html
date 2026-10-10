@@ -19,6 +19,8 @@
         <span class="tray-label">Animals:</span>
         <!-- Species chips are injected by dashboard.js from config -->
       </div>
+      <!-- The DED dashboard extension's "Simulation | DED Dashboard" tabs are moved here -->
+      <div id="ww-tabs-slot" class="ww-tabs-slot"></div>
       <div class="controls">
         <label class="rate-knob" title="Auto-demo spawn rate">
           <span>Spawn rate</span>
@@ -65,8 +67,8 @@
   <script src="js/dashboard.js"></script>
   <script src="js/main.js"></script>
 
-  <!-- WildWatch dashboard extension (drop-in). Replace wildwatch-dashboard.js
-       with the team's real file; our sim reports detections to WildWatch.record(). -->
+  <!-- Team DED dashboard extension (vendored). Loads last so js/config.js has set
+       window.WILDWATCH_CONFIG; our sim reports detections via WildWatch.record(). -->
   <script src="wildwatch-dashboard.js"></script>
 </body>
 </html>

@@ -240,5 +240,40 @@
       { x: 940, y: 430 }, { x: 900, y: 150 }, { x: 780, y: 90 },
       { x: 470, y: 360 }, { x: 700, y: 400 }, { x: 990, y: 300 },
     ],
+
+    // ---- Team DED dashboard extension (wildwatch-dashboard.js) ------------
+    // Its map is campus-wide (4 cameras of its own, coordinates on its 600-wide
+    // schematic). Our two live Yunnan Garden cameras are added to it; detections
+    // from the sim are reported under these names (detection.js).
+    dashboard: {
+      locations: [
+        { simCamera: "cam1", id: "yunnan-west", name: "Yunnan Garden West", cam: "CAM-05",
+          x: 182, y: 346, weight: 0.3, aliases: ["yunnan garden west", "cam-05"],
+          mix: { macaque: 0.35, pangolin: 0.25, boar: 0.25, monitor: 0.15 } },
+        { simCamera: "cam2", id: "yunnan-south", name: "Yunnan Garden South", cam: "CAM-06",
+          x: 322, y: 394, weight: 0.25, aliases: ["yunnan garden south", "cam-06"],
+          mix: { boar: 0.3, pangolin: 0.25, monitor: 0.25, macaque: 0.2 } },
+      ],
+      // Nanyang Drive branching off Nanyang Ave and bending around the garden.
+      roads: [{ d: "M148,300 C150,345 165,385 225,400 C290,415 380,412 480,432" }],
+      labels: [
+        { text: "YUNNAN GARDEN", x: 238, y: 352, size: 10, weight: 700, spacing: 1, color: "#5f8a74" },
+        { text: "Nanyang Dr", x: 392, y: 432, rot: 8 },
+      ],
+      mapHeight: 460,   // taller than its default 400 to fit the south edge
+      showDock: false,  // our in-map signs + signal cards already show the response
+    },
   };
+
+  // Hand the dashboard settings to the extension (it reads them when it loads,
+  // which is after this file — see the script order in index.html).
+  const dash = WW.config.dashboard;
+  window.WILDWATCH_CONFIG = Object.assign({}, window.WILDWATCH_CONFIG, {
+    extraLocations: dash.locations,
+    extraRoads: dash.roads,
+    extraLabels: dash.labels,
+    mapHeight: dash.mapHeight,
+    showDock: dash.showDock,
+    autoWatchLog: false, // we always call WildWatch.record(), so skip log scraping
+  });
 })();

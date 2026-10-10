@@ -24,12 +24,18 @@ js/car.js         // car entity, path following, speed logic
 js/detection.js   // camera <-> animal detection, signal state
 js/render.js      // map + night rendering
 js/dashboard.js   // side panel: camera feeds, signal cards, log
+js/stats.js       // Impact scoreboard (detections, near-misses, avoided, per-mode speed)
 js/main.js        // game loop, input wiring
+wildwatch-dashboard.js  // teammate's DED dashboard extension (vendored)
 ```
+
+`wildwatch-dashboard.js` is a teammate's file: keep local edits minimal and marked `[host-config]`, and configure it from `js/config.js` → `dashboard` (via `window.WILDWATCH_CONFIG`). The sim only *reports* to it (`WildWatch.record`); our signals/beacons stay authoritative.
 
 ## Testing
 
 There is no test framework. Verify changes manually in a browser: open `index.html` in Chrome or Edge and walk through the acceptance scenarios in `@SPEC.md` §11. Requirement: double-clicking `index.html` works offline with **no console errors**.
+
+When testing through a local HTTP server, browsers heuristically cache `js/` and `css/`, and a `?v=` on `index.html` does not refresh them. Hard-reload, or re-fetch each file with `fetch(url, {cache: 'reload'})`, before trusting what you see.
 
 ## Conventions
 

@@ -91,25 +91,40 @@ js/detection.js     Camera <-> animal detection, signal + log state
 js/render.js        Map + night rendering (road, cones, signals, car, animals)
 js/dashboard.js     Side panel: camera feeds, signal cards, detection log
 js/main.js          Game loop, controls, input wiring
-wildwatch-dashboard.js  Drop-in dashboard extension (placeholder — see below)
+js/stats.js         Impact scoreboard (detections, near-misses, avoided, speeds)
+wildwatch-dashboard.js  Team's DED dashboard extension (vendored — see below)
 ```
 
-## Dashboard extension (`wildwatch-dashboard.js`)
+## DED dashboard (`wildwatch-dashboard.js`)
 
-The simulator reports every detection to a shared extension contract, so the
-team's dashboard plugs in without touching the sim. On each detection, `js/detection.js`
-calls:
+The **DED Dashboard** tab in the header is the team's monitoring and decision-support
+extension (for NTU's Development & Estate Department). It shows a campus-wide
+hotspot map, risk-scored event log, species and time-of-day charts, an
+infrastructure priority list (Prong 2: canopy bridge / culvert / fencing), CSV
+export and a 30-day sample history.
 
-```js
-const ev = window.WildWatch.record({ species, location, confidence /* 0..1 */, proximity });
-// ev -> { time, riskLevel, beaconActivated }
-```
+How it connects to the simulator:
 
-`wildwatch-dashboard.js` at the repo root is a **placeholder** implementing that
-contract (so there's no missing-script error). **Replace it with the team's real
-`wildwatch-dashboard.js`** (same path) and the dashboard drops straight in — no
-other changes needed. Our own signal/beacon logic stays authoritative; reporting is
-fire-and-forget (and only fires while the system is ON).
+- On each detection, `js/detection.js` reports to the extension:
+  ```js
+  WildWatch.record({ species, location, camera, confidence /* 0..1 */, proximity });
+  ```
+  Only while the System is ON (no cameras = no detections).
+- Our two Yunnan Garden cameras are **added to its campus map** as *Yunnan Garden
+  West (CAM-05)* and *Yunnan Garden South (CAM-06)*, next to its own four cameras.
+  Their names, map positions and sample-history mix live in `js/config.js` →
+  `dashboard`.
+- **Our signals stay authoritative.** The car slows and our signs flash for every
+  detection. The dashboard's risk model decides what *it* logs as the
+  recommended response; it does not drive the simulation.
+- Its tabs are docked in our header, and its roadside-response panel is turned off
+  (`dashboard.showDock`) because our in-map signs and signal cards already show it.
+- **Reset** also clears its saved history. Otherwise that history survives page
+  reloads, because the extension keeps it in the browser's local storage.
+
+`wildwatch-dashboard.js` is vendored from the teammate's file. Local changes are
+minimal and marked `[host-config]` (they let the host add cameras and roads to the map).
+Re-apply them if you pull a newer copy of her file.
 
 ## Scope
 
