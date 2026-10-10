@@ -42,6 +42,25 @@
     if (logEntries.length > max) logEntries.length = max;
   }
 
+  // Report each detection to the WildWatch dashboard extension, if loaded.
+  // Contract (shared with the team's wildwatch-dashboard.js):
+  //   WildWatch.record({ species, location, confidence: 0..1, proximity })
+  //   -> { time, riskLevel, beaconActivated }
+  // Our own signal/beacon logic stays authoritative; this is fire-and-forget
+  // reporting so the extension's panel populates. Never let it break the sim.
+  function reportToDashboard(cam, animal, confidencePct) {
+    const WWx = window.WildWatch;
+    if (!WWx || typeof WWx.record !== "function") return;
+    try {
+      WWx.record({
+        species: animal.label,
+        location: cam.name,
+        confidence: confidencePct / 100,
+        proximity: "road",
+      });
+    } catch (e) { /* extension errors must not affect the simulation */ }
+  }
+
   function update() {
     if (!camState[WW.config.cameras[0].id]) reset(); // lazy init safety
     const t = WW.config.tuning;
@@ -75,6 +94,7 @@
           cs.episodes.set(a.id, conf);
           addLog(cam, a, conf);                            // ENTER event
           if (WW.stats) WW.stats.onDetection();
+          reportToDashboard(cam, a, conf);                 // -> WildWatch extension
         }
 
         const d = WW.geo.dist(cam.x, cam.y, a.x, a.y);

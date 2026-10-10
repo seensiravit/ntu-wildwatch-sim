@@ -91,7 +91,25 @@ js/detection.js     Camera <-> animal detection, signal + log state
 js/render.js        Map + night rendering (road, cones, signals, car, animals)
 js/dashboard.js     Side panel: camera feeds, signal cards, detection log
 js/main.js          Game loop, controls, input wiring
+wildwatch-dashboard.js  Drop-in dashboard extension (placeholder — see below)
 ```
+
+## Dashboard extension (`wildwatch-dashboard.js`)
+
+The simulator reports every detection to a shared extension contract, so the
+team's dashboard plugs in without touching the sim. On each detection, `js/detection.js`
+calls:
+
+```js
+const ev = window.WildWatch.record({ species, location, confidence /* 0..1 */, proximity });
+// ev -> { time, riskLevel, beaconActivated }
+```
+
+`wildwatch-dashboard.js` at the repo root is a **placeholder** implementing that
+contract (so there's no missing-script error). **Replace it with the team's real
+`wildwatch-dashboard.js`** (same path) and the dashboard drops straight in — no
+other changes needed. Our own signal/beacon logic stays authoritative; reporting is
+fire-and-forget (and only fires while the system is ON).
 
 ## Scope
 
