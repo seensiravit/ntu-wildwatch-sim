@@ -62,7 +62,7 @@ README.md         // how to run + how to edit config
 
 All geometry is defined in `config.js` in logical map units (e.g. a 1000×700 map), scaled to the canvas. **Nothing is hard-coded in the rendering or logic files.** A later version will replace this map with a real NTU road by editing config only.
 
-> **Superseded (current build):** the generic L-road below has been replaced by the real location: **Nanyang Crescent opposite Hall 15 (Tamarind area)**, a straight road with **one overhead camera** on the centreline looking west, and **two warning signs** flanking the road at the camera (one per verge), both driven by it. The car drives **westbound**, so drivers pass the signs before the detection zone. Green verge and Sungei Choa Chu Kang canal to the north, Hall 15 blocks to the south. §4.1–4.3 describe the original generic map.
+> **Superseded (current build):** the generic L-road below has been replaced by the real location: **Nanyang Crescent opposite Hall 15 (Tamarind area)**, a straight road with **one overhead camera** on the centreline looking west, and **two warning signs** flanking the road at the camera (one per verge), both driven by it. The car drives **eastbound** (left to right) toward the camera; drivers react to the flashing signs from a distance. Green verge and Sungei Choa Chu Kang canal to the north, Hall 15 blocks to the south. §4.1–4.3 describe the original generic map.
 
 ### 4.1 Road
 
@@ -94,7 +94,7 @@ Each signal has: `id, name, x, y, linkedCameraId, message`.
   - an **amber beacon** (circle) that flashes on and off at about 2 Hz while active
   - an **LED message board** (small dark rectangle) that shows `WILDLIFE AHEAD – SLOW DOWN` in amber while active and is blank when off
 - Each signal also defines a **warning zone** along the car path, from the signal to the end of its camera's coverage. The car uses this zone for slowing (see 6.2).
-  *(Current build: the zone starts `tuning.signSightDistance` (150 units) **before** the sign — where drivers can first see it — so signs placed right at the camera still warn drivers before the crossing.)*
+  *(Current build: the zone starts `tuning.signSightDistance` (250 units) **before** the sign — where drivers can first see it — so signs placed right at the camera still warn drivers before the crossing.)*
 
 ## 5. Animals
 

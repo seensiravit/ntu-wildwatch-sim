@@ -67,15 +67,14 @@
       crosswalkStripes: 5,
     },
 
-    // ---- Car route = the road centerline, driven east -> west (single-lane
-    // demo). Westbound drivers pass the camera + signs first, then the
-    // detection zone, so the warning comes before the crossing.
-    carPath: NANYANG_CRESCENT.slice().reverse(),
+    // ---- Car route = the road centerline, driven west -> east (left to right;
+    // single-lane demo). Use NANYANG_CRESCENT.slice().reverse() for westbound.
+    carPath: NANYANG_CRESCENT,
 
     // ---- One overhead camera on the road centreline, looking west along the
-    // road (the direction traffic is heading) into the stretch drivers are about
-    // to enter. Its wide cone spans the whole carriageway and both verges, so an
-    // animal crossing from either side is caught. Cars pass under it. --------
+    // road toward oncoming (eastbound) traffic. Its wide cone spans the whole
+    // carriageway and both verges, so an animal crossing from either side is
+    // caught. Cars pass under it. ------------------------------------------
     cameras: [
       {
         id: "cam1",
@@ -89,9 +88,9 @@
     ],
 
     // ---- Two warning signs flanking the road at the camera (like a gantry),
-    // one on each verge, both driven by cam1. For westbound drivers they sit
-    // just before the detection zone. Signs link to their camera via
-    // linkedCameraId; one camera can drive several signs.
+    // one on each verge, both driven by cam1. Eastbound drivers see them ahead
+    // (tuning.signSightDistance) while approaching the detection zone. Signs
+    // link to their camera via linkedCameraId; one camera can drive several.
     signals: [
       {
         id: "signal1",
@@ -127,7 +126,7 @@
       accelUnitsPerSec2: 120, // smooth speed-up
       decelUnitsPerSec2: 220, // stronger braking
       brakeAheadLen: 120,     // look-ahead rectangle length for animals on road
-      signSightDistance: 150, // drivers react once a flashing sign is this far ahead
+      signSightDistance: 250, // drivers react once a flashing sign is this far ahead (~ the road width x3)
       carRespawnDelaySec: 1.5,
 
       flashHz: 2,             // beacon + message board blink rate

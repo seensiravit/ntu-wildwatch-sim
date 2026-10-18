@@ -61,8 +61,9 @@ Extra controls: **Pause** freezes the simulation (drag/drop still works while pa
 Everything about the scene lives in **`js/config.js`**, in logical map units on a
 `1000 × 700` grid. The current map is **Nanyang Crescent opposite Hall 15 (Tamarind
 area)**: one straight road, one overhead camera on the centreline looking west, and
-two warning signs flanking the road at the camera. Traffic drives **westbound**, so
-drivers see the signs before the detection zone. The road is a
+two warning signs flanking the road at the camera. Traffic drives **eastbound** (left
+to right) toward the camera; drivers see the flashing signs ahead and slow before the
+crossing. The road is a
 **centerline polyline** (`NANYANG_CRESCENT`, currently two points), so it can follow
 any real road shape by adding points. Nothing is hard-coded in the rendering or logic
 files, so you can reshape the demo by editing config alone:
@@ -79,8 +80,8 @@ files, so you can reshape the demo by editing config alone:
   drive several signs. A sign should be before (or at) its camera's coverage along
   the car's route. Drivers start slowing `tuning.signSightDistance` before a
   flashing sign, i.e. once they can see it.
-- **Car direction** — `carPath` is the centreline reversed (westbound); drop the
-  `.reverse()` to drive eastbound.
+- **Car direction** — `carPath` is the centreline as-is (eastbound, left to right);
+  use `NANYANG_CRESCENT.slice().reverse()` to drive westbound.
 - **Species** — `species[]`: label, colour, size, speed, heat colour, shape.
 - **Behaviour tuning** — `tuning`: cruise/warning speeds, accel/decel, braking
   look-ahead, confidence range, flash rate, headlight cone, etc.
