@@ -257,16 +257,9 @@
   let ded = null; // { body, last }
 
   const DED_CSS =
-    "#ww-root .wwx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}" +
-    "#ww-root .wwx-tile{background:var(--ww-panel2);border:1px solid var(--ww-line);border-radius:10px;padding:10px 12px;min-width:0}" +
-    "#ww-root .wwx-k{font-size:12px;color:var(--ww-muted);font-weight:600}" +
-    "#ww-root .wwx-v{font-size:24px;font-weight:700;margin:2px 0 6px;font-variant-numeric:tabular-nums;white-space:nowrap}" +
-    "#ww-root .wwx-v small{font-size:13px;font-weight:600;color:var(--ww-muted)}" +
-    "#ww-root .wwx-off{color:var(--ww-high)}#ww-root .wwx-on{color:var(--ww-ok)}" +
-    "#ww-root .wwx-bar{display:grid;grid-template-columns:52px 1fr;align-items:center;gap:6px;font-size:11px;color:var(--ww-muted);margin-top:3px}" +
-    "#ww-root .wwx-track{height:7px;background:var(--ww-bg);border-radius:4px;overflow:hidden}" +
-    "#ww-root .wwx-track span{display:block;height:100%;border-radius:4px}" +
-    "#ww-root .wwx-sub{font-size:12px;color:var(--ww-muted);margin-top:6px}" +
+    "#ww-root .wwx-off{color:var(--ww-high);font-weight:700}" +
+    "#ww-root .wwx-on{color:var(--ww-ok);font-weight:700}" +
+    "#ww-root .wwx-table td:first-child{color:var(--ww-text);font-weight:600}" +
     "#ww-root .wwx-note{margin:12px 0 0;font-size:13px}";
 
   // Insert the card above the extension's KPI row. Called once its UI exists.
@@ -299,35 +292,29 @@
     const avg = (s) => (s.speedCount ? Math.round(s.speedSum / s.speedCount) : null);
     const enc = (s) => s.nearMiss + s.avoided;
     const share = (s) => (enc(s) ? Math.round((s.avoided / enc(s)) * 100) : null);
-    const dash = (v) => (v === null ? "–" : v);
 
-    // One tile: "without → with", paired bars, and a one-line takeaway.
-    const tile = (label, a, b, unit, sub) => {
-      const max = Math.max(a || 0, b || 0) || 1;
-      const bar = (name, v, color) =>
-        '<div class="wwx-bar"><span>' + name + '</span><span class="wwx-track"><span style="width:' +
-        (((v || 0) / max) * 100).toFixed(1) + "%;background:" + color + '"></span></span></div>';
-      return '<div class="wwx-tile"><div class="wwx-k">' + label + "</div>" +
-        '<div class="wwx-v"><span class="wwx-off">' + dash(a) + "</span> → " +
-        '<span class="wwx-on">' + dash(b) + "</span>" + (unit ? " <small>" + unit + "</small>" : "") + "</div>" +
-        bar("Without", a, "var(--ww-high)") + bar("With", b, "var(--ww-ok)") +
-        '<div class="wwx-sub">' + sub + "</div></div>";
-    };
     const pctDrop = (a, b) => (a ? Math.round(((a - b) / a) * 100) : null);
-
     const nmDrop = pctDrop(off.nearMiss, on.nearMiss);
     const offAvg = avg(off), onAvg = avg(on);
+    const offShare = share(off), onShare = share(on);
+    const unit = (v, u) => (v === null ? "–" : v + u);
+    const ofEnc = (v, s) => (v === null ? "–" : v + "% <span class=\"ww-muted\">(" + s.avoided + " of " + enc(s) + ")</span>");
+
+    // Measure | without | with | difference
+    const row = (label, a, b, diff) =>
+      "<tr><td>" + label + '</td><td class="wwx-off">' + a + '</td><td class="wwx-on">' + b + "</td><td>" + diff + "</td></tr>";
     const html =
-      '<div class="wwx-grid">' +
-      tile("Near-misses", off.nearMiss, on.nearMiss, "",
-        nmDrop === null ? "None yet without the system." : nmDrop >= 0 ? nmDrop + "% fewer with WildWatch" : "More with WildWatch so far") +
-      tile("Avg speed at the animal", offAvg, onAvg, "km/h",
-        offAvg !== null && onAvg !== null ? (offAvg - onAvg) + " km/h slower with WildWatch" : "Waiting for both cars to meet an animal.") +
-      tile("Car had slowed in time", share(off), share(on), "%",
-        "Share of encounters (" + enc(off) + " without, " + enc(on) + " with)") +
-      tile("Animals detected", null, on.detections, "",
-        "Each detection flashes both signs. No cameras without the system.") +
-      "</div>" +
+      '<div class="ww-tablebox"><table class="ww-table wwx-table"><thead><tr>' +
+      "<th>Measure</th><th>Without WildWatch</th><th>With WildWatch</th><th>Difference</th></tr></thead><tbody>" +
+      row("Near-misses", off.nearMiss, on.nearMiss,
+        nmDrop === null ? "–" : nmDrop >= 0 ? nmDrop + "% fewer" : "more so far") +
+      row("Avg speed at the animal", unit(offAvg, " km/h"), unit(onAvg, " km/h"),
+        offAvg !== null && onAvg !== null ? (offAvg - onAvg) + " km/h slower" : "–") +
+      row("Car had slowed in time", ofEnc(offShare, off), ofEnc(onShare, on),
+        offShare !== null && onShare !== null ? (onShare - offShare >= 0 ? "+" : "") + (onShare - offShare) + " points" : "–") +
+      row("Animals detected", '– <span class="ww-muted">(no cameras)</span>', on.detections,
+        "each detection flashes both signs") +
+      "</tbody></table></div>" +
       '<p class="wwx-note">' +
       (off.nearMiss
         ? "<b>What it means for DED:</b> early warning cut near-misses at this crossing from " + off.nearMiss + " to " +
