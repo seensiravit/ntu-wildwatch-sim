@@ -16,14 +16,16 @@
         visible: true,  // false once it has left the map (waiting for the next lap)
         braking: false,
       },
-      scored: new Set(), // animal ids already counted as an encounter
+      scored: new Set(),  // animal ids whose encounter is already counted
+      pending: new Map(), // animal id -> { kmh, x, y }: encounter open until the car passes
+      seen: new Map(),    // animal id -> seconds it has been in the path ahead (driver reaction)
     };
   }
-  let state, scored;
+  let state, scored, pending, seen;
   // Switch to a world's car (created on first use).
   function use(world) {
     const c = world.car || (world.car = fresh());
-    state = c.state; scored = c.scored;
+    state = c.state; scored = c.scored; pending = c.pending; seen = c.seen;
   }
   use({});
 
@@ -128,44 +130,103 @@
     state.x = p.x; state.y = p.y; state.headingDeg = p.headingDeg;
   }
 
-  // Is a Walking animal inside the braking look-ahead rectangle? (SPEC §6.2.1)
-  function animalAhead() {
-    const t = WW.config.tuning;
+  // Is walking animal `a` in the lane within `len` ahead of the car?
+  function inPathAhead(a, len) {
     const halfLane = WW.config.road.laneWidth / 2;
-    for (let ahead = 0; ahead <= t.brakeAheadLen; ahead += halfLane) {
+    for (let ahead = 0; ahead <= len; ahead += halfLane) {
       const p = posAt(state.s + ahead);
-      for (const a of WW.animals.list) {
-        if (a.state !== "walking") continue;
-        if (WW.geo.dist(p.x, p.y, a.x, a.y) <= halfLane + a.radius) return true;
-      }
+      if (WW.geo.dist(p.x, p.y, a.x, a.y) <= halfLane + a.radius) return true;
     }
     return false;
   }
 
-  // Score each car–animal encounter once: "avoided" if the car had slowed in
-  // time (system on), a "near-miss" if it was still fast (system off).
+  // How should the driver react to animals on the road ahead? (SPEC §6.2.1)
+  //   "stop" — an animal in the car's own lane within brakeAheadLen;
+  //   "slow" — an animal elsewhere on the road surface (e.g. the other lane) that close;
+  //   null   — nothing to react to (yet).
+  // The driver needs a reaction time after first noticing an animal, so one that
+  // steps out close in front of a fast car can be hit. A driver warned by a
+  // flashing sign is expecting animals, so reacts faster (tuning.alertReactionSec),
+  // and is already slower, so stops sooner.
+  function animalAhead(dt) {
+    const t = WW.config.tuning;
+    const road = WW.config.road;
+    const react = inActiveWarnZone() ? t.alertReactionSec : t.driverReactionSec;
+    const now = new Map(); // animal id -> "stop" | "slow"
+    for (const a of WW.animals.list) {
+      if (a.state !== "walking") continue;
+      if (inPathAhead(a, t.brakeAheadLen)) { now.set(a.id, "stop"); continue; }
+      const ahead = projectS(a.x, a.y) - state.s;
+      if (ahead >= 0 && ahead <= t.brakeAheadLen &&
+          WW.geo.distToPolyline(a.x, a.y, road.centerline) <= road.roadWidth / 2) now.set(a.id, "slow");
+    }
+    seen.forEach((secs, id) => { if (!now.has(id)) seen.delete(id); });
+    let action = null;
+    now.forEach((kind, id) => {
+      const secs = (seen.get(id) || 0) + dt;
+      seen.set(id, secs);
+      if (secs >= react && action !== "stop") action = kind;
+    });
+    return action;
+  }
+
+  // Is animal `a` hit by the car right now? It touches the car body (rectangle
+  // from config.ui; the animal a circle slightly smaller than its radius) and
+  // either the car's front runs into it while moving (> nearMiss.hitMinKmh), or
+  // it runs into the side of a car still going faster than dangerSpeedKmh.
+  // Our animals can't see cars (both maps share them), so an animal walking into
+  // the side of a slow car isn't counted: a real one would stop.
+  function isHit(a, kmh) {
+    const ui = WW.config.ui, nm = WW.config.nearMiss;
+    const h = WW.geo.degToRad(state.headingDeg);
+    const ux = Math.cos(h), uy = Math.sin(h);
+    const dx = a.x - state.x, dy = a.y - state.y;
+    const along = dx * ux + dy * uy, across = -dx * uy + dy * ux;
+    const r = a.radius * 0.8;
+    if (Math.abs(along) > ui.carLen / 2 + r || Math.abs(across) > ui.carWidth / 2 + r) return false;
+    const front = along > ui.carLen / 4;
+    return front ? kmh > nm.hitMinKmh : kmh > nm.dangerSpeedKmh;
+  }
+
+  // Score each car-animal encounter once, as one of:
+  //   "hit"  - the car hit the animal or the animal ran into the car (isHit);
+  //   "near" - the car came at it faster than nearMiss.dangerSpeedKmh, no hit;
+  //   "safe" - the car had already slowed to that speed or less, no hit.
+  // An encounter opens when the animal is first in the lane within
+  // nearMiss.dangerZoneLen ahead (the car's speed then is the one scored) and
+  // stays open until the animal is no longer ahead, so a near miss can still
+  // become a hit.
   function detectEncounters() {
     if (!WW.stats) return;
     const nm = WW.config.nearMiss;
-    const halfLane = WW.config.road.laneWidth / 2;
     const kmh = currentKmh();
     const present = new Set();
     for (const a of WW.animals.list) {
       if (a.state !== "walking") continue;
       present.add(a.id);
       if (scored.has(a.id)) continue;
-      let near = false;
-      for (let ahead = 0; ahead <= nm.dangerZoneLen && !near; ahead += halfLane) {
-        const p = posAt(state.s + ahead);
-        if (WW.geo.dist(p.x, p.y, a.x, a.y) <= halfLane + a.radius) near = true;
-      }
-      if (near) {
+      const open = pending.get(a.id);
+      if (isHit(a, kmh)) {
         scored.add(a.id);
-        WW.stats.onEncounter(kmh <= nm.dangerSpeedKmh, a.x, a.y, kmh);
+        pending.delete(a.id);
+        WW.stats.onEncounter("hit", a.x, a.y, open ? open.kmh : kmh);
+        continue;
       }
+      const near = inPathAhead(a, nm.dangerZoneLen);
+      if (near && !open) pending.set(a.id, { kmh: kmh, x: a.x, y: a.y });
+      else if (near) { open.x = a.x; open.y = a.y; }
+      else if (open) closeEncounter(a.id);
     }
-    // Forget animals that are gone so a fresh one can be scored later.
+    // Animals that left the map close their encounter; forget gone animals.
+    pending.forEach((e, id) => { if (!present.has(id)) closeEncounter(id); });
     scored.forEach((id) => { if (!present.has(id)) scored.delete(id); });
+  }
+
+  function closeEncounter(id) {
+    const e = pending.get(id);
+    pending.delete(id);
+    scored.add(id);
+    WW.stats.onEncounter(e.kmh > WW.config.nearMiss.dangerSpeedKmh ? "near" : "safe", e.x, e.y, e.kmh);
   }
 
   function inActiveWarnZone() {
@@ -185,12 +246,14 @@
     // Target speed by priority: brake (0) > warning slowdown > cruise.
     let targetUnits = kmhToUnits(t.cruiseKmh);
     if (inActiveWarnZone()) targetUnits = kmhToUnits(t.warnKmh);
-    if (animalAhead()) targetUnits = 0;
+    const react = animalAhead(dt);
+    if (react === "slow") targetUnits = Math.min(targetUnits, kmhToUnits(t.warnKmh));
+    if (react === "stop") targetUnits = 0;
 
     // Brake lights: on when stopping for an animal or actively slowing down.
     state.braking = targetUnits === 0 || state.speedUnitsPerSec > targetUnits + 0.5;
 
-    // Score near-misses / avoided encounters against the CURRENT speed.
+    // Score hits / near misses / safe passes (an encounter opens at the CURRENT speed).
     detectEncounters();
 
     // Ease speed toward target with separate accel/decel.
@@ -206,6 +269,8 @@
       // Left the map: hide until main.js starts the next lap.
       state.visible = false;
       state.braking = false;
+      pending.forEach((e, id) => closeEncounter(id));
+      seen.clear();
       return;
     }
 

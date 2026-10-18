@@ -71,11 +71,13 @@
       p.nums[key] = t.firstChild;
       grid.appendChild(t);
     };
-    tile("nearMiss", "Near-misses", "danger");
-    tile("avoided", "Slowed in time", "safe");
-    tile("speed", "Avg km/h at the animal", "");
-    tile("detections", "Animals detected", "");
+    // The three encounter outcomes (see car.js detectEncounters), worst first.
+    tile("hits", "Animals hit", "danger");
+    tile("nearMiss", "Near misses", "warn");
+    tile("safe", "Safe passes", "safe");
     stats.appendChild(grid);
+    p.foot = el("div", "stat-foot");
+    stats.appendChild(p.foot);
     p.summary = el("div", "stat-summary");
     stats.appendChild(p.summary);
     root.appendChild(stats);
@@ -131,19 +133,21 @@
     const s = WW.stats.state;
     const avg = WW.stats.avgKmh();
 
+    setText(p.nums.hits, s.hits);
     setText(p.nums.nearMiss, s.nearMiss);
-    setText(p.nums.avoided, s.avoided);
-    setText(p.nums.speed, avg === null ? "–" : avg);
-    setText(p.nums.detections, p.systemOn ? s.detections : "–");
+    setText(p.nums.safe, s.safe);
+    setText(p.foot, "Avg " + (avg === null ? "–" : avg) + " km/h at the animal · " +
+      (p.systemOn ? s.detections + " detected by camera" : "no camera"));
 
     if (!p.systemOn) {
-      setText(p.summary, s.nearMiss || s.avoided
+      setText(p.summary, s.hits + s.nearMiss + s.safe
         ? "No early warning: the driver only reacts once an animal is in the headlights."
         : "Same animals as the right side. Watch what the driver does.");
-    } else if (offStats.nearMiss === 0 && s.nearMiss === 0) {
+    } else if (offStats.hits + offStats.nearMiss === 0 && s.hits + s.nearMiss === 0) {
       setText(p.summary, cfg.brand.insight);
     } else {
-      setText(p.summary, "Near-misses: " + offStats.nearMiss + " without → " + s.nearMiss + " with WildWatch.");
+      setText(p.summary, "Animals hit: " + offStats.hits + " without → " + s.hits + " with WildWatch. " +
+        "Near misses: " + offStats.nearMiss + " → " + s.nearMiss + ".");
     }
 
     if (!p.systemOn) return; // nothing installed: the rest stays "Not installed"
@@ -290,15 +294,13 @@
     const off = WW.worlds.off.stats, on = WW.worlds.on.stats;
     if (!off || !on) return;
     const avg = (s) => (s.speedCount ? Math.round(s.speedSum / s.speedCount) : null);
-    const enc = (s) => s.nearMiss + s.avoided;
-    const share = (s) => (enc(s) ? Math.round((s.avoided / enc(s)) * 100) : null);
-
+    const enc = (s) => s.hits + s.nearMiss + s.safe;
     const pctDrop = (a, b) => (a ? Math.round(((a - b) / a) * 100) : null);
-    const nmDrop = pctDrop(off.nearMiss, on.nearMiss);
+    const fewer = (a, b) => { const d = pctDrop(a, b); return d === null ? "–" : d >= 0 ? d + "% fewer" : "more so far"; };
     const offAvg = avg(off), onAvg = avg(on);
-    const offShare = share(off), onShare = share(on);
     const unit = (v, u) => (v === null ? "–" : v + u);
-    const ofEnc = (v, s) => (v === null ? "–" : v + "% <span class=\"ww-muted\">(" + s.avoided + " of " + enc(s) + ")</span>");
+    // A count with its share of all encounters on that side.
+    const ofEnc = (n, s) => n + (enc(s) ? ' <span class="ww-muted">(' + Math.round((n / enc(s)) * 100) + "% of " + enc(s) + ")</span>" : "");
 
     // Measure | without | with | difference
     const row = (label, a, b, diff) =>
@@ -306,19 +308,19 @@
     const html =
       '<div class="ww-tablebox"><table class="ww-table wwx-table"><thead><tr>' +
       "<th>Measure</th><th>Without WildWatch</th><th>With WildWatch</th><th>Difference</th></tr></thead><tbody>" +
-      row("Near-misses", off.nearMiss, on.nearMiss,
-        nmDrop === null ? "–" : nmDrop >= 0 ? nmDrop + "% fewer" : "more so far") +
+      row("Animals hit", ofEnc(off.hits, off), ofEnc(on.hits, on), fewer(off.hits, on.hits)) +
+      row("Near misses", ofEnc(off.nearMiss, off), ofEnc(on.nearMiss, on), fewer(off.nearMiss, on.nearMiss)) +
+      row("Safe passes", ofEnc(off.safe, off), ofEnc(on.safe, on), "car had slowed down in time") +
       row("Avg speed at the animal", unit(offAvg, " km/h"), unit(onAvg, " km/h"),
         offAvg !== null && onAvg !== null ? (offAvg - onAvg) + " km/h slower" : "–") +
-      row("Car had slowed in time", ofEnc(offShare, off), ofEnc(onShare, on),
-        offShare !== null && onShare !== null ? (onShare - offShare >= 0 ? "+" : "") + (onShare - offShare) + " points" : "–") +
       row("Animals detected", '– <span class="ww-muted">(no cameras)</span>', on.detections,
         "each detection flashes both signs") +
       "</tbody></table></div>" +
       '<p class="wwx-note">' +
-      (off.nearMiss
-        ? "<b>What it means for DED:</b> early warning cut near-misses at this crossing from " + off.nearMiss + " to " +
-          on.nearMiss + ". The hotspot map and priority list below show where to install it next."
+      (off.hits + off.nearMiss
+        ? "<b>What it means for DED:</b> at this crossing, early warning cut animals hit from " + off.hits + " to " + on.hits +
+          " and near misses from " + off.nearMiss + " to " + on.nearMiss +
+          ". The hotspot map and priority list below show where to install it next."
         : '<span class="ww-muted">Start the simulation (or wait for the auto-demo) to fill in the comparison.</span>') +
       "</p>";
     if (html !== ded.last) { ded.body.innerHTML = html; ded.last = html; } // rebuild only on change

@@ -48,5 +48,17 @@
     return diff <= cam.fovDeg / 2;
   }
 
-  WW.geo = { degToRad, dist, conePolygon, pointInPolygon, pointInCone };
+  // Shortest distance from a point to a polyline (e.g. the road centreline).
+  function distToPolyline(px, py, pts) {
+    let best = Infinity;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1];
+      const dx = b.x - a.x, dy = b.y - a.y, len2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / len2));
+      best = Math.min(best, Math.hypot(px - (a.x + dx * t), py - (a.y + dy * t)));
+    }
+    return best;
+  }
+
+  WW.geo = { degToRad, dist, conePolygon, pointInPolygon, pointInCone, distToPolyline };
 })();

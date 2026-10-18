@@ -55,9 +55,10 @@
     // The page shows the scene twice, system OFF (left) and ON (right), with
     // the same animals; these rules score each car's encounters.
     nearMiss: {
-      dangerZoneLen: 150,   // how far ahead of the car counts as an encounter
-      dangerSpeedKmh: 35,   // above this at the encounter = near-miss, else "avoided"
-      markerMs: 1600,       // how long the red NEAR MISS marker stays on the map
+      dangerZoneLen: 150,   // an encounter starts when an animal is in the lane this far ahead
+      dangerSpeedKmh: 35,   // faster than this then = near miss (or hit, on contact), else safe
+      hitMinKmh: 3,         // the car front touching an animal counts as a hit above this speed
+      markerMs: 1600,       // how long a HIT / NEAR MISS marker stays on the map
     },
 
     map: {
@@ -142,6 +143,8 @@
       accelUnitsPerSec2: 120, // smooth speed-up
       decelUnitsPerSec2: 220, // stronger braking
       brakeAheadLen: 120,     // look-ahead rectangle length for animals on road
+      driverReactionSec: 0.8, // an animal must be in the path ahead this long before the driver brakes
+      alertReactionSec: 0.4,  // ...or this long while a sign is flashing (expected hazard: ~half the surprise reaction)
       signSightDistance: 320, // drivers react once a flashing sign is this far ahead (~ 4x the road width)
       carRespawnDelaySec: 1.5, // pause before the next lap (both cars start it together)
 

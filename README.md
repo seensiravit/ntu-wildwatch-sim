@@ -48,15 +48,28 @@ never slows for the signs, so it finishes first and waits off-map for the ON car
    log** entry is recorded.
 3. **Compare the two cars.** On the right, the car sees the flashing signs and slows
    from **50 → 20 km/h** before the crossing. On the left there is no warning: the
-   driver only reacts once the animal is in the headlights, reaches it at full speed,
-   and a red **NEAR MISS** flashes. (Either car stops and waits if an animal is on the
-   road directly ahead; there are no collisions.)
+   driver only notices the animal once it's on the road, still at full speed. An orange
+   **NEAR MISS** or a red **HIT** marker shows what happened. There are no crash graphics.
 
-**The key message is in the two Impact scoreboards.** Each counts near-misses, encounters
-where the car had already slowed ("Slowed in time") and the average speed at the animal.
-The ON side also counts animals detected and shows how many near-misses it prevented
-compared to the OFF side. A typical 90-second auto-demo run: OFF 6 near-misses at about
-38 km/h, ON 0 near-misses at about 14 km/h.
+**The key message is in the two Impact scoreboards.** Each sorts every car–animal
+encounter into one of three outcomes:
+
+- **Animals hit:** the car's front ran into the animal, or the animal ran into the side
+  of a car still going faster than 35 km/h.
+- **Near misses:** the car came at the animal faster than 35 km/h but didn't hit it.
+- **Safe passes:** the car had already slowed to 35 km/h or less, and nothing was hit.
+
+Below the three tiles: the average speed at the animal and (ON side) animals detected.
+The ON side also compares its hits and near misses with the OFF side.
+
+How hits happen: the driver needs a reaction time (`tuning.driverReactionSec`, 0.8 s)
+after noticing an animal on the road ahead before braking starts. A driver warned by a
+flashing sign is expecting animals, so reacts faster (`alertReactionSec`, 0.4 s), and is
+already slower. A fast-forwarded 20 minutes of the auto-demo gives OFF 32 hits / 50 near
+misses / 19 safe passes and ON 5 hits / 0 near misses / 176 safe passes. A few minutes
+of live demo is a small sample, so expect the numbers to separate as it runs.
+Our animals can't see cars (both maps share them), so an animal walking into the side
+of a slow car isn't counted as a hit; a real one would stop.
 
 If the booth screen is left idle, an **auto-demo** spawns animals on a loop; any
 interaction hands control back to the visitor.
@@ -113,7 +126,7 @@ js/detection.js     Camera <-> animal detection, signal + log state
 js/render.js        Map + night rendering (road, cones, signals, car, animals)
 js/dashboard.js     Dashboard strip under each map: impact, camera feed, signs, log
 js/main.js          The two worlds (OFF | ON), game loop, controls, input wiring
-js/stats.js         Impact scoreboard (detections, near-misses, avoided, speeds)
+js/stats.js         Impact scoreboard (detections, hits, near misses, safe passes, speeds)
 wildwatch-dashboard.js  Team's DED dashboard extension (vendored — see below)
 ```
 

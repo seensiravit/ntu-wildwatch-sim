@@ -142,7 +142,13 @@ Animals ignore the road and car when choosing their path; they just walk straigh
    - Check a rectangle directly ahead of the car along its path, covering the lane width and the stopping distance.
    - If any Walking animal is inside it, decelerate to 0 and wait.
    - Once the rectangle is clear, accelerate back up.
-   - Nothing graphic happens: no collision, no crash animation.
+   - Nothing graphic happens: no crash animation.
+   - > **Changed:** the driver now has a reaction time (`tuning.driverReactionSec`,
+     > shorter `alertReactionSec` while a sign is flashing) before braking for an
+     > animal on the road ahead, so a fast, unwarned car can hit an animal that steps
+     > out close in front. Hits are counted and marked "HIT" on the map, alongside near
+     > misses and safe passes (see README). An animal in the other lane makes the
+     > driver slow to 20 km/h; one in the car's own lane makes them stop.
 2. **Warning slowdown:** if the car is inside the warning zone of an **active** signal, the target speed is **20 km/h**.
 3. **Otherwise** the target speed is **50 km/h** (cruise).
 

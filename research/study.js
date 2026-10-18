@@ -218,7 +218,10 @@
     }
 
     const st = WW.stats.state;
-    m.nearMiss = st.nearMiss; m.avoided = st.avoided; m.speedSum = st.speedSum; m.speedCount = st.speedCount;
+    // The study's "near-miss" counts every dangerous encounter: hits plus near
+    // misses (the sim now tells them apart). "avoided" = safe passes.
+    m.hits = st.hits;
+    m.nearMiss = st.hits + st.nearMiss; m.avoided = st.safe; m.speedSum = st.speedSum; m.speedCount = st.speedCount;
     m.detections = st.detections;
     return m;
   }

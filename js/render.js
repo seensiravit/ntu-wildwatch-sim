@@ -471,24 +471,33 @@
     });
   }
 
-  // Red "NEAR MISS" markers where the car reached an un-warned animal.
+  // Outcome markers: a red "HIT" (car and animal touched) and an orange
+  // "NEAR MISS" (car came at the animal fast). No crash graphics (SPEC §7).
   function drawNearMiss(ctx, P, sx) {
     const markers = WW.stats.activeMarkers();
     const life = WW.config.nearMiss.markerMs;
     const now = clockMs();
     markers.forEach((m) => {
       const s = P(m);
+      const hit = m.kind === "hit";
       const age = (now - m.bornMs) / life; // 0..1
-      const rad = (8 + age * 26) * sx;
+      const rad = ((hit ? 10 : 8) + age * 26) * sx;
       ctx.save();
       ctx.globalAlpha = Math.max(0, 1 - age);
-      ctx.strokeStyle = "#ff3b30";
-      ctx.lineWidth = 3 * sx;
+      ctx.strokeStyle = hit ? "#ff3b30" : "#ff9f1c";
+      ctx.lineWidth = (hit ? 4 : 3) * sx;
       ctx.beginPath(); ctx.arc(s.x, s.y, rad, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = "#ff5148";
-      ctx.font = "700 " + Math.round(12 * sx) + "px system-ui, sans-serif";
+      if (hit) { // impact cross
+        const k = 7 * sx;
+        ctx.beginPath();
+        ctx.moveTo(s.x - k, s.y - k); ctx.lineTo(s.x + k, s.y + k);
+        ctx.moveTo(s.x + k, s.y - k); ctx.lineTo(s.x - k, s.y + k);
+        ctx.stroke();
+      }
+      ctx.fillStyle = hit ? "#ff5148" : "#ffb347";
+      ctx.font = "800 " + Math.round((hit ? 14 : 12) * sx) + "px system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("NEAR MISS", s.x, s.y - rad - 4 * sx);
+      ctx.fillText(hit ? "HIT" : "NEAR MISS", s.x, s.y - rad - 4 * sx);
       ctx.restore();
     });
   }
