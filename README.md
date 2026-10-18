@@ -62,25 +62,78 @@ encounter into one of three outcomes:
 Each animal is scored once per lap. If an animal already counted as a near miss or safe
 pass touches the car later in the same lap, it moves to hits.
 
-Below the three tiles: the average speed at the animal and (ON side) animals detected.
-The ON side also compares its hits and near misses with the OFF side.
+Below the three tiles: the average speed at the animal, (ON side) animals detected, and
+animals that turned back at the roadside because of the car. The ON side also compares
+its hits and near misses with the OFF side.
 
 How hits happen: the driver needs a reaction time (`tuning.driverReactionSec`, 0.8 s)
 after noticing an animal on the road ahead before braking starts. A driver warned by a
 flashing sign is expecting animals, so reacts faster (`alertReactionSec`, 0.4 s), and is
-already slower. A fast-forwarded 20 minutes of the auto-demo gives OFF 48 hits / 48 near
-misses / 5 safe passes and ON 29 hits / 0 near misses / 152 safe passes. Most ON hits
-are animals walking into the car after it stopped for another animal (our animals can't
-see cars, because both maps share them). A few minutes of live demo is a small sample,
-so expect the numbers to separate as it runs.
+already slower. Over 100 fast-forwarded minutes of the auto-demo (5 runs of 20 min at the
+default activity): OFF 44 hits / 109 near misses / 3 safe passes; ON 24 hits / 41 near
+misses / 76 safe passes. Most remaining ON hits are animals crossing outside the single
+camera's view. Hits are rare events (about one every 2–3 minutes on the OFF side), so a
+few minutes of live demo is a small sample: let it run, or raise **Animal activity**.
 
-If the booth screen is left idle, an **auto-demo** spawns animals on a loop; any
-interaction hands control back to the visitor.
+If the booth screen is left idle, an **auto-demo** plays, with animals arriving as
+described below; any interaction hands control back to the visitor.
 
 Extra controls: **Pause** freezes the simulation (drag/drop still works while paused);
 **Reset** clears animals, the log and both scoreboards; **Key** shows the legend;
-**Spawn rate** sets how often the auto-demo adds animals. Shortcuts: Space = pause,
-R = reset.
+**Animal activity** sets how often animals arrive (level 4 = a group every 12 s on
+average, level 10 = every 4.8 s). Shortcuts: Space = pause, R = reset.
+
+## Animal arrivals and roadside behaviour
+
+Every animal appears on both maps at once, as a pair of twins with the same path and
+"boldness". So both drivers face the same arrivals, and each twin then reacts to its own
+side's car. Dragging, aiming or releasing an animal on either map applies to both twins.
+
+**When (`js/spawner.js`, `config.spawning`).** Animals arrive in **groups**, and groups
+arrive as a **Poisson process**:
+- The gap between groups is a shifted exponential: 3 s + an exponential with mean 9 s,
+  so a group arrives every 12 s on average (demo time is compressed).
+- Exponential gaps are the standard model for random, independent arrivals; road-crossing
+  and collision models use them for both vehicles and animals. The 3 s minimum stops two
+  unrelated groups arriving at the same moment.
+- Each group is one species, weighted toward wild boar (the most common crossing species
+  on a forest-edge road in Singapore). Its size is 1 + Poisson(extra), capped: macaque
+  troops average 2 and boar sounders 1.6, both up to 4; pangolins are solitary. Group
+  members follow each other 0.8–1.8 s apart.
+- This clumping is why real roadkill counts are more variable than a plain Poisson count,
+  which is why roadkill studies use negative binomial models.
+
+**Where.** Crossing points along the road ~ Normal(490, sd 60), around the Tamarind
+verge hotspot. 75% come from the wildlife verge (north), 25% from the Hall 15 side.
+Headings are straight across ± a few degrees; speeds vary ±12% around the species speed.
+Some crossings fall outside the camera's view, which shows its coverage gaps honestly.
+
+**Roadside behaviour (`js/animals.js`, `config.crossing`, each species' `traffic`).**
+Each animal decides once, 25 units before the road edge:
+- **No car nearby:** it crosses. A car counts as nearby if it's approaching within 170
+  units of the crossing point (about headlight range), or stopped within 70 units of it.
+- **Car nearby:** its boldness and species decide whether it crosses anyway, waits
+  (shown by three pulsing dots), or turns back (shown by "↩"). The species types follow
+  Jacobson et al. (2016): macaques are avoiders, wild boar are speeders (they dash across,
+  faster), and pangolins are pausers (they freeze, and curl up when threatened).
+- **Waiting:** a waiting animal crosses once the car has been gone for 1 s, a gap in
+  traffic like the ones deer studies describe. If it waits too long, it turns back.
+
+With a car parked at the hotspot, about half of the animals still cross (the ones
+outside its 70-unit range plus the bold ones), against all of them on an empty road. The
+response probabilities and the demo arrival rate are assumptions chosen to match these
+patterns, not measured values.
+
+Sources:
+- Jaarsma, Van Langevelde & Botma, road-traversing model with Poisson-distributed car
+  arrivals: <https://swov.nl/en/publicatie/flattened-fauna-and-mitigation-traffic-victims-related-road-traffic-vehicle-and-species>
+- Poisson model of vehicle arrivals and crossing probability: <https://escholarship.org/uc/item/4th0121d>
+- Collision risk with Poisson car arrivals (2025 preprint): <https://arxiv.org/pdf/2507.17058>
+- Overdispersed roadkill counts, negative binomial models: <https://rdpc.uevora.pt/handle/10174/4041>
+- Jacobson et al. 2016, behavioural responses to traffic (Ecosphere): <https://doaj.org/article/d834bfffa653415daa6cf658c6b44f85>
+- Deer gap acceptance (30–60 s between vehicles): <https://rosap.ntl.bts.gov/view/dot/58648>
+- Singapore road crossings, wild boar 68% (Ecosphere 2024): <https://doaj.org/article/c309a3e824954f2d8463f925c73d158d>
+- Sunda pangolins, roadkill and curling up (NParks): <https://avs.nparks.gov.sg/wildlife/encountering-wildlife/pangolins/>
 
 ## Editing the scene (`js/config.js`)
 
@@ -123,7 +176,8 @@ index.html          Page shell + script load order (classic scripts, file:// saf
 css/style.css       Layout + night theme
 js/config.js        All geometry, cameras, signals, species, tuning  <-- edit this
 js/geometry.js      Pure helpers (cones, point-in-polygon)
-js/animals.js       Animal entities: drag / rotate / release / walk
+js/animals.js       Animal entities: drag / rotate / release / walk, roadside decisions
+js/spawner.js       When and where animals arrive (Poisson groups, hotspot locations)
 js/car.js           Car: path following + speed rules
 js/detection.js     Camera <-> animal detection, signal + log state
 js/render.js        Map + night rendering (road, cones, signals, car, animals)

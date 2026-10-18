@@ -379,7 +379,7 @@
 
       // Walk bob (subtle vertical motion while walking). Side-view silhouettes
       // stay upright and just mirror left/right to face travel direction.
-      const bob = placed ? 0 : Math.sin(clockMs() / 150 + a.id) * r * 0.12;
+      const bob = placed || a.phase === "wait" ? 0 : Math.sin(clockMs() / 150 + a.id) * r * 0.12;
       ctx.translate(s.x, s.y + bob);
       if (Math.cos(WW.geo.degToRad(a.dirDeg)) < 0) ctx.scale(-1, 1);
       drawCreature(ctx, sp.shape, r, sp.color);
@@ -393,6 +393,28 @@
       ctx.textAlign = "center";
       ctx.fillText(a.label, s.x, s.y - r - 7 * sx);
       ctx.restore();
+
+      // Roadside behaviour cue (animals.js): a pulsing "…" while it waits for the
+      // car to pass, a faint "↩" once it has turned back.
+      if (!placed && a.phase === "wait") {
+        // Three dots lighting up in turn above the label.
+        ctx.save();
+        ctx.fillStyle = "#ffd24d";
+        const step = Math.floor(clockMs() / 250) % 3;
+        for (let k = 0; k < 3; k++) {
+          ctx.globalAlpha = k === step ? 1 : 0.35;
+          dot(ctx, s.x + (k - 1) * 7 * sx, s.y - r - 24 * sx, 2.6 * sx);
+        }
+        ctx.restore();
+      } else if (!placed && a.phase === "retreat") {
+        ctx.save();
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = "#9fb0c4";
+        ctx.font = "700 " + Math.round(18 * sx) + "px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("↩", s.x, s.y - r - 20 * sx);
+        ctx.restore();
+      }
 
       if (placed) {
         ctx.save();

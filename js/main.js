@@ -1,8 +1,9 @@
 /* main.js — bootstrap: two side-by-side worlds, game loop, controls + input.
  *
  * Split-screen before/after: the same scene runs twice, system OFF (left) and
- * ON (right). The animals are SHARED (one list, drawn on both maps), so both
- * drivers meet exactly the same crossings; each world has its own car,
+ * ON (right). Every animal arrives on both sides at once as a pair of twins
+ * (same id, path and boldness), so both drivers face the same arrivals; each
+ * twin then reacts to its own side's car. Each world has its own animals, car,
  * cameras/signs state and scoreboard. The modules keep their per-world state
  * behind a use(world) switch, and WW.useWorld() points them all at one side
  * before it is updated or drawn.
@@ -30,6 +31,7 @@
 
   WW.useWorld = function (w) {
     WW.world = w;
+    WW.animals.use(w);
     WW.stats.use(w);
     WW.car.use(w);
     WW.detection.use(w);
@@ -40,8 +42,9 @@
   let hintEl = null;
   let idleMs = 0;
   let attractActive = false;
-  let attractSpawnTimer = 0;
-  let dragActive = false; // a tray chip is being dragged over a map
+  let attractSec = 0;       // auto-demo clock (real time)
+  let arrivals = null;      // WW.spawner stream feeding the auto-demo
+  let dragActive = false;   // a tray chip is being dragged over a map
 
   function init() {
     WORLDS.forEach((w) => {
@@ -53,6 +56,7 @@
     });
 
     hintEl = document.getElementById("hint");
+    WW.animals.setWorlds(WORLDS); // every animal gets a twin on each side
     WW.dashboard.build();
     syncTopbarHeight();
     resizeCanvases(); // after build(): the dashboard strips decide how tall the maps can be
@@ -159,13 +163,14 @@
     if (!paused) {
       updateAttract(dt); // idle/spawn timing runs on real time
       // Slow the whole scene while the user is placing/aiming an animal.
-      const placing = dragActive || WW.animals.list.some((a) => a.state === "placed");
+      const placing = dragActive || WORLDS.some((w) => w.animals.some((a) => a.state === "placed"));
       const sdt = dt * (placing ? WW.config.tuning.placingTimeScale : 1);
       WW.clock.ms += sdt * 1000;
-      // Order matters: move the shared animals, then per world detect, then react.
-      WW.animals.update(sdt);
+      // Order matters, per world: move the animals (they react to that side's
+      // car), detect, then the car reacts.
       WORLDS.forEach((w) => {
         WW.useWorld(w);
+        WW.animals.update(sdt);
         WW.detection.update();
         WW.car.update(sdt);
       });
@@ -185,19 +190,20 @@
   // ---- Attract / auto-demo mode -----------------------------------------
   // After a spell of no interaction, the demo plays itself on a loop so a
   // passer-by sees the detect -> warn -> slow chain without touching anything.
+  // Animals arrive from WW.spawner: groups as a Poisson process around the
+  // crossing hotspot (config.spawning). Each arrival appears on both sides.
   function updateAttract(dt) {
-    const cfg = WW.config.attract;
     if (attractActive) {
-      // Spawn animals from varied points until the concurrency cap is reached.
-      // They are shared, so each one crosses both roads at once.
-      attractSpawnTimer -= dt * 1000;
-      if (attractSpawnTimer <= 0) {
-        if (WW.animals.list.length < cfg.maxConcurrent) spawnAttractAnimal();
-        attractSpawnTimer = cfg.spawnGapMs;
-      }
+      attractSec += dt;
+      const onScreen = Math.max.apply(null, WORLDS.map((w) => w.animals.length));
+      arrivals.due(attractSec).forEach((ev) => {
+        if (onScreen >= WW.config.spawning.maxConcurrent) return; // safety cap
+        WW.animals.spawn(Object.assign({}, ev, { state: "walking" }));
+      });
     } else {
       idleMs += dt * 1000;
-      if (idleMs >= cfg.idleStartMs && WW.animals.list.length === 0) startAttract();
+      const empty = WORLDS.every((w) => w.animals.length === 0);
+      if (idleMs >= WW.config.attract.idleStartMs && empty) startAttract();
     }
   }
 
@@ -206,21 +212,17 @@
     if (hintEl) hintEl.hidden = false;
     const hintText = document.getElementById("hint-text");
     if (hintText) hintText.textContent = "Drag an animal onto either road to try it yourself";
-    attractSpawnTimer = 0;
+    attractSec = 0;
+    arrivals = WW.spawner.createStream({
+      rnd: WW.spawner.mulberry32(Date.now() % 2147483647),
+      firstAtSec: WW.config.attract.firstGroupSec,
+      meanGapSec: () => WW.config.spawning.meanGapSec, // follows the knob live
+    });
   }
 
   function stopAttract() {
     attractActive = false;
     if (hintEl) hintEl.hidden = true;
-  }
-
-  // Spawn one auto-demo animal: random entry point + random species.
-  function spawnAttractAnimal() {
-    const pts = WW.config.attract.spawns;
-    const p = pts[Math.floor(Math.random() * pts.length)];
-    const sp = WW.config.species[Math.floor(Math.random() * WW.config.species.length)];
-    const a = WW.animals.create(sp.id, p.x, p.y);
-    if (a) { a.dirDeg = p.dirDeg; a.state = "walking"; }
   }
 
   // Any real interaction cancels the auto-demo and hands control to the visitor.
@@ -249,16 +251,16 @@
       el.hidden = !el.hidden;
     });
 
-    // Spawn-rate knob: level 1 (slow) .. 10 (fast) -> auto-demo spawn gap.
+    // Animal-activity knob: level 1 (quiet) .. 10 (busy) -> mean gap between
+    // arriving groups, 48 s / level (level 4 = one group every 12 s).
     // Changing it does NOT cancel the demo, so you can tune it live.
     const rate = document.getElementById("rate");
     if (rate) {
-      const gapForLevel = (lvl) => Math.round(3000 / lvl); // ms between spawns
-      rate.value = String(Math.max(1, Math.min(10,
-        Math.round(3000 / WW.config.attract.spawnGapMs))));
-      WW.config.attract.spawnGapMs = gapForLevel(Number(rate.value));
+      const gapForLevel = (lvl) => 48 / lvl;
+      rate.value = String(Math.max(1, Math.min(10, Math.round(48 / WW.config.spawning.meanGapSec))));
+      WW.config.spawning.meanGapSec = gapForLevel(Number(rate.value));
       rate.addEventListener("input", () => {
-        WW.config.attract.spawnGapMs = gapForLevel(Number(rate.value));
+        WW.config.spawning.meanGapSec = gapForLevel(Number(rate.value));
       });
     }
   }
@@ -284,24 +286,28 @@
       chip.addEventListener("dragend", () => { dragActive = false; });
     });
 
-    // The animals are shared, so editing them on one map shows on both.
-    WORLDS.forEach((w) => wireCanvas(w.canvas));
+    // Edits on either map apply to the animal and its twin on the other side.
+    WORLDS.forEach((w) => wireCanvas(w.canvas, w));
   }
 
-  function wireCanvas(canvas) {
+  function wireCanvas(canvas, world) {
     // Pointer events on the map -> animal drag/rotate/release (SPEC §5.2).
+    // Select this map's world first: the render loop switches worlds every frame.
     canvas.addEventListener("pointerdown", (e) => {
       noteInteraction();
       try { canvas.setPointerCapture(e.pointerId); } catch (_) {} // keep events past the edge
       const p = toLogical(e, canvas);
+      WW.useWorld(world);
       WW.animals.onPointerDown(p.x, p.y);
     });
     canvas.addEventListener("pointermove", (e) => {
       const p = toLogical(e, canvas);
+      WW.useWorld(world);
       WW.animals.onPointerMove(p.x, p.y);
     });
     canvas.addEventListener("pointerup", (e) => {
       const p = toLogical(e, canvas);
+      WW.useWorld(world);
       WW.animals.onPointerUp(p.x, p.y);
     });
 

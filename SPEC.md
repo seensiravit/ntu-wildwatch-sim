@@ -30,6 +30,7 @@ css/style.css
 js/config.js      // map, cameras, signals, species, tuning constants
 js/geometry.js    // path, cone, point-in-polygon helpers
 js/animals.js     // animal entity, drag/rotate/release, movement
+js/spawner.js     // (added) when/where animals arrive: Poisson groups around the hotspot
 js/car.js         // car entity, path following, speed logic
 js/detection.js   // camera ↔ animal detection, signal state
 js/render.js      // map + night rendering
@@ -122,6 +123,12 @@ Each species has: `id, label, color, radius, speedUnitsPerSec, heatColor`.
    - It becomes fully opaque, the arrow is hidden, and it walks in a straight line at its species speed.
 5. **Exit:** when a Walking animal leaves the map bounds, it is removed.
 6. **Reset** clears all animals and restarts the car.
+
+> **Changed:** a Walking animal now decides at the roadside whether to cross if a car is
+> near: it crosses anyway, waits for a gap, or turns back, by species (avoider, speeder,
+> pauser). Auto-demo animals arrive in groups as a Poisson process around the crossing
+> hotspot (`js/spawner.js`). Each animal exists on both maps as twins that react to
+> their own side's car. See the README, "Animal arrivals and roadside behaviour".
 
 Only **Walking** animals can be detected. Placed animals are set-up only, so the presenter can arrange a scene without triggering signs.
 

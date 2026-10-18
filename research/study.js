@@ -20,9 +20,11 @@
   const S = {
     dt: 1 / 30,                 // fixed sim step (s)
     crossings: QUICK ? 40 : 200, // animals per run
-    gapMeanSec: 3,              // mean time between crossings (exponential)
-    gapMinSec: 0.6,
-    tailSec: 25,                // keep running after the last spawn so it can finish
+    // Arrivals use the demo's model (js/spawner.js: Poisson groups, hotspot
+    // locations, species mix), with groups twice as frequent as the demo's
+    // default so a run stays short.
+    meanGapSec: 6,
+    tailSec: 30,                // keep running after the last spawn so it can finish
     seeds: QUICK ? [1] : [1, 2, 3, 4, 5],
     greedySeeds: QUICK ? [1] : [1, 2, 3],
     finalSeeds: QUICK ? [1, 2] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -30,12 +32,8 @@
     maxCameras: 4,
     patterns: ["hotspot", "uniform"],
     dirs: ["east", "west"],
-    hotspot: { x: 490, sd: 70 }, // Tamarind green verge, around today's crossing points
-    uniform: { x0: 60, x1: 940 },
-    northStartY: 240,           // wildlife verge, ~100 units north of the road edge
-    southStartY: 470,           // Hall 15 side
-    southShare: 0.25,           // share of crossings from the south
-    jitterDeg: 12,              // heading spread around straight across
+    hotspot: CFG.spawning.hotspot, // "hotspot" scenario: the demo's crossing distribution
+    uniform: { x0: 60, x1: 940 },  // "anywhere" scenario: uniform along the road
     // Stage-1 grid
     xs: [250, 400, 550, 700, 850],
     laterals: [
@@ -64,54 +62,23 @@
   ];
   function facings() { return FACINGS; }
 
-  // ---- Seeded randomness ---------------------------------------------------
-  function mulberry32(seed) {
-    return function () {
-      seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-  function gauss(rnd) { // Box-Muller
-    const u = Math.max(1e-9, rnd()), v = rnd();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  }
-
-  // The crossing schedule for one (pattern, seed): identical for every layout.
+  // ---- Crossing schedule ----------------------------------------------------
+  // The arrivals for one (pattern, seed): identical for every layout, so layouts
+  // are compared on the same animals.
   const scheduleCache = {};
   function schedule(pattern, seed) {
     const key = pattern + ":" + seed;
     if (scheduleCache[key]) return scheduleCache[key];
-    const rnd = mulberry32(seed * 7919 + (pattern === "hotspot" ? 1 : 2));
-    const out = [];
-    let t = 2;
-    for (let i = 0; i < S.crossings; i++) {
-      t += Math.max(S.gapMinSec, -Math.log(Math.max(1e-9, rnd())) * S.gapMeanSec);
-      const x = pattern === "hotspot"
-        ? Math.max(20, Math.min(980, S.hotspot.x + gauss(rnd) * S.hotspot.sd))
-        : S.uniform.x0 + rnd() * (S.uniform.x1 - S.uniform.x0);
-      const fromSouth = rnd() < S.southShare;
-      const sp = CFG.species[Math.floor(rnd() * CFG.species.length)];
-      const jitter = (rnd() * 2 - 1) * S.jitterDeg;
-      out.push({ t, x, y: fromSouth ? S.southStartY : S.northStartY, dirDeg: (fromSouth ? 270 : 90) + jitter, speciesId: sp.id });
-    }
-    return (scheduleCache[key] = out);
+    const stream = WW.spawner.createStream({
+      rnd: WW.spawner.mulberry32(seed * 7919 + (pattern === "hotspot" ? 1 : 2)),
+      firstAtSec: 2,
+      meanGapSec: () => S.meanGapSec,
+      xDist: pattern === "uniform" ? (rnd) => S.uniform.x0 + rnd() * (S.uniform.x1 - S.uniform.x0) : undefined,
+    });
+    return (scheduleCache[key] = stream.take(S.crossings));
   }
 
-  // ---- Geometry helpers ----------------------------------------------------
-  // Distance from a point to the road centreline polyline.
-  function roadDist(x, y) {
-    const cl = CFG.road.centerline;
-    let best = Infinity;
-    for (let i = 0; i < cl.length - 1; i++) {
-      const a = cl[i], b = cl[i + 1];
-      const dx = b.x - a.x, dy = b.y - a.y, len2 = dx * dx + dy * dy || 1;
-      const t = Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / len2));
-      best = Math.min(best, Math.hypot(x - (a.x + dx * t), y - (a.y + dy * t)));
-    }
-    return best;
-  }
+  function roadDist(x, y) { return WW.geo.distToPolyline(x, y, CFG.road.centerline); }
 
   // ---- One simulation run --------------------------------------------------
   const DEMO = { cameras: CFG.cameras, signals: CFG.signals, carPath: CFG.carPath, sight: CFG.tuning.signSightDistance };
@@ -131,7 +98,8 @@
     WW.system.enabled = sys;
 
     const world = {};
-    WW.stats.use(world); WW.car.use(world); WW.detection.use(world);
+    WW.animals.setWorlds([world]);
+    WW.animals.use(world); WW.stats.use(world); WW.car.use(world); WW.detection.use(world);
     WW.animals.clear();
     WW.clock.ms = 0;
     WW.car.reset(); // builds this direction's path, so coverage() projects onto it
@@ -159,8 +127,7 @@
     while (t < end) {
       while (next < sched.length && sched[next].t <= t) {
         const c = sched[next++];
-        const a = WW.animals.create(c.speciesId, c.x, c.y);
-        a.dirDeg = c.dirDeg; a.state = "walking";
+        const a = WW.animals.spawn(Object.assign({}, c, { state: "walking" }));
         track.set(a.id, { reached: false, early: false });
       }
       WW.clock.ms += dt * 1000;
@@ -221,6 +188,7 @@
     // The study's "near-miss" counts every dangerous encounter: hits plus near
     // misses (the sim now tells them apart). "avoided" = safe passes.
     m.hits = st.hits;
+    m.turnedBack = st.turnedBack;
     m.nearMiss = st.hits + st.nearMiss; m.avoided = st.safe; m.speedSum = st.speedSum; m.speedCount = st.speedCount;
     m.detections = st.detections;
     return m;
@@ -507,7 +475,7 @@
     const status = document.getElementById("status");
     const csv = document.getElementById("csv");
     document.getElementById("settings").textContent =
-      S.crossings + " crossings per run · seeds: " + S.seeds.length + " (stage 1), " + S.greedySeeds.length + " (greedy), " +
+      S.crossings + " animals per run (a group every " + S.meanGapSec + " s on average) · seeds: " + S.seeds.length + " (stage 1), " + S.greedySeeds.length + " (greedy), " +
       S.finalSeeds.length + " (finals) · step " + (1000 * S.dt).toFixed(0) + " ms" + (QUICK ? " · QUICK MODE" : "");
     const ui = {
       progress: (f, text) => { bar.style.width = (f * 100).toFixed(1) + "%"; label.textContent = text; },

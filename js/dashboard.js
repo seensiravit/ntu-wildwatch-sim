@@ -8,15 +8,6 @@
   const WW = window.WW || (window.WW = {});
   const panels = {}; // world id ("off" | "on") -> DOM refs for that strip
 
-  // Deterministic PRNG so thermal noise looks frozen while the sim is paused.
-  function mulberry32(seed) {
-    return function () {
-      seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
 
   function el(tag, cls, html) {
     const e = document.createElement(tag);
@@ -137,7 +128,8 @@
     setText(p.nums.nearMiss, s.nearMiss);
     setText(p.nums.safe, s.safe);
     setText(p.foot, "Avg " + (avg === null ? "–" : avg) + " km/h at the animal · " +
-      (p.systemOn ? s.detections + " detected by camera" : "no camera"));
+      (p.systemOn ? s.detections + " detected by camera" : "no camera") +
+      " · " + s.turnedBack + " turned back");
 
     if (!p.systemOn) {
       setText(p.summary, s.hits + s.nearMiss + s.safe
@@ -210,7 +202,7 @@
 
     // Subtle noise (frozen when paused via the sim-clock seed)
     const bucket = Math.floor(((WW.clock && WW.clock.ms) || 0) / 120);
-    const rnd = mulberry32(bucket * 131 + cam.x);
+    const rnd = WW.spawner.mulberry32(bucket * 131 + cam.x);
     ctx.globalAlpha = 0.12;
     for (let i = 0; i < 140; i++) {
       const x = rnd() * W, y = rnd() * H, s = 1 + rnd() * 2;

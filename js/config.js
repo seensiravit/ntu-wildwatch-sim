@@ -127,11 +127,62 @@
     ],
 
     // ---- Species (drives the tray + animal entities) --------------------
+    // spawn:   how often each species turns up and in what group sizes
+    //          (weight = share of groups; size = 1 + Poisson(extraMean), capped).
+    //          Boar weighted highest: they were 68% of crossings on a forest-edge
+    //          road in Singapore (Ecosphere 2024). Pangolins are solitary.
+    // traffic: what it does at the roadside when a car is near (see `crossing`).
+    //          Response types from Jacobson et al. 2016 (Ecosphere): avoiders
+    //          hold back, speeders dash across, pausers freeze. The probabilities
+    //          are assumptions chosen to match those types, not measured values.
+    //          cross / wait = chance to cross anyway / to wait (else turn back),
+    //          decided by the animal's boldness; maxWaitSec = then it gives up.
     species: [
-      { id: "macaque", label: "Macaque",  color: "#c9a06a", radius: 12, speedUnitsPerSec: 40,  heatColor: "#ffd24d", shape: "circle" },
-      { id: "boar",    label: "Wild boar", color: "#8a6b52", radius: 18, speedUnitsPerSec: 60,  heatColor: "#ff9a3d", shape: "ellipse" },
-      { id: "pangolin",label: "Pangolin", color: "#9a8f70", radius: 11, speedUnitsPerSec: 22,  heatColor: "#ffe08a", shape: "triangle" },
+      { id: "macaque", label: "Macaque",  color: "#c9a06a", radius: 12, speedUnitsPerSec: 40,  heatColor: "#ffd24d", shape: "circle",
+        spawn: { weight: 0.40, extraMean: 1.0, maxGroup: 4 },  // troops cross in a line
+        traffic: { type: "avoider", cross: 0.15, wait: 0.55, maxWaitSec: 10, crossSpeedMul: 1 } },
+      { id: "boar",    label: "Wild boar", color: "#8a6b52", radius: 18, speedUnitsPerSec: 60,  heatColor: "#ff9a3d", shape: "ellipse",
+        spawn: { weight: 0.45, extraMean: 0.6, maxGroup: 4 },  // sounders
+        traffic: { type: "speeder", cross: 0.45, wait: 0.35, maxWaitSec: 6, crossSpeedMul: 1.6 } },
+      { id: "pangolin",label: "Pangolin", color: "#9a8f70", radius: 11, speedUnitsPerSec: 22,  heatColor: "#ffe08a", shape: "triangle",
+        spawn: { weight: 0.15, extraMean: 0, maxGroup: 1 },    // solitary
+        traffic: { type: "pauser", cross: 0.20, wait: 0.70, maxWaitSec: 12, crossSpeedMul: 1 } },  // curls up when threatened
     ],
+
+    // ---- When and where animals arrive (js/spawner.js) -------------------
+    // Groups arrive as a Poisson process: gaps are minGapSec + exponential, with
+    // an average of one group every meanGapSec (demo time is compressed; the
+    // "Animal activity" knob changes it). Crossing points cluster around the
+    // Tamarind verge hotspot.
+    spawning: {
+      meanGapSec: 12,            // average time between groups (knob level 4)
+      minGapSec: 3,              // no two unrelated groups closer than this
+      maxConcurrent: 12,         // safety cap on animals on screen
+      followerGapSec: [0.8, 1.8], // time between members of a group
+      followerSpread: 8,         // sideways scatter of followers (units)
+      hotspot: { x: 490, sd: 60 }, // crossing point along the road ~ Normal(x, sd)
+      xMin: 20, xMax: 980,
+      northShare: 0.75,          // share of groups from the wildlife verge (north)
+      northStart: [100, 140],    // start this far north of the road edge
+      southStart: [50, 80],      // ...or this far south of it (Hall 15 side)
+      headingSdDeg: 8,           // spread around straight across
+      speedSd: 0.12, speedMin: 0.7, speedMax: 1.3, // speed multiplier ~ N(1, sd), limited
+    },
+
+    // ---- Roadside behaviour near a car (js/animals.js) -------------------
+    // An animal decides once, decisionDist before the road edge. A car is a
+    // threat if it is approaching within approachRadius of the animal's
+    // crossing point (about the headlight range), or stopped within
+    // stoppedRadius of it. With no threat the animal crosses; otherwise its
+    // species' traffic settings decide. A waiting animal crosses once the threat
+    // has been gone for clearSec (a gap in traffic, as deer studies describe).
+    crossing: {
+      decisionDist: 25,
+      approachRadius: 170,
+      stoppedRadius: 70,
+      stoppedKmh: 1,
+      clearSec: 1,
+    },
 
     // ---- Tuning constants ----------------------------------------------
     tuning: {
@@ -175,21 +226,11 @@
     },
 
     // ---- Attract / auto-demo mode ---------------------------------------
+    // After this much idle time the demo plays itself, with animals arriving as
+    // described in `spawning`.
     attract: {
-      idleStartMs: 6000,   // idle time before the demo auto-plays
-      spawnGapMs: 850,     // time between auto-spawned animals (lower = faster)
-      maxConcurrent: 5,    // cap on simultaneous auto-demo animals
-      // Entry points; each auto-spawn picks one at random and a random species.
-      // Animals walk across the road inside the camera's coverage (x ~ 440-590)
-      // so the system can warn. Most come off the north verge; one crosses from
-      // the Hall 15 side through the gap between buildings. A presenter can still
-      // drop one outside the cone to show a coverage gap.
-      spawns: [
-        { x: 470, y: 190, dirDeg: 92 },
-        { x: 510, y: 165, dirDeg: 88 },
-        { x: 505, y: 215, dirDeg: 92 }, // (not too close to the camera: its cone is narrow near the tip)
-        { x: 485, y: 500, dirDeg: 270 }, // from the Hall 15 side, heading north
-      ],
+      idleStartMs: 6000,
+      firstGroupSec: 1,    // the first group appears this soon after the demo starts
     },
 
     // ---- Palettes (night is the only active mode in v1; day kept for later)

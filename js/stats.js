@@ -13,6 +13,7 @@
       hits: 0,         // the car and an animal touched
       nearMiss: 0,     // the car came at an animal fast but didn't touch it
       safe: 0,         // the car had already slowed down, no contact
+      turnedBack: 0,   // animals that turned back at the roadside because of the car
       speedSum: 0, speedCount: 0, // car speed at each encounter, for the average
       markers: [],     // active "HIT" / "NEAR MISS" map markers: { x, y, bornMs, kind }
     };
@@ -27,12 +28,16 @@
     state.hits = 0;
     state.nearMiss = 0;
     state.safe = 0;
+    state.turnedBack = 0;
     state.speedSum = 0; state.speedCount = 0;
     state.markers.length = 0;
   }
 
   // A camera saw an animal (only called while the system is on).
   function onDetection() { state.detections++; }
+
+  // An animal gave up crossing because of the car (animals.js).
+  function onTurnedBack() { state.turnedBack++; }
 
   // One car–animal encounter ended. kind: "hit" | "near" | "safe" (see car.js).
   function onEncounter(kind, x, y, kmh) {
@@ -67,6 +72,6 @@
 
   WW.stats = {
     get state() { return state; },
-    use, reset, onDetection, onEncounter, upgradeToHit, avgKmh, activeMarkers,
+    use, reset, onDetection, onTurnedBack, onEncounter, upgradeToHit, avgKmh, activeMarkers,
   };
 })();
