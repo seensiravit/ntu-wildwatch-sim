@@ -16,11 +16,23 @@
   // Nanyang Crescent opposite Hall 15 (Tamarind area): a straight stretch with the
   // green verge and the Sungei Choa Chu Kang canal to the north (wildlife side) and
   // the Hall 15 blocks to the south. Drawn straight across the map, west -> east.
-  // Shared by both the road surface and the car's path (single-lane demo).
+  // This is the road's centre line; the car drives in its lane beside it.
   const NANYANG_CRESCENT = [
     { x: -40, y: 380 },
     { x: 1040, y: 380 },
   ];
+  const LANE_WIDTH = 42;
+
+  // Shift a polyline sideways by d units. d > 0 moves it to the LEFT of the
+  // direction of travel (screen y points down, so left of (ux, uy) is (uy, -ux)).
+  // Each point uses the direction between its neighbours, so bends work too.
+  function sidePath(pts, d) {
+    return pts.map((p, i) => {
+      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+      const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      return { x: p.x + (d * (b.y - a.y)) / len, y: p.y - (d * (b.x - a.x)) / len };
+    });
+  }
 
   WW.config = {
     // ---- Branding / framing (shown in the header + on the map) -----------
@@ -59,7 +71,7 @@
     road: {
       centerline: NANYANG_CRESCENT,
       roadWidth: 84,
-      laneWidth: 42,
+      laneWidth: LANE_WIDTH,
       dashLen: 24,          // centre-line dash length
       gapLen: 20,
       edgeColor: "#5b6473", // solid lane-edge lines
@@ -67,9 +79,11 @@
       crosswalkStripes: 5,
     },
 
-    // ---- Car route = the road centerline, driven west -> east (left to right;
-    // single-lane demo). Use NANYANG_CRESCENT.slice().reverse() for westbound.
-    carPath: NANYANG_CRESCENT,
+    // ---- Car route: west -> east (left to right), in its own lane. Singapore
+    // drives on the left, so the car keeps half a lane to the LEFT of the centre
+    // line (for eastbound traffic that's the north lane). For westbound use
+    // sidePath(NANYANG_CRESCENT.slice().reverse(), LANE_WIDTH / 2) (south lane).
+    carPath: sidePath(NANYANG_CRESCENT, LANE_WIDTH / 2),
 
     // ---- One overhead camera on the road centreline, looking west along the
     // road toward oncoming (eastbound) traffic. Its wide cone spans the whole
@@ -169,7 +183,7 @@
       spawns: [
         { x: 470, y: 190, dirDeg: 92 },
         { x: 510, y: 165, dirDeg: 88 },
-        { x: 545, y: 215, dirDeg: 95 },
+        { x: 505, y: 215, dirDeg: 92 }, // (not too close to the camera: its cone is narrow near the tip)
         { x: 485, y: 500, dirDeg: 270 }, // from the Hall 15 side, heading north
       ],
     },

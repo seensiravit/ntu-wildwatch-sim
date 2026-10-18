@@ -80,8 +80,10 @@ files, so you can reshape the demo by editing config alone:
   drive several signs. A sign should be before (or at) its camera's coverage along
   the car's route. Drivers start slowing `tuning.signSightDistance` before a
   flashing sign, i.e. once they can see it.
-- **Car direction** — `carPath` is the centreline as-is (eastbound, left to right);
-  use `NANYANG_CRESCENT.slice().reverse()` to drive westbound.
+- **Car direction & lane** — the car drives eastbound (left to right) in its own
+  lane: Singapore drives on the left, so `carPath` is the centre line shifted half a
+  lane to the left of travel (`sidePath(NANYANG_CRESCENT, LANE_WIDTH / 2)`, the north
+  lane). For westbound use `sidePath(NANYANG_CRESCENT.slice().reverse(), LANE_WIDTH / 2)`.
 - **Species** — `species[]`: label, colour, size, speed, heat colour, shape.
 - **Behaviour tuning** — `tuning`: cruise/warning speeds, accel/decel, braking
   look-ahead, confidence range, flash rate, headlight cone, etc.
