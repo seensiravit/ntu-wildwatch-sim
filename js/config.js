@@ -201,7 +201,7 @@
       carRespawnDelaySec: 1.5, // pause before the next lap (both cars start it together)
 
       flashHz: 2,             // beacon + message board blink rate
-      dragReleaseThreshPx: 5, // pointer move < this on a click = release to Walking
+      dragReleaseThreshPx: 6, // a click on a placed animal moving < this many screen px releases it to Walking
       defaultAnimalDirDeg: 90,// straight down
 
       confidenceMin: 85,

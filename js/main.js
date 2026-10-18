@@ -182,6 +182,7 @@
       WW.useWorld(w);
       WW.render.frame(w.ctx, w.view.w, w.view.h);
     });
+    syncHint();
     WW.dashboard.update();
 
     requestAnimationFrame(loop);
@@ -207,11 +208,21 @@
     }
   }
 
+  // The hint pill: an invitation during the auto-demo, and how-to while an animal
+  // is placed (the scene runs in slow motion until it is released).
+  let hintShown = null;
+  function syncHint() {
+    const placing = WORLDS.some((w) => w.animals.some((a) => a.state === "placed"));
+    const text = placing ? "Drag the arrow to aim, then click the animal to let it go"
+      : attractActive ? "Drag an animal onto either road to try it yourself" : null;
+    if (text === hintShown || !hintEl) return;
+    hintShown = text;
+    hintEl.hidden = !text;
+    if (text) document.getElementById("hint-text").textContent = text;
+  }
+
   function startAttract() {
     attractActive = true;
-    if (hintEl) hintEl.hidden = false;
-    const hintText = document.getElementById("hint-text");
-    if (hintText) hintText.textContent = "Drag an animal onto either road to try it yourself";
     attractSec = 0;
     arrivals = WW.spawner.createStream({
       rnd: WW.spawner.mulberry32(Date.now() % 2147483647),
@@ -222,7 +233,6 @@
 
   function stopAttract() {
     attractActive = false;
-    if (hintEl) hintEl.hidden = true;
   }
 
   // Any real interaction cancels the auto-demo and hands control to the visitor.
@@ -298,7 +308,7 @@
       try { canvas.setPointerCapture(e.pointerId); } catch (_) {} // keep events past the edge
       const p = toLogical(e, canvas);
       WW.useWorld(world);
-      WW.animals.onPointerDown(p.x, p.y);
+      WW.animals.onPointerDown(p.x, p.y, WW.config.map.width / canvas.getBoundingClientRect().width);
     });
     canvas.addEventListener("pointermove", (e) => {
       const p = toLogical(e, canvas);

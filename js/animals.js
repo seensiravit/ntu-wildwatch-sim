@@ -178,8 +178,11 @@
   // ---- Pointer interaction (logical units), wired from main.js -----------
   // main.js selects the clicked map's world first; edits are mirrored to twins.
 
-  function onPointerDown(x, y) {
+  // unitsPerPx: map units per screen pixel for the clicked map, so the click /
+  // drag threshold stays the same on screen whatever size the map is drawn at.
+  function onPointerDown(x, y, unitsPerPx) {
     drag = null;
+    const upp = unitsPerPx || 1;
     const ui = WW.config.ui;
     // Topmost first: prefer the arrow tip, then the body (placed animals only).
     for (let i = list.length - 1; i >= 0; i--) {
@@ -187,7 +190,7 @@
       if (a.state !== "placed") continue;
       const tip = arrowTip(a);
       if (WW.geo.dist(x, y, tip.x, tip.y) <= ui.arrowGrabRadius) {
-        drag = { mode: "arrow", animal: a, startX: x, startY: y, moved: 0 };
+        drag = { mode: "arrow", animal: a, startX: x, startY: y, moved: 0, upp: upp };
         return;
       }
     }
@@ -196,7 +199,7 @@
       if (a.state !== "placed") continue;
       if (WW.geo.dist(x, y, a.x, a.y) <= a.radius + ui.bodyGrabSlack) {
         drag = {
-          mode: "body", animal: a, startX: x, startY: y, moved: 0,
+          mode: "body", animal: a, startX: x, startY: y, moved: 0, upp: upp,
           offX: a.x - x, offY: a.y - y,
         };
         return;
@@ -224,7 +227,7 @@
     if (drag.mode === "body" && outOfBounds) {
       // Dragged off the map -> remove it on both sides (tidy the scene).
       removeEverywhere(drag.animal.id);
-    } else if (drag.mode === "body" && drag.moved < WW.config.tuning.dragReleaseThreshPx) {
+    } else if (drag.mode === "body" && drag.moved / drag.upp < WW.config.tuning.dragReleaseThreshPx) {
       // A click on the body (little movement) releases it to Walking.
       drag.animal.state = "walking";
       drag.animal.phase = "approach";
