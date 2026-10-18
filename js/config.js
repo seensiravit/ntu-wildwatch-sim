@@ -112,9 +112,9 @@
 
     // ---- Species (drives the tray + animal entities) --------------------
     species: [
-      { id: "macaque", label: "Macaque",  color: "#c9a06a", radius: 12, speedUnitsPerSec: 70,  heatColor: "#ffd24d", shape: "circle" },
-      { id: "boar",    label: "Wild boar", color: "#8a6b52", radius: 18, speedUnitsPerSec: 110, heatColor: "#ff9a3d", shape: "ellipse" },
-      { id: "pangolin",label: "Pangolin", color: "#9a8f70", radius: 11, speedUnitsPerSec: 40,  heatColor: "#ffe08a", shape: "triangle" },
+      { id: "macaque", label: "Macaque",  color: "#c9a06a", radius: 12, speedUnitsPerSec: 40,  heatColor: "#ffd24d", shape: "circle" },
+      { id: "boar",    label: "Wild boar", color: "#8a6b52", radius: 18, speedUnitsPerSec: 60,  heatColor: "#ff9a3d", shape: "ellipse" },
+      { id: "pangolin",label: "Pangolin", color: "#9a8f70", radius: 11, speedUnitsPerSec: 22,  heatColor: "#ffe08a", shape: "triangle" },
     ],
 
     // ---- Tuning constants ----------------------------------------------
@@ -126,7 +126,7 @@
       accelUnitsPerSec2: 120, // smooth speed-up
       decelUnitsPerSec2: 220, // stronger braking
       brakeAheadLen: 120,     // look-ahead rectangle length for animals on road
-      signSightDistance: 250, // drivers react once a flashing sign is this far ahead (~ the road width x3)
+      signSightDistance: 320, // drivers react once a flashing sign is this far ahead (~ 4x the road width)
       carRespawnDelaySec: 1.5,
 
       flashHz: 2,             // beacon + message board blink rate
