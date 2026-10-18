@@ -1,0 +1,1650 @@
+{
+ "stage1": [
+  {
+   "x": 400,
+   "lat": "centre",
+   "face": "E",
+   "red": 46.4,
+   "worst": 20.5,
+   "early": 30.2,
+   "prot": 48.4
+  },
+  {
+   "x": 400,
+   "lat": "north",
+   "face": "SE",
+   "red": 45.1,
+   "worst": 13.7,
+   "early": 40.8,
+   "prot": 49.3
+  },
+  {
+   "x": 400,
+   "lat": "south",
+   "face": "NE",
+   "red": 44.9,
+   "worst": 18.2,
+   "early": 36.3,
+   "prot": 48.9
+  },
+  {
+   "x": 550,
+   "lat": "centre",
+   "face": "W",
+   "red": 44.4,
+   "worst": 15,
+   "early": 28.5,
+   "prot": 46.9
+  },
+  {
+   "x": 550,
+   "lat": "south",
+   "face": "NW",
+   "red": 43.3,
+   "worst": 13.3,
+   "early": 37.2,
+   "prot": 50
+  },
+  {
+   "x": 550,
+   "lat": "north",
+   "face": "SW",
+   "red": 43.3,
+   "worst": 6.2,
+   "early": 41.4,
+   "prot": 49.6
+  },
+  {
+   "x": 400,
+   "lat": "north",
+   "face": "E",
+   "red": 42.7,
+   "worst": 16.8,
+   "early": 34,
+   "prot": 42
+  },
+  {
+   "x": 550,
+   "lat": "south",
+   "face": "N",
+   "red": 40.9,
+   "worst": 17.3,
+   "early": 35.2,
+   "prot": 38.5
+  },
+  {
+   "x": 400,
+   "lat": "south",
+   "face": "E",
+   "red": 39.3,
+   "worst": 12.8,
+   "early": 14.7,
+   "prot": 41.6
+  },
+  {
+   "x": 550,
+   "lat": "south",
+   "face": "W",
+   "red": 38.4,
+   "worst": 13.7,
+   "early": 14.6,
+   "prot": 40.3
+  },
+  {
+   "x": 550,
+   "lat": "north",
+   "face": "W",
+   "red": 38.7,
+   "worst": 14.6,
+   "early": 34.3,
+   "prot": 39.8
+  },
+  {
+   "x": 400,
+   "lat": "centre",
+   "face": "NE",
+   "red": 38.4,
+   "worst": 12.3,
+   "early": 31.6,
+   "prot": 37.3
+  },
+  {
+   "x": 550,
+   "lat": "centre",
+   "face": "NW",
+   "red": 38.1,
+   "worst": 11.4,
+   "early": 32,
+   "prot": 37.9
+  },
+  {
+   "x": 400,
+   "lat": "south",
+   "face": "N",
+   "red": 35.5,
+   "worst": 21.7,
+   "early": 30.9,
+   "prot": 32.5
+  },
+  {
+   "x": 550,
+   "lat": "centre",
+   "face": "SW",
+   "red": 34.9,
+   "worst": 11.9,
+   "early": 10.3,
+   "prot": 37.7
+  },
+  {
+   "x": 400,
+   "lat": "centre",
+   "face": "SE",
+   "red": 34.1,
+   "worst": 4.4,
+   "early": 10.2,
+   "prot": 37.5
+  },
+  {
+   "x": 550,
+   "lat": "north",
+   "face": "S",
+   "red": 33.6,
+   "worst": 10.6,
+   "early": 14,
+   "prot": 37.8
+  },
+  {
+   "x": 400,
+   "lat": "north",
+   "face": "S",
+   "red": 31.1,
+   "worst": 16.4,
+   "early": 12.2,
+   "prot": 33
+  },
+  {
+   "x": 550,
+   "lat": "centre",
+   "face": "N",
+   "red": 30,
+   "worst": 8.2,
+   "early": 34.3,
+   "prot": 26.2
+  },
+  {
+   "x": 550,
+   "lat": "south",
+   "face": "SW",
+   "red": 29,
+   "worst": 9.7,
+   "early": 10.6,
+   "prot": 23.7
+  },
+  {
+   "x": 550,
+   "lat": "south",
+   "face": "NE",
+   "red": 28.6,
+   "worst": 21.7,
+   "early": 15.4,
+   "prot": 23.9
+  },
+  {
+   "x": 400,
+   "lat": "south",
+   "face": "SE",
+   "red": 28.5,
+   "worst": 7.1,
+   "early": 10.6,
+   "prot": 23.4
+  },
+  {
+   "x": 700,
+   "lat": "north",
+   "face": "W",
+   "red": 27.9,
+   "worst": 17.7,
+   "early": 14.4,
+   "prot": 21.3
+  },
+  {
+   "x": 700,
+   "lat": "centre",
+   "face": "W",
+   "red": 26.3,
+   "worst": 18.1,
+   "early": 13.7,
+   "prot": 23.9
+  },
+  {
+   "x": 550,
+   "lat": "centre",
+   "face": "S",
+   "red": 26.3,
+   "worst": 8.8,
+   "early": 9.7,
+   "prot": 24.1
+  },
+  {
+   "x": 550,
+   "lat": "north",
+   "face": "NW",
+   "red": 26.2,
+   "worst": 8.6,
+   "early": 33.2,
+   "prot": 22
+  },
+  {
+   "x": 400,
+   "lat": "north",
+   "face": "NE",
+   "red": 23.9,
+   "worst": 2.7,
+   "early": 33.2,
+   "prot": 21.9
+  },
+  {
+   "x": 550,
+   "lat": "centre",
+   "face": "NE",
+   "red": 23.6,
+   "worst": 17.7,
+   "early": 13.5,
+   "prot": 17.9
+  },
+  {
+   "x": 550,
+   "lat": "south",
+   "face": "S",
+   "red": 23.5,
+   "worst": 8.8,
+   "early": 4.7,
+   "prot": 18.2
+  },
+  {
+   "x": 550,
+   "lat": "north",
+   "face": "SE",
+   "red": 23,
+   "worst": 11.1,
+   "early": 17,
+   "prot": 23.8
+  },
+  {
+   "x": 700,
+   "lat": "south",
+   "face": "W",
+   "red": 23.1,
+   "worst": 11.1,
+   "early": 6.4,
+   "prot": 20.2
+  },
+  {
+   "x": 700,
+   "lat": "south",
+   "face": "NW",
+   "red": 21.3,
+   "worst": 14.2,
+   "early": 12,
+   "prot": 21
+  },
+  {
+   "x": 700,
+   "lat": "north",
+   "face": "SW",
+   "red": 20.8,
+   "worst": 12.8,
+   "early": 15.8,
+   "prot": 20.8
+  },
+  {
+   "x": 550,
+   "lat": "centre",
+   "face": "E",
+   "red": 21,
+   "worst": 13.5,
+   "early": 7.5,
+   "prot": 17.8
+  },
+  {
+   "x": 400,
+   "lat": "centre",
+   "face": "N",
+   "red": 20.6,
+   "worst": 8,
+   "early": 30.2,
+   "prot": 21.9
+  },
+  {
+   "x": 400,
+   "lat": "centre",
+   "face": "S",
+   "red": 20.2,
+   "worst": 2.2,
+   "early": 8.3,
+   "prot": 21.2
+  },
+  {
+   "x": 250,
+   "lat": "centre",
+   "face": "E",
+   "red": 20.1,
+   "worst": 16.4,
+   "early": 10.9,
+   "prot": 18.8
+  },
+  {
+   "x": 400,
+   "lat": "south",
+   "face": "NW",
+   "red": 19.6,
+   "worst": 15.9,
+   "early": 12.8,
+   "prot": 19.1
+  },
+  {
+   "x": 400,
+   "lat": "south",
+   "face": "S",
+   "red": 19.3,
+   "worst": 6.2,
+   "early": 4,
+   "prot": 16.3
+  },
+  {
+   "x": 550,
+   "lat": "north",
+   "face": "E",
+   "red": 19.4,
+   "worst": 12.8,
+   "early": 13.7,
+   "prot": 13.4
+  },
+  {
+   "x": 400,
+   "lat": "north",
+   "face": "SW",
+   "red": 18.8,
+   "worst": 12.4,
+   "early": 13.8,
+   "prot": 19.3
+  },
+  {
+   "x": 550,
+   "lat": "centre",
+   "face": "SE",
+   "red": 18.8,
+   "worst": 13.3,
+   "early": 4,
+   "prot": 16.5
+  },
+  {
+   "x": 400,
+   "lat": "centre",
+   "face": "SW",
+   "red": 18.6,
+   "worst": 14.3,
+   "early": 3.9,
+   "prot": 13.3
+  },
+  {
+   "x": 250,
+   "lat": "south",
+   "face": "NE",
+   "red": 17.6,
+   "worst": 12.7,
+   "early": 10.8,
+   "prot": 16.9
+  },
+  {
+   "x": 250,
+   "lat": "south",
+   "face": "E",
+   "red": 17.1,
+   "worst": 11.4,
+   "early": 5.5,
+   "prot": 15.8
+  },
+  {
+   "x": 400,
+   "lat": "centre",
+   "face": "W",
+   "red": 17.2,
+   "worst": 12.7,
+   "early": 7.2,
+   "prot": 14.6
+  },
+  {
+   "x": 700,
+   "lat": "centre",
+   "face": "NW",
+   "red": 17,
+   "worst": 14.2,
+   "early": 12.7,
+   "prot": 15
+  },
+  {
+   "x": 550,
+   "lat": "north",
+   "face": "NE",
+   "red": 16.3,
+   "worst": 10,
+   "early": 14.4,
+   "prot": 9
+  },
+  {
+   "x": 250,
+   "lat": "north",
+   "face": "E",
+   "red": 16,
+   "worst": 11.8,
+   "early": 11,
+   "prot": 15.4
+  },
+  {
+   "x": 550,
+   "lat": "south",
+   "face": "SE",
+   "red": 16.1,
+   "worst": 10.5,
+   "early": 4.1,
+   "prot": 9.7
+  },
+  {
+   "x": 250,
+   "lat": "north",
+   "face": "SE",
+   "red": 15.3,
+   "worst": 11.9,
+   "early": 12.5,
+   "prot": 16.8
+  },
+  {
+   "x": 250,
+   "lat": "centre",
+   "face": "SE",
+   "red": 15.4,
+   "worst": 10.5,
+   "early": 4,
+   "prot": 11.6
+  },
+  {
+   "x": 700,
+   "lat": "centre",
+   "face": "SW",
+   "red": 14.8,
+   "worst": 11.1,
+   "early": 3.7,
+   "prot": 14.3
+  },
+  {
+   "x": 400,
+   "lat": "north",
+   "face": "W",
+   "red": 14.9,
+   "worst": 6.9,
+   "early": 10.7,
+   "prot": 10.5
+  },
+  {
+   "x": 700,
+   "lat": "south",
+   "face": "SW",
+   "red": 14.3,
+   "worst": 11,
+   "early": 4.1,
+   "prot": 7.8
+  },
+  {
+   "x": 400,
+   "lat": "centre",
+   "face": "NW",
+   "red": 14.2,
+   "worst": 10.9,
+   "early": 10.1,
+   "prot": 12.8
+  },
+  {
+   "x": 550,
+   "lat": "north",
+   "face": "N",
+   "red": 13.4,
+   "worst": 4.5,
+   "early": 28.4,
+   "prot": 14.9
+  },
+  {
+   "x": 400,
+   "lat": "south",
+   "face": "SW",
+   "red": 13.5,
+   "worst": 11.4,
+   "early": 4.2,
+   "prot": 6.8
+  },
+  {
+   "x": 550,
+   "lat": "south",
+   "face": "E",
+   "red": 13.2,
+   "worst": 8.8,
+   "early": 4.8,
+   "prot": 12.9
+  },
+  {
+   "x": 700,
+   "lat": "south",
+   "face": "N",
+   "red": 13,
+   "worst": 1.4,
+   "early": 10.4,
+   "prot": 8.8
+  },
+  {
+   "x": 250,
+   "lat": "centre",
+   "face": "NE",
+   "red": 12.3,
+   "worst": 8.3,
+   "early": 9.7,
+   "prot": 10.9
+  },
+  {
+   "x": 700,
+   "lat": "north",
+   "face": "NW",
+   "red": 12.5,
+   "worst": 6.2,
+   "early": 13.8,
+   "prot": 7.5
+  },
+  {
+   "x": 400,
+   "lat": "north",
+   "face": "N",
+   "red": 11.6,
+   "worst": 0.9,
+   "early": 24,
+   "prot": 12.9
+  },
+  {
+   "x": 400,
+   "lat": "south",
+   "face": "W",
+   "red": 11.4,
+   "worst": 5.9,
+   "early": 4.8,
+   "prot": 10.9
+  },
+  {
+   "x": 850,
+   "lat": "centre",
+   "face": "W",
+   "red": 11.5,
+   "worst": -0.4,
+   "early": 6.3,
+   "prot": 9.5
+  },
+  {
+   "x": 250,
+   "lat": "south",
+   "face": "SE",
+   "red": 11.4,
+   "worst": 5.5,
+   "early": 4.2,
+   "prot": 5.6
+  },
+  {
+   "x": 700,
+   "lat": "south",
+   "face": "NE",
+   "red": 11.1,
+   "worst": -0.4,
+   "early": 7.7,
+   "prot": 10.3
+  },
+  {
+   "x": 700,
+   "lat": "north",
+   "face": "SE",
+   "red": 11,
+   "worst": -0.4,
+   "early": 8.8,
+   "prot": 10.1
+  },
+  {
+   "x": 700,
+   "lat": "north",
+   "face": "S",
+   "red": 10.3,
+   "worst": 2.8,
+   "early": 4,
+   "prot": 8.5
+  },
+  {
+   "x": 850,
+   "lat": "south",
+   "face": "N",
+   "red": 10.1,
+   "worst": 0,
+   "early": 8.8,
+   "prot": 8.2
+  },
+  {
+   "x": 850,
+   "lat": "south",
+   "face": "NW",
+   "red": 9.7,
+   "worst": -0.4,
+   "early": 7.6,
+   "prot": 10.2
+  },
+  {
+   "x": 700,
+   "lat": "centre",
+   "face": "E",
+   "red": 9.4,
+   "worst": 0,
+   "early": 6.3,
+   "prot": 9.4
+  },
+  {
+   "x": 850,
+   "lat": "north",
+   "face": "W",
+   "red": 9.5,
+   "worst": 0,
+   "early": 7.1,
+   "prot": 7.7
+  },
+  {
+   "x": 700,
+   "lat": "centre",
+   "face": "N",
+   "red": 9,
+   "worst": -4.6,
+   "early": 10.1,
+   "prot": 5.3
+  },
+  {
+   "x": 850,
+   "lat": "north",
+   "face": "SW",
+   "red": 8.7,
+   "worst": 0,
+   "early": 8.8,
+   "prot": 10.1
+  },
+  {
+   "x": 250,
+   "lat": "south",
+   "face": "N",
+   "red": 8.3,
+   "worst": -0.5,
+   "early": 9.6,
+   "prot": 7.2
+  },
+  {
+   "x": 250,
+   "lat": "north",
+   "face": "SW",
+   "red": 8,
+   "worst": 0,
+   "early": 7.2,
+   "prot": 8.1
+  },
+  {
+   "x": 250,
+   "lat": "south",
+   "face": "NW",
+   "red": 7.8,
+   "worst": 0,
+   "early": 6.7,
+   "prot": 8.1
+  },
+  {
+   "x": 400,
+   "lat": "north",
+   "face": "NW",
+   "red": 8.1,
+   "worst": 1.8,
+   "early": 10.6,
+   "prot": 6.2
+  },
+  {
+   "x": 700,
+   "lat": "centre",
+   "face": "S",
+   "red": 8,
+   "worst": 3.8,
+   "early": 2.4,
+   "prot": 4.8
+  },
+  {
+   "x": 700,
+   "lat": "north",
+   "face": "E",
+   "red": 7.3,
+   "worst": 0,
+   "early": 7.1,
+   "prot": 7.4
+  },
+  {
+   "x": 850,
+   "lat": "centre",
+   "face": "NW",
+   "red": 7.6,
+   "worst": 0,
+   "early": 6.7,
+   "prot": 6.6
+  },
+  {
+   "x": 250,
+   "lat": "centre",
+   "face": "NW",
+   "red": 7.7,
+   "worst": 0,
+   "early": 6,
+   "prot": 4.8
+  },
+  {
+   "x": 250,
+   "lat": "centre",
+   "face": "W",
+   "red": 6.9,
+   "worst": 0,
+   "early": 5.8,
+   "prot": 7.8
+  },
+  {
+   "x": 850,
+   "lat": "south",
+   "face": "W",
+   "red": 6.8,
+   "worst": 0,
+   "early": 3.3,
+   "prot": 7.2
+  },
+  {
+   "x": 700,
+   "lat": "centre",
+   "face": "NE",
+   "red": 6.9,
+   "worst": 0,
+   "early": 6.8,
+   "prot": 6.6
+  },
+  {
+   "x": 850,
+   "lat": "south",
+   "face": "NE",
+   "red": 6.4,
+   "worst": 0,
+   "early": 5.8,
+   "prot": 6.9
+  },
+  {
+   "x": 700,
+   "lat": "south",
+   "face": "S",
+   "red": 6,
+   "worst": 0,
+   "early": 0.8,
+   "prot": 3.8
+  },
+  {
+   "x": 850,
+   "lat": "south",
+   "face": "S",
+   "red": 5.8,
+   "worst": 0,
+   "early": 1.1,
+   "prot": 2.1
+  },
+  {
+   "x": 250,
+   "lat": "north",
+   "face": "S",
+   "red": 5.4,
+   "worst": 0,
+   "early": 3.1,
+   "prot": 7.4
+  },
+  {
+   "x": 700,
+   "lat": "south",
+   "face": "E",
+   "red": 5.7,
+   "worst": -0.4,
+   "early": 3.1,
+   "prot": 7.1
+  },
+  {
+   "x": 250,
+   "lat": "north",
+   "face": "W",
+   "red": 5.7,
+   "worst": 0,
+   "early": 6.3,
+   "prot": 5.9
+  },
+  {
+   "x": 700,
+   "lat": "north",
+   "face": "NE",
+   "red": 5.6,
+   "worst": 0,
+   "early": 7.1,
+   "prot": 3
+  },
+  {
+   "x": 850,
+   "lat": "south",
+   "face": "SW",
+   "red": 5.4,
+   "worst": -0.4,
+   "early": 2.5,
+   "prot": 2.4
+  },
+  {
+   "x": 850,
+   "lat": "north",
+   "face": "S",
+   "red": 5.1,
+   "worst": 0,
+   "early": 4.4,
+   "prot": 8.1
+  },
+  {
+   "x": 250,
+   "lat": "south",
+   "face": "W",
+   "red": 5,
+   "worst": 0,
+   "early": 2.4,
+   "prot": 6
+  },
+  {
+   "x": 250,
+   "lat": "north",
+   "face": "NE",
+   "red": 5.1,
+   "worst": -0.5,
+   "early": 10.3,
+   "prot": 5.2
+  },
+  {
+   "x": 850,
+   "lat": "centre",
+   "face": "NE",
+   "red": 5,
+   "worst": 0,
+   "early": 4.3,
+   "prot": 4.3
+  },
+  {
+   "x": 250,
+   "lat": "centre",
+   "face": "N",
+   "red": 4.8,
+   "worst": 0,
+   "early": 9.6,
+   "prot": 3.9
+  },
+  {
+   "x": 700,
+   "lat": "south",
+   "face": "SE",
+   "red": 5,
+   "worst": 0,
+   "early": 2.5,
+   "prot": 2.7
+  },
+  {
+   "x": 250,
+   "lat": "south",
+   "face": "S",
+   "red": 5.1,
+   "worst": -3.8,
+   "early": 1,
+   "prot": 2.6
+  },
+  {
+   "x": 700,
+   "lat": "centre",
+   "face": "SE",
+   "red": 4.5,
+   "worst": -0.8,
+   "early": 2.4,
+   "prot": 6.3
+  },
+  {
+   "x": 250,
+   "lat": "centre",
+   "face": "SW",
+   "red": 4.3,
+   "worst": 0,
+   "early": 1.6,
+   "prot": 5
+  },
+  {
+   "x": 850,
+   "lat": "north",
+   "face": "NW",
+   "red": 4.7,
+   "worst": 0,
+   "early": 7,
+   "prot": 3.1
+  },
+  {
+   "x": 850,
+   "lat": "north",
+   "face": "SE",
+   "red": 4.1,
+   "worst": 0,
+   "early": 6,
+   "prot": 6.8
+  },
+  {
+   "x": 850,
+   "lat": "centre",
+   "face": "SW",
+   "red": 3.9,
+   "worst": -0.4,
+   "early": 2.4,
+   "prot": 6.3
+  },
+  {
+   "x": 850,
+   "lat": "centre",
+   "face": "N",
+   "red": 3.9,
+   "worst": 0,
+   "early": 8.8,
+   "prot": 4.5
+  },
+  {
+   "x": 850,
+   "lat": "north",
+   "face": "E",
+   "red": 3.9,
+   "worst": 0,
+   "early": 4.3,
+   "prot": 3.5
+  },
+  {
+   "x": 850,
+   "lat": "centre",
+   "face": "S",
+   "red": 4.2,
+   "worst": 0,
+   "early": 2.6,
+   "prot": 3.6
+  },
+  {
+   "x": 850,
+   "lat": "centre",
+   "face": "E",
+   "red": 3.7,
+   "worst": 0,
+   "early": 3,
+   "prot": 5.4
+  },
+  {
+   "x": 250,
+   "lat": "centre",
+   "face": "S",
+   "red": 3.4,
+   "worst": -0.5,
+   "early": 2.1,
+   "prot": 3.8
+  },
+  {
+   "x": 250,
+   "lat": "south",
+   "face": "SW",
+   "red": 3.4,
+   "worst": -0.5,
+   "early": 1.8,
+   "prot": 2.1
+  },
+  {
+   "x": 700,
+   "lat": "north",
+   "face": "N",
+   "red": 3,
+   "worst": -3.2,
+   "early": 7.4,
+   "prot": 2.7
+  },
+  {
+   "x": 250,
+   "lat": "north",
+   "face": "NW",
+   "red": 2.9,
+   "worst": -2.7,
+   "early": 6.1,
+   "prot": 1.5
+  },
+  {
+   "x": 850,
+   "lat": "centre",
+   "face": "SE",
+   "red": 2.6,
+   "worst": -3.6,
+   "early": 1.8,
+   "prot": 3.9
+  },
+  {
+   "x": 850,
+   "lat": "south",
+   "face": "SE",
+   "red": 1.9,
+   "worst": -2.7,
+   "early": 1.8,
+   "prot": 1.2
+  },
+  {
+   "x": 850,
+   "lat": "south",
+   "face": "E",
+   "red": 1.7,
+   "worst": 0,
+   "early": 1.8,
+   "prot": 3.2
+  },
+  {
+   "x": 250,
+   "lat": "north",
+   "face": "N",
+   "red": 1.7,
+   "worst": -4.6,
+   "early": 7,
+   "prot": 1.9
+  },
+  {
+   "x": 850,
+   "lat": "north",
+   "face": "N",
+   "red": 1.1,
+   "worst": 0,
+   "early": 7.8,
+   "prot": 2.2
+  },
+  {
+   "x": 850,
+   "lat": "north",
+   "face": "NE",
+   "red": 1.2,
+   "worst": 0,
+   "early": 4.3,
+   "prot": 1.4
+  }
+ ],
+ "finals": [
+  {
+   "name": "1 camera (best found)",
+   "kind": "greedy",
+   "layout": [
+    {
+     "x": 400,
+     "y": 380,
+     "deg": 0,
+     "label": "x400 · centreline gantry · facing E (along road)"
+    }
+   ],
+   "red": 45.3,
+   "worst": 19.8,
+   "scen": [
+    {
+     "k": "hotspot-east",
+     "red": 66.7,
+     "off": 439,
+     "on": 146
+    },
+    {
+     "k": "hotspot-west",
+     "red": 74,
+     "off": 457,
+     "on": 119
+    },
+    {
+     "k": "uniform-east",
+     "red": 19.8,
+     "off": 455,
+     "on": 365
+    },
+    {
+     "k": "uniform-west",
+     "red": 20.5,
+     "off": 458,
+     "on": 364
+    }
+   ],
+   "early": 30.4,
+   "prot": 47.8,
+   "extra": 1.59,
+   "unneeded": 10.4
+  },
+  {
+   "name": "2 cameras (best found)",
+   "kind": "greedy",
+   "layout": [
+    {
+     "x": 400,
+     "y": 380,
+     "deg": 0,
+     "label": "x400 · centreline gantry · facing E (along road)"
+    },
+    {
+     "x": 550,
+     "y": 430,
+     "deg": 270,
+     "label": "x550 · south verge · facing N"
+    }
+   ],
+   "red": 59.5,
+   "worst": 32.5,
+   "scen": [
+    {
+     "k": "hotspot-east",
+     "red": 87,
+     "off": 439,
+     "on": 57
+    },
+    {
+     "k": "hotspot-west",
+     "red": 82.9,
+     "off": 457,
+     "on": 78
+    },
+    {
+     "k": "uniform-east",
+     "red": 35.4,
+     "off": 455,
+     "on": 294
+    },
+    {
+     "k": "uniform-west",
+     "red": 32.5,
+     "off": 458,
+     "on": 309
+    }
+   ],
+   "early": 44.2,
+   "prot": 57.8,
+   "extra": 2.37,
+   "unneeded": 16.7
+  },
+  {
+   "name": "3 cameras (best found)",
+   "kind": "greedy",
+   "layout": [
+    {
+     "x": 400,
+     "y": 380,
+     "deg": 0,
+     "label": "x400 · centreline gantry · facing E (along road)"
+    },
+    {
+     "x": 550,
+     "y": 430,
+     "deg": 270,
+     "label": "x550 · south verge · facing N"
+    },
+    {
+     "x": 400,
+     "y": 430,
+     "deg": 270,
+     "label": "x400 · south verge · facing N"
+    }
+   ],
+   "red": 70.1,
+   "worst": 38.9,
+   "scen": [
+    {
+     "k": "hotspot-east",
+     "red": 96.6,
+     "off": 439,
+     "on": 15
+    },
+    {
+     "k": "hotspot-west",
+     "red": 93.4,
+     "off": 457,
+     "on": 30
+    },
+    {
+     "k": "uniform-east",
+     "red": 51.4,
+     "off": 455,
+     "on": 221
+    },
+    {
+     "k": "uniform-west",
+     "red": 38.9,
+     "off": 458,
+     "on": 280
+    }
+   ],
+   "early": 61.5,
+   "prot": 66.1,
+   "extra": 3.17,
+   "unneeded": 20.2
+  },
+  {
+   "name": "4 cameras (best found)",
+   "kind": "greedy",
+   "layout": [
+    {
+     "x": 400,
+     "y": 380,
+     "deg": 0,
+     "label": "x400 · centreline gantry · facing E (along road)"
+    },
+    {
+     "x": 550,
+     "y": 430,
+     "deg": 270,
+     "label": "x550 · south verge · facing N"
+    },
+    {
+     "x": 400,
+     "y": 430,
+     "deg": 270,
+     "label": "x400 · south verge · facing N"
+    },
+    {
+     "x": 550,
+     "y": 380,
+     "deg": 135,
+     "label": "x550 · centreline gantry · facing SW"
+    }
+   ],
+   "red": 72.2,
+   "worst": 43.2,
+   "scen": [
+    {
+     "k": "hotspot-east",
+     "red": 98.6,
+     "off": 439,
+     "on": 6
+    },
+    {
+     "k": "hotspot-west",
+     "red": 96.9,
+     "off": 457,
+     "on": 14
+    },
+    {
+     "k": "uniform-east",
+     "red": 50.1,
+     "off": 455,
+     "on": 227
+    },
+    {
+     "k": "uniform-west",
+     "red": 43.2,
+     "off": 458,
+     "on": 260
+    }
+   ],
+   "early": 63.7,
+   "prot": 67.3,
+   "extra": 4.02,
+   "unneeded": 23.1
+  },
+  {
+   "name": "Back-to-back pair at the hotspot (centreline, facing W + E)",
+   "kind": "hand",
+   "layout": [
+    {
+     "x": 490,
+     "y": 380,
+     "deg": 180,
+     "label": "x490 · centreline gantry · facing W (along road)"
+    },
+    {
+     "x": 490,
+     "y": 380,
+     "deg": 0,
+     "label": "x490 · centreline gantry · facing E (along road)"
+    }
+   ],
+   "red": 56,
+   "worst": 34.9,
+   "scen": [
+    {
+     "k": "hotspot-east",
+     "red": 69,
+     "off": 439,
+     "on": 136
+    },
+    {
+     "k": "hotspot-west",
+     "red": 78.6,
+     "off": 457,
+     "on": 98
+    },
+    {
+     "k": "uniform-east",
+     "red": 34.9,
+     "off": 455,
+     "on": 296
+    },
+    {
+     "k": "uniform-west",
+     "red": 41.5,
+     "off": 458,
+     "on": 268
+    }
+   ],
+   "early": 36.1,
+   "prot": 61.9,
+   "extra": 1.92,
+   "unneeded": 11.2
+  },
+  {
+   "name": "Opposite verges at the hotspot, facing across the road",
+   "kind": "hand",
+   "layout": [
+    {
+     "x": 490,
+     "y": 330,
+     "deg": 90,
+     "label": "x490 · north verge · facing S"
+    },
+    {
+     "x": 490,
+     "y": 430,
+     "deg": 270,
+     "label": "x490 · south verge · facing N"
+    }
+   ],
+   "red": 60.2,
+   "worst": 29.7,
+   "scen": [
+    {
+     "k": "hotspot-east",
+     "red": 88.2,
+     "off": 439,
+     "on": 52
+    },
+    {
+     "k": "hotspot-west",
+     "red": 89.1,
+     "off": 457,
+     "on": 50
+    },
+    {
+     "k": "uniform-east",
+     "red": 29.7,
+     "off": 455,
+     "on": 320
+    },
+    {
+     "k": "uniform-west",
+     "red": 34.1,
+     "off": 458,
+     "on": 302
+    }
+   ],
+   "early": 53.9,
+   "prot": 55.2,
+   "extra": 3.03,
+   "unneeded": 17.9
+  },
+  {
+   "name": "Best single camera, repeated at x 250 / 500 / 750",
+   "kind": "hand",
+   "layout": [
+    {
+     "x": 250,
+     "y": 380,
+     "deg": 0,
+     "label": "x250 · centreline gantry · facing E (along road)"
+    },
+    {
+     "x": 500,
+     "y": 380,
+     "deg": 0,
+     "label": "x500 · centreline gantry · facing E (along road)"
+    },
+    {
+     "x": 750,
+     "y": 380,
+     "deg": 0,
+     "label": "x750 · centreline gantry · facing E (along road)"
+    }
+   ],
+   "red": 53.3,
+   "worst": 49.4,
+   "scen": [
+    {
+     "k": "hotspot-east",
+     "red": 49.4,
+     "off": 439,
+     "on": 222
+    },
+    {
+     "k": "hotspot-west",
+     "red": 57.8,
+     "off": 457,
+     "on": 193
+    },
+    {
+     "k": "uniform-east",
+     "red": 52.7,
+     "off": 455,
+     "on": 215
+    },
+    {
+     "k": "uniform-west",
+     "red": 53.1,
+     "off": 458,
+     "on": 215
+    }
+   ],
+   "early": 32.9,
+   "prot": 55.6,
+   "extra": 1.63,
+   "unneeded": 11.3
+  }
+ ],
+ "stage3": [
+  {
+   "cams": 1,
+   "lens": "wide 84°/150",
+   "sight": 320,
+   "red": 46.4,
+   "worst": 20.5,
+   "extra": 1.58
+  },
+  {
+   "cams": 1,
+   "lens": "wide 84°/150",
+   "sight": 200,
+   "red": 41.8,
+   "worst": 7.5,
+   "extra": 1.25
+  },
+  {
+   "cams": 1,
+   "lens": "standard 60°/200",
+   "sight": 320,
+   "red": 52.5,
+   "worst": 27.9,
+   "extra": 1.74
+  },
+  {
+   "cams": 1,
+   "lens": "standard 60°/200",
+   "sight": 200,
+   "red": 53.2,
+   "worst": 23.5,
+   "extra": 1.4
+  },
+  {
+   "cams": 1,
+   "lens": "narrow 40°/260",
+   "sight": 320,
+   "red": 49.2,
+   "worst": 21.7,
+   "extra": 1.46
+  },
+  {
+   "cams": 1,
+   "lens": "narrow 40°/260",
+   "sight": 200,
+   "red": 47.3,
+   "worst": 23.9,
+   "extra": 1.15
+  },
+  {
+   "cams": 2,
+   "lens": "wide 84°/150",
+   "sight": 320,
+   "red": 58.4,
+   "worst": 28.3,
+   "extra": 2.35
+  },
+  {
+   "cams": 2,
+   "lens": "wide 84°/150",
+   "sight": 200,
+   "red": 56.9,
+   "worst": 28.8,
+   "extra": 1.88
+  },
+  {
+   "cams": 2,
+   "lens": "standard 60°/200",
+   "sight": 320,
+   "red": 60.9,
+   "worst": 35,
+   "extra": 3.16
+  },
+  {
+   "cams": 2,
+   "lens": "standard 60°/200",
+   "sight": 200,
+   "red": 59.9,
+   "worst": 32.7,
+   "extra": 2.59
+  },
+  {
+   "cams": 2,
+   "lens": "narrow 40°/260",
+   "sight": 320,
+   "red": 58.4,
+   "worst": 36.8,
+   "extra": 2.75
+  },
+  {
+   "cams": 2,
+   "lens": "narrow 40°/260",
+   "sight": 200,
+   "red": 59,
+   "worst": 32.7,
+   "extra": 2.2
+  },
+  {
+   "cams": 3,
+   "lens": "wide 84°/150",
+   "sight": 320,
+   "red": 70.9,
+   "worst": 40.9,
+   "extra": 3.18
+  },
+  {
+   "cams": 3,
+   "lens": "wide 84°/150",
+   "sight": 200,
+   "red": 67.8,
+   "worst": 43.4,
+   "extra": 2.59
+  },
+  {
+   "cams": 3,
+   "lens": "standard 60°/200",
+   "sight": 320,
+   "red": 72.7,
+   "worst": 46.8,
+   "extra": 4.66
+  },
+  {
+   "cams": 3,
+   "lens": "standard 60°/200",
+   "sight": 200,
+   "red": 67.6,
+   "worst": 43.2,
+   "extra": 3.74
+  },
+  {
+   "cams": 3,
+   "lens": "narrow 40°/260",
+   "sight": 320,
+   "red": 68.5,
+   "worst": 48.2,
+   "extra": 4.02
+  },
+  {
+   "cams": 3,
+   "lens": "narrow 40°/260",
+   "sight": 200,
+   "red": 65.1,
+   "worst": 38.5,
+   "extra": 3.32
+  },
+  {
+   "cams": 4,
+   "lens": "wide 84°/150",
+   "sight": 320,
+   "red": 73,
+   "worst": 45.5,
+   "extra": 3.99
+  },
+  {
+   "cams": 4,
+   "lens": "wide 84°/150",
+   "sight": 200,
+   "red": 71,
+   "worst": 43.6,
+   "extra": 3.14
+  },
+  {
+   "cams": 4,
+   "lens": "standard 60°/200",
+   "sight": 320,
+   "red": 76.2,
+   "worst": 53.2,
+   "extra": 5.83
+  },
+  {
+   "cams": 4,
+   "lens": "standard 60°/200",
+   "sight": 200,
+   "red": 74,
+   "worst": 50,
+   "extra": 4.77
+  },
+  {
+   "cams": 4,
+   "lens": "narrow 40°/260",
+   "sight": 320,
+   "red": 74.4,
+   "worst": 54.4,
+   "extra": 5.52
+  },
+  {
+   "cams": 4,
+   "lens": "narrow 40°/260",
+   "sight": 200,
+   "red": 71.7,
+   "worst": 47.3,
+   "extra": 4.46
+  }
+ ],
+ "runs": 3628,
+ "secs": 374
+}

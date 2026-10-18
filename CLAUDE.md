@@ -27,6 +27,7 @@ js/dashboard.js   // dashboard strip under each map: impact, camera feed, signs,
 js/stats.js       // Impact scoreboard (detections, near-misses, avoided, per-mode speed)
 js/main.js        // game loop, input wiring
 wildwatch-dashboard.js  // teammate's DED dashboard extension (vendored)
+research/               // camera placement study: headless batch runs of the sim modules
 ```
 
 `wildwatch-dashboard.js` is a teammate's file: keep local edits minimal and marked `[host-config]`, and configure it from `js/config.js` → `dashboard` (via `window.WILDWATCH_CONFIG`). The sim only *reports* to it (`WildWatch.record`); our signals/beacons stay authoritative.

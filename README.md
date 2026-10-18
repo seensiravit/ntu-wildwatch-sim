@@ -128,6 +128,29 @@ it, and does the same again to draw it. `WW.system.enabled` reads the selected w
 `systemOn`, so the module code works the same on either side. If you add state to one
 of these modules that differs between the sides, put it behind its `use()` as well.
 
+## Camera placement study (`research/`)
+
+`research/index.html` runs the demo's own simulation modules headlessly to answer where
+to put the cameras, which way to aim them and how many to install. It works offline:
+open it and press **Run study** (about 6 minutes, about 3,600 runs). Every layout faces
+the same seeded animal crossings and is compared with no system. Four scenarios: hotspot
+or anywhere crossings, eastbound or westbound traffic.
+
+- **Stage 1:** 120 single cameras (5 positions × 3 mounting spots × 8 directions).
+- **Stage 2:** 1 to 4 cameras, chosen greedily, plus three hand-designed layouts.
+- **Stage 3:** lens and driver sight-distance sensitivity.
+
+Results are saved in `research/results/` (`camera-study.csv`, `study-run.json`).
+Headline: put the camera at the crossing hotspot and aim its view at the crossing. One
+camera prevents about 45% of near-misses, two about 60%, three about 70% and four about
+72%, so three is where the benefit levels off. Add `?quick` to the URL for a 15-second
+smoke test.
+
+For the study, `js/car.js` measures a camera's coverage from its whole view footprint
+projected onto the road, so a verge camera that sees the crossing also covers it. It
+also honours an optional `dir` on signals (`config.carDir`). The demo's signs have no
+`dir`, and for its camera the footprint ends about 23 units later than before.
+
 ## DED dashboard (`wildwatch-dashboard.js`)
 
 The **DED Dashboard** tab in the header is the team's monitoring and decision-support

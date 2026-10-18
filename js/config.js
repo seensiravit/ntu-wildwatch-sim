@@ -83,6 +83,9 @@
     // line (for eastbound traffic that's the north lane). For westbound use
     // sidePath(NANYANG_CRESCENT.slice().reverse(), LANE_WIDTH / 2) (south lane).
     carPath: sidePath(NANYANG_CRESCENT, LANE_WIDTH / 2),
+    // The other lane, westbound. The demo doesn't use it; research/ scores camera
+    // layouts in both directions by swapping it into carPath (with carDir "west").
+    carPathWest: sidePath(NANYANG_CRESCENT.slice().reverse(), LANE_WIDTH / 2),
 
     // ---- One overhead camera on the road centreline, looking west along the
     // road toward oncoming (eastbound) traffic. Its wide cone spans the whole

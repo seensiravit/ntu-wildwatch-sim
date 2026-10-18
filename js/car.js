@@ -81,28 +81,38 @@
     return best.s;
   }
 
+  // Stretch of the path [start, end] alongside a camera's view: its cone
+  // footprint (apex + arc) projected onto the path. Using the whole footprint,
+  // not just path points inside the cone, means a verge camera that watches the
+  // crossing but not the lane itself still covers that stretch of road.
+  function coverage(cam) {
+    const poly = WW.geo.conePolygon(cam.x, cam.y, cam.facingAngleDeg, cam.fovDeg, cam.range);
+    let start = Infinity, end = -Infinity;
+    poly.forEach((p) => { const s = projectS(p.x, p.y); start = Math.min(start, s); end = Math.max(end, s); });
+    return { start, end };
+  }
+
   // A signal's warning zone: from where drivers can first SEE the sign
   // (tuning.signSightDistance upstream of it) to the far end of its linked
   // camera's coverage along the path. (SPEC §4.3 started the zone at the sign
   // itself; the sight distance lets a sign placed right at the camera still
-  // warn drivers before the crossing.)
+  // warn drivers before the crossing.) A signal with a `dir` ("east"/"west")
+  // only warns traffic going that way (config.carDir); the demo's signs have none.
   function buildWarnZones() {
     warnZones = [];
     const sight = WW.config.tuning.signSightDistance || 0;
+    const carDir = WW.config.carDir;
     WW.config.signals.forEach((sig) => {
+      if (sig.dir && carDir && sig.dir !== carDir) return;
       const cam = WW.config.cameras.find((c) => c.id === sig.linkedCameraId);
       const sSignal = projectS(sig.x, sig.y);
-      let coneEnd = sSignal;
-      for (let s = 0; s <= total; s += 8) {
-        const p = posAt(s);
-        if (cam && WW.geo.pointInCone(p.x, p.y, cam)) coneEnd = Math.max(coneEnd, s);
-      }
+      const coneEnd = cam ? coverage(cam).end : sSignal;
       warnZones.push({ signalId: sig.id, start: Math.max(0, sSignal - sight), end: Math.max(coneEnd, sSignal) });
     });
   }
 
   function reset() {
-    if (!segs.length) buildPath();
+    buildPath(); // config.carPath may have changed (research/ runs both directions)
     buildWarnZones();
     scored.clear();
     startLap();
@@ -209,6 +219,9 @@
 
   WW.car = {
     get state() { return state; },
+    get warnZones() { return warnZones; },
+    get pathLength() { return total; },
     use, reset, startLap, update, currentKmh,
+    posAt, projectS, coverage, inActiveWarnZone,
   };
 })();

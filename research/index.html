@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camera Placement Study</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0e14'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23ffb020'/%3E%3C/svg%3E" />
+  <style>
+    :root { --bg: #0a0e14; --panel: #121821; --border: #223042; --text: #cfd8e3; --muted: #7c8aa0; --amber: #ffb020; --ok: #46d17f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 1400px; margin: 0 auto; padding: 24px 16px 60px; }
+    h1 { margin: 0 0 4px; font-size: 22px; color: #f4ecd8; }
+    h1 span { color: var(--amber); }
+    h2 { margin: 30px 0 4px; font-size: 16px; }
+    p { margin: 4px 0 10px; line-height: 1.5; }
+    .muted { color: var(--muted); }
+    .small { font-size: 11px; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+    button { background: var(--amber); color: #1a1200; border: 0; border-radius: 6px; padding: 9px 16px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    button.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); font-weight: 500; }
+    .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    #progress { flex: 1 1 260px; height: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+    #progress span { display: block; height: 100%; width: 0; background: var(--amber); }
+    .tbox { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: 8px; }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+    th { position: sticky; top: 0; background: var(--panel); text-align: left; font-size: 11px; color: var(--muted); padding: 7px 9px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    table.sortable th { cursor: pointer; }
+    td { padding: 6px 9px; border-bottom: 1px solid rgba(34,48,66,0.6); white-space: nowrap; }
+    td.strong { color: var(--ok); font-weight: 700; }
+    .layouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 8px; }
+    .lcard { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+    .lcard canvas { width: 100%; border-radius: 6px; }
+    .bar { height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--ok); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>NTU <span>Wild</span>Watch · camera placement study</h1>
+    <p class="muted">Which camera position, angle and number cut near-misses the most? Every layout runs the demo's own
+      simulation against the same seeded animal crossings, and is compared with no system. Four scenarios: crossings at the
+      Tamarind hotspot or anywhere along the road, with eastbound or westbound traffic.</p>
+    <div class="panel">
+      <div class="row">
+        <button id="run" type="button">Run study</button>
+        <div id="progress"><span></span></div>
+        <span id="progress-label" class="muted small"></span>
+        <button id="csv" class="ghost" type="button" hidden>Download CSV</button>
+      </div>
+      <p class="muted small" id="settings"></p>
+      <p id="status" class="small"></p>
+    </div>
+    <div id="results"></div>
+  </main>
+
+  <!-- The demo's own simulation modules (classic scripts, file:// safe) -->
+  <script src="../js/config.js"></script>
+  <script src="../js/geometry.js"></script>
+  <script src="../js/stats.js"></script>
+  <script src="../js/animals.js"></script>
+  <script src="../js/car.js"></script>
+  <script src="../js/detection.js"></script>
+  <script src="study.js"></script>
+</body>
+</html>
