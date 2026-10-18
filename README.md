@@ -56,8 +56,9 @@ encounter into one of three outcomes:
 
 - **Animals hit:** the car and the animal touched, whoever moved into whom, even with
   the car standing still (a car stopped in an animal's path is in the wrong place).
-- **Near misses:** the car came at the animal faster than 35 km/h but didn't touch it.
-- **Safe passes:** the car had already slowed to 35 km/h or less, and nothing touched.
+- **Near misses:** the car was going faster than 35 km/h when it got closest to the
+  animal, but didn't touch it.
+- **Safe passes:** the car was at 35 km/h or slower by then, and nothing touched.
 
 Each animal is scored once per lap. If an animal already counted as a near miss or safe
 pass touches the car later in the same lap, it moves to hits.
@@ -66,22 +67,34 @@ Below the three tiles: the average speed at the animal, (ON side) animals detect
 animals that turned back at the roadside because of the car. The ON side also compares
 its hits and near misses with the OFF side.
 
-How the driver reacts to animals they can see (within 120 units ahead):
+How the driver reacts to animals they can see (within headlight range, 230 units ahead):
 
 | Animal is… | Driver |
 |---|---|
-| in the car's own lane | stops, and waits until the lane is clear |
+| in the car's own lane | brakes to stop 15 units short of it, then waits until the lane is clear |
 | in the other lane | slows to 20 km/h |
 | on the verge within 40 units of the kerb **and lit by the headlights** | eases off to 40 km/h (`tuning.vergeCautionKmh`) |
 | anywhere else (e.g. on the verge outside the beam) | doesn't notice it |
 
-Each reaction starts only after a reaction time (`tuning.driverReactionSec`, 0.8 s), so
-an animal that steps out close in front of a fast car can be hit. A driver warned by a
-flashing sign is expecting animals, so reacts faster (`alertReactionSec`, 0.4 s), and is
-already slower. The headlight beam is narrow, so the driver sees a roadside animal late
-and briefly; the camera watches the whole verge. Over 100 fast-forwarded minutes of the
-auto-demo (5 runs of 20 min at the default activity): OFF 33 hits / 117 near misses /
-5 safe passes; ON 23 hits / 46 near misses / 72 safe passes. Most remaining ON hits are animals crossing outside the single
+Each reaction starts only after a reaction time (`tuning.driverReactionSec`, 0.8 s). A
+driver warned by a flashing sign is expecting animals, so reacts faster
+(`alertReactionSec`, 0.4 s), and is already slower.
+
+Braking is realistic: to stop for an animal the driver brakes just hard enough to halt
+15 units short of it, gently when there's room, harder when it's close, up to an
+emergency limit of about 0.8 g (`maxDecelUnitsPerSec2`). Other slowing (signs, the other
+lane, roadside animals) uses a comfortable rate of about 4 m/s², and the car speeds up
+at about 3.5 m/s² (0 to 50 km/h in about 4 s). At 50 km/h an unwarned driver can just stop
+for an animal already in the lane at the far edge of the headlights; one that steps out
+closer gets hit. A warned driver at 20 km/h needs only about 30 units.
+
+Over 100 fast-forwarded minutes of the auto-demo (5 runs of 20 min at the default
+activity): OFF 19 hits / 38 near misses / 78 safe passes, average 29 km/h at the animal;
+ON 20 hits / 12 near misses / 102 safe passes, average 25 km/h. With realistic braking,
+hits come from animals stepping out right in front of a nearby car (bold ones, dashing
+boar, or ones that didn't notice it). A warning doesn't stop that happening, but it
+lowers the impact speed: most ON hits are under 35 km/h, most OFF hits are over it. The
+ON hits above 35 km/h are animals outside the single camera's view. Most remaining ON hits are animals crossing outside the single
 camera's view. Hits are rare events (about one every 2–3 minutes on the OFF side), so a
 few minutes of live demo is a small sample: let it run, or raise **Animal activity**.
 
@@ -121,7 +134,9 @@ Some crossings fall outside the camera's view, which shows its coverage gaps hon
 **Roadside behaviour (`js/animals.js`, `config.crossing`, each species' `traffic`).**
 Each animal decides once, 25 units before the road edge:
 - **No car nearby:** it crosses. A car counts as nearby if it's approaching within 170
-  units of the crossing point (about headlight range), or stopped within 70 units of it.
+  units of the crossing point (it sees and hears it coming), or stopped within 70 units of it.
+- **Doesn't notice the car:** a few animals never notice it and keep walking: 5% of
+  macaques, 10% of boar and 25% of pangolins (which have poor eyesight).
 - **Car nearby:** its boldness and species decide whether it crosses anyway, waits
   (shown by three pulsing dots), or turns back (shown by "↩"). The species types follow
   Jacobson et al. (2016): macaques are avoiders, wild boar are speeders (they dash across,
@@ -129,8 +144,9 @@ Each animal decides once, 25 units before the road edge:
 - **Waiting:** a waiting animal crosses once the car has been gone for 1 s, a gap in
   traffic like the ones deer studies describe. If it waits too long, it turns back.
 
-With a car parked at the hotspot, about half of the animals still cross (the ones
-outside its 70-unit range plus the bold ones), against all of them on an empty road. The
+With a car parked at the hotspot, 55% of animals still cross (the ones outside its
+70-unit range, the bold ones and the ones that don't notice it), against all of them on
+an empty road. The
 response probabilities and the demo arrival rate are assumptions chosen to match these
 patterns, not measured values.
 

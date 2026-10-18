@@ -144,7 +144,7 @@
   }
 
   // How should the driver react to the animals they can see? (SPEC §6.2.1)
-  //   "stop"    — an animal in the car's own lane within brakeAheadLen;
+  //   "stop"    — an animal in the car's own lane within headlight range;
   //   "slow"    — an animal elsewhere on the road surface (e.g. the other lane) that close;
   //   "caution" — an animal on the verge within vergeCautionDist of the kerb, lit
   //               by the headlights: the driver eases off (to vergeCautionKmh).
@@ -155,30 +155,51 @@
   // steps out close in front of a fast car can be hit. A driver warned by a
   // flashing sign is expecting animals, so reacts faster (tuning.alertReactionSec),
   // and is already slower, so stops sooner.
+  // Returns { action, stopDist }: stopDist is the room from the car's front to the
+  // nearest animal it is stopping for (Infinity if none).
   const URGENCY = { caution: 1, slow: 2, stop: 3 };
   function animalAhead(dt) {
     const t = WW.config.tuning;
     const road = WW.config.road;
     const react = inActiveWarnZone() ? t.alertReactionSec : t.driverReactionSec;
     const beam = { x: state.x, y: state.y, facingAngleDeg: state.headingDeg, fovDeg: t.headlight.fovDeg, range: t.headlight.range };
-    const now = new Map(); // animal id -> "stop" | "slow" | "caution"
+    const sight = t.headlight.range; // how far ahead the driver can spot an animal on the road
+    const now = new Map(); // animal id -> { kind: "stop" | "slow" | "caution", a }
     for (const a of WW.animals.list) {
       if (a.state !== "walking") continue;
-      if (inPathAhead(a, t.brakeAheadLen)) { now.set(a.id, "stop"); continue; }
+      if (inPathAhead(a, sight)) { now.set(a.id, { kind: "stop", a: a }); continue; }
       const fromKerb = WW.geo.distToPolyline(a.x, a.y, road.centerline) - road.roadWidth / 2;
       const ahead = projectS(a.x, a.y) - state.s;
-      if (fromKerb <= 0 && ahead >= 0 && ahead <= t.brakeAheadLen) now.set(a.id, "slow");
+      if (fromKerb <= 0 && ahead >= 0 && ahead <= sight) now.set(a.id, { kind: "slow", a: a });
       else if (fromKerb > 0 && fromKerb <= t.vergeCautionDist && ahead >= 0 &&
-               WW.geo.pointInCone(a.x, a.y, beam)) now.set(a.id, "caution");
+               WW.geo.pointInCone(a.x, a.y, beam)) now.set(a.id, { kind: "caution", a: a });
     }
     seen.forEach((secs, id) => { if (!now.has(id)) seen.delete(id); });
-    let action = null;
-    now.forEach((kind, id) => {
+    let action = null, stopDist = Infinity;
+    now.forEach((n, id) => {
       const secs = (seen.get(id) || 0) + dt;
       seen.set(id, secs);
-      if (secs >= react && (!action || URGENCY[kind] > URGENCY[action])) action = kind;
+      if (secs < react) return; // not reacted yet
+      if (!action || URGENCY[n.kind] > URGENCY[action]) action = n.kind;
+      if (n.kind === "stop") {
+        const room = projectS(n.a.x, n.a.y) - state.s - WW.config.ui.carLen / 2 - n.a.radius;
+        stopDist = Math.min(stopDist, room);
+      }
     });
-    return action;
+    return { action: action, stopDist: stopDist };
+  }
+
+  // How hard to brake this frame. To stop for an animal, brake just hard enough
+  // to halt tuning.stopGap short of it (from v² = 2·a·d): gently when there is
+  // room, harder when it is close, but never beyond an emergency stop
+  // (maxDecel); if even that isn't enough, the car can't stop in time. Any other
+  // slowing (signs, the other lane, a roadside animal) uses a comfortable rate.
+  function brakeRate(v, react) {
+    const t = WW.config.tuning;
+    if (react.action !== "stop") return t.comfortDecelUnitsPerSec2;
+    const room = react.stopDist - t.stopGap;
+    const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
+    return Math.min(t.maxDecelUnitsPerSec2, need);
   }
 
   // Does animal `a` touch the car body? (Rectangle from config.ui; the animal
@@ -197,13 +218,15 @@
 
   // Score each car-animal encounter once per lap, as one of:
   //   "hit"  - the car and the animal touched (touches), at any speed;
-  //   "near" - the car came at it faster than nearMiss.dangerSpeedKmh, no contact;
-  //   "safe" - the car had already slowed to that speed or less, no contact.
+  //   "near" - the car was faster than nearMiss.dangerSpeedKmh at its closest
+  //            approach to the animal, but didn't touch it;
+  //   "safe" - the car was at that speed or slower by then, no contact.
   // An encounter opens when the animal is first in the lane within
-  // nearMiss.dangerZoneLen ahead (the car's speed then is the one scored) and
-  // closes when the animal is no longer ahead. If the animal touches the car
-  // later in the lap (e.g. walks into it after it stopped), a near miss or safe
-  // pass already counted becomes a hit.
+  // nearMiss.dangerZoneLen ahead and closes when it is no longer ahead. The
+  // speed scored is the car's speed when it got closest (for a hit: at
+  // contact), so a car that brakes in time scores the speed it actually reached
+  // the animal at. If the animal touches the car later in the lap (e.g. walks
+  // into it after it stopped), a near miss or safe pass already counted becomes a hit.
   function detectEncounters() {
     if (!WW.stats) return;
     const nm = WW.config.nearMiss;
@@ -219,14 +242,15 @@
         scored.set(a.id, "hit");
         pending.delete(a.id);
         if (done) WW.stats.upgradeToHit(done, a.x, a.y);
-        else WW.stats.onEncounter("hit", a.x, a.y, open ? open.kmh : kmh);
+        else WW.stats.onEncounter("hit", a.x, a.y, kmh);
         continue;
       }
       if (done) continue;
       const near = inPathAhead(a, nm.dangerZoneLen);
-      if (near && !open) pending.set(a.id, { kmh: kmh, x: a.x, y: a.y });
-      else if (near) { open.x = a.x; open.y = a.y; }
-      else if (open) closeEncounter(a.id);
+      const d = WW.geo.dist(state.x, state.y, a.x, a.y);
+      if (near && !open) pending.set(a.id, { dist: d, kmh: kmh, x: a.x, y: a.y });
+      else if (near && d < open.dist) { open.dist = d; open.kmh = kmh; open.x = a.x; open.y = a.y; }
+      else if (!near && open) closeEncounter(a.id);
     }
     // Animals that left the map close their encounter; forget gone animals.
     pending.forEach((e, id) => { if (!present.has(id)) closeEncounter(id); });
@@ -259,9 +283,9 @@
     let targetUnits = kmhToUnits(t.cruiseKmh);
     if (inActiveWarnZone()) targetUnits = kmhToUnits(t.warnKmh);
     const react = animalAhead(dt);
-    if (react === "caution") targetUnits = Math.min(targetUnits, kmhToUnits(t.vergeCautionKmh));
-    if (react === "slow") targetUnits = Math.min(targetUnits, kmhToUnits(t.warnKmh));
-    if (react === "stop") targetUnits = 0;
+    if (react.action === "caution") targetUnits = Math.min(targetUnits, kmhToUnits(t.vergeCautionKmh));
+    if (react.action === "slow") targetUnits = Math.min(targetUnits, kmhToUnits(t.warnKmh));
+    if (react.action === "stop") targetUnits = 0;
 
     // Brake lights: on when stopping for an animal or actively slowing down.
     state.braking = targetUnits === 0 || state.speedUnitsPerSec > targetUnits + 0.5;
@@ -269,11 +293,12 @@
     // Score hits / near misses / safe passes (an encounter opens at the CURRENT speed).
     detectEncounters();
 
-    // Ease speed toward target with separate accel/decel.
+    // Ease speed toward target: accelerate gently, brake at brakeRate().
     if (state.speedUnitsPerSec < targetUnits) {
       state.speedUnitsPerSec = Math.min(targetUnits, state.speedUnitsPerSec + t.accelUnitsPerSec2 * dt);
     } else {
-      state.speedUnitsPerSec = Math.max(targetUnits, state.speedUnitsPerSec - t.decelUnitsPerSec2 * dt);
+      const decel = brakeRate(state.speedUnitsPerSec, react);
+      state.speedUnitsPerSec = Math.max(targetUnits, state.speedUnitsPerSec - decel * dt);
     }
 
     state.s += state.speedUnitsPerSec * dt;

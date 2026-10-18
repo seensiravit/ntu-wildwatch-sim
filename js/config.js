@@ -135,18 +135,19 @@
     //          Response types from Jacobson et al. 2016 (Ecosphere): avoiders
     //          hold back, speeders dash across, pausers freeze. The probabilities
     //          are assumptions chosen to match those types, not measured values.
-    //          cross / wait = chance to cross anyway / to wait (else turn back),
+    //          notice = chance it notices a nearby car at all (else it just keeps
+    //          walking); then cross / wait = chance to cross anyway / to wait (else turn back),
     //          decided by the animal's boldness; maxWaitSec = then it gives up.
     species: [
       { id: "macaque", label: "Macaque",  color: "#c9a06a", radius: 12, speedUnitsPerSec: 40,  heatColor: "#ffd24d", shape: "circle",
         spawn: { weight: 0.40, extraMean: 1.0, maxGroup: 4 },  // troops cross in a line
-        traffic: { type: "avoider", cross: 0.15, wait: 0.55, maxWaitSec: 10, crossSpeedMul: 1 } },
+        traffic: { type: "avoider", notice: 0.95, cross: 0.15, wait: 0.55, maxWaitSec: 10, crossSpeedMul: 1 } },
       { id: "boar",    label: "Wild boar", color: "#8a6b52", radius: 18, speedUnitsPerSec: 60,  heatColor: "#ff9a3d", shape: "ellipse",
         spawn: { weight: 0.45, extraMean: 0.6, maxGroup: 4 },  // sounders
-        traffic: { type: "speeder", cross: 0.45, wait: 0.35, maxWaitSec: 6, crossSpeedMul: 1.6 } },
+        traffic: { type: "speeder", notice: 0.90, cross: 0.45, wait: 0.35, maxWaitSec: 6, crossSpeedMul: 1.6 } },
       { id: "pangolin",label: "Pangolin", color: "#9a8f70", radius: 11, speedUnitsPerSec: 22,  heatColor: "#ffe08a", shape: "triangle",
         spawn: { weight: 0.15, extraMean: 0, maxGroup: 1 },    // solitary
-        traffic: { type: "pauser", cross: 0.20, wait: 0.70, maxWaitSec: 12, crossSpeedMul: 1 } },  // curls up when threatened
+        traffic: { type: "pauser", notice: 0.75, cross: 0.20, wait: 0.70, maxWaitSec: 12, crossSpeedMul: 1 } },  // poor eyesight; curls up when threatened
     ],
 
     // ---- When and where animals arrive (js/spawner.js) -------------------
@@ -172,7 +173,7 @@
     // ---- Roadside behaviour near a car (js/animals.js) -------------------
     // An animal decides once, decisionDist before the road edge. A car is a
     // threat if it is approaching within approachRadius of the animal's
-    // crossing point (about the headlight range), or stopped within
+    // crossing point (it sees and hears it coming), or stopped within
     // stoppedRadius of it. With no threat the animal crosses; otherwise its
     // species' traffic settings decide. A waiting animal crosses once the threat
     // has been gone for clearSec (a gap in traffic, as deer studies describe).
@@ -190,9 +191,11 @@
       unitsPerSecToKmh: 0.5,
       cruiseKmh: 50,
       warnKmh: 20,
-      accelUnitsPerSec2: 120, // smooth speed-up
-      decelUnitsPerSec2: 220, // stronger braking
-      brakeAheadLen: 120,     // look-ahead rectangle length for animals on road
+      accelUnitsPerSec2: 25,  // speeding up: 0 -> 50 km/h in about 4 s (≈ 3.5 m/s²)
+      // Braking (1 unit/s² = 0.5 km/h lost per second ≈ 0.14 m/s²).
+      comfortDecelUnitsPerSec2: 28, // ordinary slowing: signs, other lane, roadside animal (≈ 4 m/s²)
+      maxDecelUnitsPerSec2: 56,     // emergency stop limit (≈ 8 m/s², about 0.8 g)
+      stopGap: 15,            // a driver stopping for an animal aims to halt this far short of it
       driverReactionSec: 0.8, // an animal must be in the path ahead this long before the driver brakes
       alertReactionSec: 0.4,  // ...or this long while a sign is flashing (expected hazard: ~half the surprise reaction)
       vergeCautionKmh: 40,    // driver eases off to this for an animal at the roadside lit by the headlights
@@ -213,7 +216,10 @@
       // the scene is easy to arrange. Set to 0 for a full freeze.
       placingTimeScale: 0.15,
 
-      headlight: { fovDeg: 40, range: 170, dimAlpha: 0.4 },
+      // The driver sees animals only inside this beam, and spots one on the road
+      // up to `range` ahead. At 50 km/h that is just enough to stop for an animal
+      // already in the lane at the far edge (0.8 s reaction + emergency stop).
+      headlight: { fovDeg: 40, range: 230, dimAlpha: 0.4 },
     },
 
     // ---- UI / interaction affordance sizes (logical map units) ----------

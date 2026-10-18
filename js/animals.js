@@ -38,14 +38,21 @@
   }
 
   // Create an animal in every world (twins share the id). props: speciesId, x, y,
-  // and optionally dirDeg, state ("placed" by default), speedMul, boldness, groupId.
-  // Returns the current world's twin (or null if the species is unknown).
+  // and optionally dirDeg, state ("placed" by default), speedMul, boldness,
+  // noticeRoll, groupId. Returns the current world's twin (or null if the
+  // species is unknown).
   function spawn(props) {
     const sp = speciesById(props.speciesId);
     if (!sp) return null;
     const id = nextId++;
     let mine = null;
     const speedMul = props.speedMul || 1;
+    // Random traits are drawn once here, so both twins share them.
+    // boldness: how readily it crosses in front of a car (0..1, low = bold),
+    // shared by its group. noticeRoll: compared with the species' chance of
+    // noticing the car at all (high roll = doesn't notice, keeps walking).
+    const boldness = props.boldness !== undefined ? props.boldness : Math.random();
+    const noticeRoll = props.noticeRoll !== undefined ? props.noticeRoll : Math.random();
     allLists().forEach((l) => {
       const a = {
         id: id,
@@ -61,9 +68,8 @@
         dirDeg: props.dirDeg !== undefined ? props.dirDeg : WW.config.tuning.defaultAnimalDirDeg,
         state: props.state || "placed",
         phase: "approach",
-        // How readily it crosses in front of a car (0..1, low = bold); shared by
-        // its group and by its twin, so both sides' animals behave alike.
-        boldness: props.boldness !== undefined ? props.boldness : Math.random(),
+        boldness: boldness,
+        noticeRoll: noticeRoll,
         groupId: props.groupId || 0,
         waitSec: 0, clearSec: 0,
         lastRoadDist: Infinity,
@@ -111,9 +117,11 @@
   }
 
   // The once-only roadside decision (see config.crossing and species.traffic).
+  // Some animals never notice the car (traffic.notice is the chance they do) and
+  // just keep walking; the rest cross anyway, wait or turn back.
   function decide(a) {
-    if (!carThreat(a)) { startCrossing(a); return; }
     const tr = speciesById(a.speciesId).traffic;
+    if (!carThreat(a) || a.noticeRoll >= tr.notice) { startCrossing(a); return; }
     if (a.boldness < tr.cross) startCrossing(a, tr.crossSpeedMul);
     else if (a.boldness < tr.cross + tr.wait) { a.phase = "wait"; a.waitSec = 0; a.clearSec = 0; a.speed = 0; }
     else turnBack(a);

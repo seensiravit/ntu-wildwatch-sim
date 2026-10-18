@@ -68,7 +68,7 @@
   //   opts.firstAtSec time of the first group (default: one random gap after startSec)
   //   opts.meanGapSec function returning the current mean gap (lets a UI knob change it live)
   //   opts.xDist      function(rnd) -> x, replacing the hotspot distribution
-  // Event: { t, speciesId, x, y, dirDeg, speedMul, boldness, groupId }
+  // Event: { t, speciesId, x, y, dirDeg, speedMul, boldness, noticeRoll, groupId }
   function createStream(opts) {
     const cfg = WW.config.spawning;
     const rnd = opts.rnd;
@@ -110,6 +110,7 @@
         if (i > 0) tm += between(rnd, cfg.followerGapSec);
         queue.push({
           t: tm, speciesId: sp.id, groupId: groupId, speedMul: speedMul, boldness: boldness,
+          noticeRoll: rnd(), // each animal separately: does it notice the car at all?
           x: i ? x + gauss(rnd) * cfg.followerSpread : x, y: y, dirDeg: i ? dirDeg + gauss(rnd) * 2 : dirDeg,
         });
       }
