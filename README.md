@@ -150,6 +150,10 @@ How it connects to the simulator:
 - **Our signals stay authoritative.** The car slows and our signs flash for every
   detection. The dashboard's risk model decides what *it* logs as the
   recommended response; it does not drive the simulation.
+- The top of its page has our **"Live simulation: with vs without WildWatch"** card:
+  near-misses, average speed at the animal, the share of encounters where the car had
+  slowed in time, and animals detected, OFF vs ON, updated live. `js/dashboard.js`
+  (`buildDed`) inserts the card from our side, so her file needs no change for it.
 - Its tabs are docked in our header, and its roadside-response panel is turned off
   (`dashboard.showDock`) because our in-map signs and signal cards already show it.
 - **Reset** also clears its saved history. Otherwise that history survives page

@@ -83,6 +83,7 @@
       slot.style.setProperty(name, rootStyle.getPropertyValue(name));
     }
     slot.appendChild(tabs);
+    WW.dashboard.buildDed(); // live OFF vs ON comparison card at the top of its page
     // Outside #ww-root its delegated click handler no longer sees the tabs, so
     // drive them through its public API instead.
     slot.addEventListener("click", (e) => {

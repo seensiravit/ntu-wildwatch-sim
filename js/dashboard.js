@@ -121,6 +121,8 @@
       WW.useWorld(worlds[id]);
       updatePanel(panels[id], offStats);
     });
+    // DED tab card: only while that tab is open (the string compare keeps it cheap).
+    if (ded && document.querySelector("#ww-root .ww-dash.ww-open")) updateDed();
   }
 
   function updatePanel(p, offStats) {
@@ -247,5 +249,93 @@
     });
   }
 
-  WW.dashboard = { build, update };
+  // ---- DED dashboard tab (wildwatch-dashboard.js): live OFF vs ON card ------
+  // The extension builds its page skeleton once and its live refresh only
+  // replaces the contents of its own sections, so a card we insert stays put.
+  // That keeps the teammate's file untouched. Styled with its classes and
+  // colour variables (ww-card, --ww-*), plus a few wwx- rules of our own.
+  let ded = null; // { body, last }
+
+  const DED_CSS =
+    "#ww-root .wwx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}" +
+    "#ww-root .wwx-tile{background:var(--ww-panel2);border:1px solid var(--ww-line);border-radius:10px;padding:10px 12px;min-width:0}" +
+    "#ww-root .wwx-k{font-size:12px;color:var(--ww-muted);font-weight:600}" +
+    "#ww-root .wwx-v{font-size:24px;font-weight:700;margin:2px 0 6px;font-variant-numeric:tabular-nums;white-space:nowrap}" +
+    "#ww-root .wwx-v small{font-size:13px;font-weight:600;color:var(--ww-muted)}" +
+    "#ww-root .wwx-off{color:var(--ww-high)}#ww-root .wwx-on{color:var(--ww-ok)}" +
+    "#ww-root .wwx-bar{display:grid;grid-template-columns:52px 1fr;align-items:center;gap:6px;font-size:11px;color:var(--ww-muted);margin-top:3px}" +
+    "#ww-root .wwx-track{height:7px;background:var(--ww-bg);border-radius:4px;overflow:hidden}" +
+    "#ww-root .wwx-track span{display:block;height:100%;border-radius:4px}" +
+    "#ww-root .wwx-sub{font-size:12px;color:var(--ww-muted);margin-top:6px}" +
+    "#ww-root .wwx-note{margin:12px 0 0;font-size:13px}";
+
+  // Insert the card above the extension's KPI row. Called once its UI exists.
+  function buildDed() {
+    const kpis = document.querySelector("#ww-root .ww-kpis");
+    if (!kpis || ded) return;
+    const style = el("style");
+    style.textContent = DED_CSS;
+    document.head.appendChild(style);
+
+    const cam = WW.config.cameras[0];
+    const loc = (WW.config.dashboard.cameraLocations || {})[cam.id];
+    const where = loc ? loc.name + " · " + loc.cam : cam.name;
+    const card = el("div", "ww-card",
+      "<h2>Live simulation: with vs without WildWatch</h2>" +
+      '<p class="ww-cap">Same animals on the same road (' + where + "). The Simulation tab runs it twice: " +
+      "left map without the system, right map with it. Updates live; Reset in the header starts a new comparison.</p>");
+    card.style.marginBottom = "14px";
+    const body = el("div");
+    card.appendChild(body);
+    kpis.parentNode.insertBefore(card, kpis);
+    ded = { body, last: "" };
+    updateDed();
+  }
+
+  function updateDed() {
+    if (!ded || !WW.worlds) return;
+    const off = WW.worlds.off.stats, on = WW.worlds.on.stats;
+    if (!off || !on) return;
+    const avg = (s) => (s.speedCount ? Math.round(s.speedSum / s.speedCount) : null);
+    const enc = (s) => s.nearMiss + s.avoided;
+    const share = (s) => (enc(s) ? Math.round((s.avoided / enc(s)) * 100) : null);
+    const dash = (v) => (v === null ? "–" : v);
+
+    // One tile: "without → with", paired bars, and a one-line takeaway.
+    const tile = (label, a, b, unit, sub) => {
+      const max = Math.max(a || 0, b || 0) || 1;
+      const bar = (name, v, color) =>
+        '<div class="wwx-bar"><span>' + name + '</span><span class="wwx-track"><span style="width:' +
+        (((v || 0) / max) * 100).toFixed(1) + "%;background:" + color + '"></span></span></div>';
+      return '<div class="wwx-tile"><div class="wwx-k">' + label + "</div>" +
+        '<div class="wwx-v"><span class="wwx-off">' + dash(a) + "</span> → " +
+        '<span class="wwx-on">' + dash(b) + "</span>" + (unit ? " <small>" + unit + "</small>" : "") + "</div>" +
+        bar("Without", a, "var(--ww-high)") + bar("With", b, "var(--ww-ok)") +
+        '<div class="wwx-sub">' + sub + "</div></div>";
+    };
+    const pctDrop = (a, b) => (a ? Math.round(((a - b) / a) * 100) : null);
+
+    const nmDrop = pctDrop(off.nearMiss, on.nearMiss);
+    const offAvg = avg(off), onAvg = avg(on);
+    const html =
+      '<div class="wwx-grid">' +
+      tile("Near-misses", off.nearMiss, on.nearMiss, "",
+        nmDrop === null ? "None yet without the system." : nmDrop >= 0 ? nmDrop + "% fewer with WildWatch" : "More with WildWatch so far") +
+      tile("Avg speed at the animal", offAvg, onAvg, "km/h",
+        offAvg !== null && onAvg !== null ? (offAvg - onAvg) + " km/h slower with WildWatch" : "Waiting for both cars to meet an animal.") +
+      tile("Car had slowed in time", share(off), share(on), "%",
+        "Share of encounters (" + enc(off) + " without, " + enc(on) + " with)") +
+      tile("Animals detected", null, on.detections, "",
+        "Each detection flashes both signs. No cameras without the system.") +
+      "</div>" +
+      '<p class="wwx-note">' +
+      (off.nearMiss
+        ? "<b>What it means for DED:</b> early warning cut near-misses at this crossing from " + off.nearMiss + " to " +
+          on.nearMiss + ". The hotspot map and priority list below show where to install it next."
+        : '<span class="ww-muted">Start the simulation (or wait for the auto-demo) to fill in the comparison.</span>') +
+      "</p>";
+    if (html !== ded.last) { ded.body.innerHTML = html; ded.last = html; } // rebuild only on change
+  }
+
+  WW.dashboard = { build, update, buildDed };
 })();
