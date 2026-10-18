@@ -146,8 +146,9 @@ Animals ignore the road and car when choosing their path; they just walk straigh
    - > **Changed:** the driver now has a reaction time (`tuning.driverReactionSec`,
      > shorter `alertReactionSec` while a sign is flashing) before braking for an
      > animal on the road ahead, so a fast, unwarned car can hit an animal that steps
-     > out close in front. Hits are counted and marked "HIT" on the map, alongside near
-     > misses and safe passes (see README). An animal in the other lane makes the
+     > out close in front. Any contact between car and animal counts as a hit, even
+     > with the car stopped, and is marked "HIT" on the map, alongside near misses and
+     > safe passes (see README). An animal in the other lane makes the
      > driver slow to 20 km/h; one in the car's own lane makes them stop.
 2. **Warning slowdown:** if the car is inside the warning zone of an **active** signal, the target speed is **20 km/h**.
 3. **Otherwise** the target speed is **50 km/h** (cruise).

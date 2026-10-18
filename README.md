@@ -54,10 +54,13 @@ never slows for the signs, so it finishes first and waits off-map for the ON car
 **The key message is in the two Impact scoreboards.** Each sorts every car–animal
 encounter into one of three outcomes:
 
-- **Animals hit:** the car's front ran into the animal, or the animal ran into the side
-  of a car still going faster than 35 km/h.
-- **Near misses:** the car came at the animal faster than 35 km/h but didn't hit it.
-- **Safe passes:** the car had already slowed to 35 km/h or less, and nothing was hit.
+- **Animals hit:** the car and the animal touched, whoever moved into whom, even with
+  the car standing still (a car stopped in an animal's path is in the wrong place).
+- **Near misses:** the car came at the animal faster than 35 km/h but didn't touch it.
+- **Safe passes:** the car had already slowed to 35 km/h or less, and nothing touched.
+
+Each animal is scored once per lap. If an animal already counted as a near miss or safe
+pass touches the car later in the same lap, it moves to hits.
 
 Below the three tiles: the average speed at the animal and (ON side) animals detected.
 The ON side also compares its hits and near misses with the OFF side.
@@ -65,11 +68,11 @@ The ON side also compares its hits and near misses with the OFF side.
 How hits happen: the driver needs a reaction time (`tuning.driverReactionSec`, 0.8 s)
 after noticing an animal on the road ahead before braking starts. A driver warned by a
 flashing sign is expecting animals, so reacts faster (`alertReactionSec`, 0.4 s), and is
-already slower. A fast-forwarded 20 minutes of the auto-demo gives OFF 32 hits / 50 near
-misses / 19 safe passes and ON 5 hits / 0 near misses / 176 safe passes. A few minutes
-of live demo is a small sample, so expect the numbers to separate as it runs.
-Our animals can't see cars (both maps share them), so an animal walking into the side
-of a slow car isn't counted as a hit; a real one would stop.
+already slower. A fast-forwarded 20 minutes of the auto-demo gives OFF 48 hits / 48 near
+misses / 5 safe passes and ON 29 hits / 0 near misses / 152 safe passes. Most ON hits
+are animals walking into the car after it stopped for another animal (our animals can't
+see cars, because both maps share them). A few minutes of live demo is a small sample,
+so expect the numbers to separate as it runs.
 
 If the booth screen is left idle, an **auto-demo** spawns animals on a loop; any
 interaction hands control back to the visitor.

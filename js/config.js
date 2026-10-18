@@ -57,7 +57,6 @@
     nearMiss: {
       dangerZoneLen: 150,   // an encounter starts when an animal is in the lane this far ahead
       dangerSpeedKmh: 35,   // faster than this then = near miss (or hit, on contact), else safe
-      hitMinKmh: 3,         // the car front touching an animal counts as a hit above this speed
       markerMs: 1600,       // how long a HIT / NEAR MISS marker stays on the map
     },
 

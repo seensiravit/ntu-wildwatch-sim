@@ -16,7 +16,7 @@
         visible: true,  // false once it has left the map (waiting for the next lap)
         braking: false,
       },
-      scored: new Set(),  // animal ids whose encounter is already counted
+      scored: new Map(),  // animal id -> outcome already counted this lap ("hit" | "near" | "safe")
       pending: new Map(), // animal id -> { kmh, x, y }: encounter open until the car passes
       seen: new Map(),    // animal id -> seconds it has been in the path ahead (driver reaction)
     };
@@ -116,12 +116,15 @@
   function reset() {
     buildPath(); // config.carPath may have changed (research/ runs both directions)
     buildWarnZones();
-    scored.clear();
     startLap();
   }
 
-  // Put the car back at the start of the route at standstill.
+  // Put the car back at the start of the route at standstill. Each lap scores
+  // its own encounters, so an animal still on the road meets the new car afresh.
   function startLap() {
+    scored.clear();
+    pending.clear();
+    seen.clear();
     state.s = 0;
     state.speedUnitsPerSec = 0;
     state.visible = true;
@@ -170,32 +173,29 @@
     return action;
   }
 
-  // Is animal `a` hit by the car right now? It touches the car body (rectangle
-  // from config.ui; the animal a circle slightly smaller than its radius) and
-  // either the car's front runs into it while moving (> nearMiss.hitMinKmh), or
-  // it runs into the side of a car still going faster than dangerSpeedKmh.
-  // Our animals can't see cars (both maps share them), so an animal walking into
-  // the side of a slow car isn't counted: a real one would stop.
-  function isHit(a, kmh) {
-    const ui = WW.config.ui, nm = WW.config.nearMiss;
+  // Does animal `a` touch the car body? (Rectangle from config.ui; the animal
+  // counts as a circle slightly smaller than its radius.) Any contact is a hit,
+  // whoever moved into whom, even with the car standing still: a car stopped in
+  // an animal's path is in the wrong place.
+  function touches(a) {
+    const ui = WW.config.ui;
     const h = WW.geo.degToRad(state.headingDeg);
     const ux = Math.cos(h), uy = Math.sin(h);
     const dx = a.x - state.x, dy = a.y - state.y;
     const along = dx * ux + dy * uy, across = -dx * uy + dy * ux;
     const r = a.radius * 0.8;
-    if (Math.abs(along) > ui.carLen / 2 + r || Math.abs(across) > ui.carWidth / 2 + r) return false;
-    const front = along > ui.carLen / 4;
-    return front ? kmh > nm.hitMinKmh : kmh > nm.dangerSpeedKmh;
+    return Math.abs(along) <= ui.carLen / 2 + r && Math.abs(across) <= ui.carWidth / 2 + r;
   }
 
-  // Score each car-animal encounter once, as one of:
-  //   "hit"  - the car hit the animal or the animal ran into the car (isHit);
-  //   "near" - the car came at it faster than nearMiss.dangerSpeedKmh, no hit;
-  //   "safe" - the car had already slowed to that speed or less, no hit.
+  // Score each car-animal encounter once per lap, as one of:
+  //   "hit"  - the car and the animal touched (touches), at any speed;
+  //   "near" - the car came at it faster than nearMiss.dangerSpeedKmh, no contact;
+  //   "safe" - the car had already slowed to that speed or less, no contact.
   // An encounter opens when the animal is first in the lane within
   // nearMiss.dangerZoneLen ahead (the car's speed then is the one scored) and
-  // stays open until the animal is no longer ahead, so a near miss can still
-  // become a hit.
+  // closes when the animal is no longer ahead. If the animal touches the car
+  // later in the lap (e.g. walks into it after it stopped), a near miss or safe
+  // pass already counted becomes a hit.
   function detectEncounters() {
     if (!WW.stats) return;
     const nm = WW.config.nearMiss;
@@ -204,14 +204,17 @@
     for (const a of WW.animals.list) {
       if (a.state !== "walking") continue;
       present.add(a.id);
-      if (scored.has(a.id)) continue;
+      const done = scored.get(a.id);
+      if (done === "hit") continue;
       const open = pending.get(a.id);
-      if (isHit(a, kmh)) {
-        scored.add(a.id);
+      if (touches(a)) {
+        scored.set(a.id, "hit");
         pending.delete(a.id);
-        WW.stats.onEncounter("hit", a.x, a.y, open ? open.kmh : kmh);
+        if (done) WW.stats.upgradeToHit(done, a.x, a.y);
+        else WW.stats.onEncounter("hit", a.x, a.y, open ? open.kmh : kmh);
         continue;
       }
+      if (done) continue;
       const near = inPathAhead(a, nm.dangerZoneLen);
       if (near && !open) pending.set(a.id, { kmh: kmh, x: a.x, y: a.y });
       else if (near) { open.x = a.x; open.y = a.y; }
@@ -219,14 +222,15 @@
     }
     // Animals that left the map close their encounter; forget gone animals.
     pending.forEach((e, id) => { if (!present.has(id)) closeEncounter(id); });
-    scored.forEach((id) => { if (!present.has(id)) scored.delete(id); });
+    scored.forEach((kind, id) => { if (!present.has(id)) scored.delete(id); });
   }
 
   function closeEncounter(id) {
     const e = pending.get(id);
+    const kind = e.kmh > WW.config.nearMiss.dangerSpeedKmh ? "near" : "safe";
     pending.delete(id);
-    scored.add(id);
-    WW.stats.onEncounter(e.kmh > WW.config.nearMiss.dangerSpeedKmh ? "near" : "safe", e.x, e.y, e.kmh);
+    scored.set(id, kind);
+    WW.stats.onEncounter(kind, e.x, e.y, e.kmh);
   }
 
   function inActiveWarnZone() {

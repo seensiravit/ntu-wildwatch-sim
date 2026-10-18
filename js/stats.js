@@ -43,6 +43,15 @@
     state.markers.push({ x: x, y: y, bornMs: (WW.clock && WW.clock.ms) || 0, kind: kind });
   }
 
+  // An encounter already counted as "near" or "safe" ended in contact after all
+  // (e.g. the animal walked into the car once it had stopped): move it to hits.
+  function upgradeToHit(from, x, y) {
+    if (from === "near") state.nearMiss--;
+    else if (from === "safe") state.safe--;
+    state.hits++;
+    state.markers.push({ x: x, y: y, bornMs: (WW.clock && WW.clock.ms) || 0, kind: "hit" });
+  }
+
   // Average car speed at the crossing (null when no data yet).
   function avgKmh() { return state.speedCount ? Math.round(state.speedSum / state.speedCount) : null; }
 
@@ -58,6 +67,6 @@
 
   WW.stats = {
     get state() { return state; },
-    use, reset, onDetection, onEncounter, avgKmh, activeMarkers,
+    use, reset, onDetection, onEncounter, upgradeToHit, avgKmh, activeMarkers,
   };
 })();
