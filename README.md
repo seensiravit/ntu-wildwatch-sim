@@ -66,12 +66,22 @@ Below the three tiles: the average speed at the animal, (ON side) animals detect
 animals that turned back at the roadside because of the car. The ON side also compares
 its hits and near misses with the OFF side.
 
-How hits happen: the driver needs a reaction time (`tuning.driverReactionSec`, 0.8 s)
-after noticing an animal on the road ahead before braking starts. A driver warned by a
+How the driver reacts to animals they can see (within 120 units ahead):
+
+| Animal is… | Driver |
+|---|---|
+| in the car's own lane | stops, and waits until the lane is clear |
+| in the other lane | slows to 20 km/h |
+| on the verge within 40 units of the kerb **and lit by the headlights** | eases off to 40 km/h (`tuning.vergeCautionKmh`) |
+| anywhere else (e.g. on the verge outside the beam) | doesn't notice it |
+
+Each reaction starts only after a reaction time (`tuning.driverReactionSec`, 0.8 s), so
+an animal that steps out close in front of a fast car can be hit. A driver warned by a
 flashing sign is expecting animals, so reacts faster (`alertReactionSec`, 0.4 s), and is
-already slower. Over 100 fast-forwarded minutes of the auto-demo (5 runs of 20 min at the
-default activity): OFF 44 hits / 109 near misses / 3 safe passes; ON 24 hits / 41 near
-misses / 76 safe passes. Most remaining ON hits are animals crossing outside the single
+already slower. The headlight beam is narrow, so the driver sees a roadside animal late
+and briefly; the camera watches the whole verge. Over 100 fast-forwarded minutes of the
+auto-demo (5 runs of 20 min at the default activity): OFF 33 hits / 117 near misses /
+5 safe passes; ON 23 hits / 46 near misses / 72 safe passes. Most remaining ON hits are animals crossing outside the single
 camera's view. Hits are rare events (about one every 2–3 minutes on the OFF side), so a
 few minutes of live demo is a small sample: let it run, or raise **Animal activity**.
 

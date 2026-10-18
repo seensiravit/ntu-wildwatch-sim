@@ -143,32 +143,40 @@
     return false;
   }
 
-  // How should the driver react to animals on the road ahead? (SPEC §6.2.1)
-  //   "stop" — an animal in the car's own lane within brakeAheadLen;
-  //   "slow" — an animal elsewhere on the road surface (e.g. the other lane) that close;
-  //   null   — nothing to react to (yet).
+  // How should the driver react to the animals they can see? (SPEC §6.2.1)
+  //   "stop"    — an animal in the car's own lane within brakeAheadLen;
+  //   "slow"    — an animal elsewhere on the road surface (e.g. the other lane) that close;
+  //   "caution" — an animal on the verge within vergeCautionDist of the kerb, lit
+  //               by the headlights: the driver eases off (to vergeCautionKmh).
+  //               Only the headlight beam counts, so at night the driver sees a
+  //               roadside animal late and briefly (the camera sees the verge sooner);
+  //   null      — nothing to react to (yet).
   // The driver needs a reaction time after first noticing an animal, so one that
   // steps out close in front of a fast car can be hit. A driver warned by a
   // flashing sign is expecting animals, so reacts faster (tuning.alertReactionSec),
   // and is already slower, so stops sooner.
+  const URGENCY = { caution: 1, slow: 2, stop: 3 };
   function animalAhead(dt) {
     const t = WW.config.tuning;
     const road = WW.config.road;
     const react = inActiveWarnZone() ? t.alertReactionSec : t.driverReactionSec;
-    const now = new Map(); // animal id -> "stop" | "slow"
+    const beam = { x: state.x, y: state.y, facingAngleDeg: state.headingDeg, fovDeg: t.headlight.fovDeg, range: t.headlight.range };
+    const now = new Map(); // animal id -> "stop" | "slow" | "caution"
     for (const a of WW.animals.list) {
       if (a.state !== "walking") continue;
       if (inPathAhead(a, t.brakeAheadLen)) { now.set(a.id, "stop"); continue; }
+      const fromKerb = WW.geo.distToPolyline(a.x, a.y, road.centerline) - road.roadWidth / 2;
       const ahead = projectS(a.x, a.y) - state.s;
-      if (ahead >= 0 && ahead <= t.brakeAheadLen &&
-          WW.geo.distToPolyline(a.x, a.y, road.centerline) <= road.roadWidth / 2) now.set(a.id, "slow");
+      if (fromKerb <= 0 && ahead >= 0 && ahead <= t.brakeAheadLen) now.set(a.id, "slow");
+      else if (fromKerb > 0 && fromKerb <= t.vergeCautionDist && ahead >= 0 &&
+               WW.geo.pointInCone(a.x, a.y, beam)) now.set(a.id, "caution");
     }
     seen.forEach((secs, id) => { if (!now.has(id)) seen.delete(id); });
     let action = null;
     now.forEach((kind, id) => {
       const secs = (seen.get(id) || 0) + dt;
       seen.set(id, secs);
-      if (secs >= react && action !== "stop") action = kind;
+      if (secs >= react && (!action || URGENCY[kind] > URGENCY[action])) action = kind;
     });
     return action;
   }
@@ -251,6 +259,7 @@
     let targetUnits = kmhToUnits(t.cruiseKmh);
     if (inActiveWarnZone()) targetUnits = kmhToUnits(t.warnKmh);
     const react = animalAhead(dt);
+    if (react === "caution") targetUnits = Math.min(targetUnits, kmhToUnits(t.vergeCautionKmh));
     if (react === "slow") targetUnits = Math.min(targetUnits, kmhToUnits(t.warnKmh));
     if (react === "stop") targetUnits = 0;
 

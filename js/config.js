@@ -195,6 +195,8 @@
       brakeAheadLen: 120,     // look-ahead rectangle length for animals on road
       driverReactionSec: 0.8, // an animal must be in the path ahead this long before the driver brakes
       alertReactionSec: 0.4,  // ...or this long while a sign is flashing (expected hazard: ~half the surprise reaction)
+      vergeCautionKmh: 40,    // driver eases off to this for an animal at the roadside lit by the headlights
+      vergeCautionDist: 40,   // ...within this distance of the kerb
       signSightDistance: 320, // drivers react once a flashing sign is this far ahead (~ 4x the road width)
       carRespawnDelaySec: 1.5, // pause before the next lap (both cars start it together)
 

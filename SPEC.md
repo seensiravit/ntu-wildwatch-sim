@@ -156,7 +156,9 @@ Animals ignore the road and car when choosing their path; they just walk straigh
      > out close in front. Any contact between car and animal counts as a hit, even
      > with the car stopped, and is marked "HIT" on the map, alongside near misses and
      > safe passes (see README). An animal in the other lane makes the
-     > driver slow to 20 km/h; one in the car's own lane makes them stop.
+     > driver slow to 20 km/h; one in the car's own lane makes them stop; one on
+     > the verge near the kerb and lit by the headlights makes them ease off to
+     > 40 km/h.
 2. **Warning slowdown:** if the car is inside the warning zone of an **active** signal, the target speed is **20 km/h**.
 3. **Otherwise** the target speed is **50 km/h** (cruise).
 
