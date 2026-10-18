@@ -70,18 +70,19 @@
     // ---- Car route = the road centerline (single-lane demo), west -> east.
     carPath: NANYANG_CRESCENT,
 
-    // ---- One camera on the Hall 15 side of the road, looking north across it
-    // into the verge, so wildlife coming off the verge is caught before it
-    // reaches the carriageway. ---------------------------------------------
+    // ---- One overhead camera on the road centreline, looking west along the
+    // road toward oncoming (eastbound) traffic. Its wide cone spans the whole
+    // carriageway and both verges, so an animal crossing from either side is
+    // caught before cars reach it. Cars pass under it. ---------------------
     cameras: [
       {
         id: "cam1",
         name: "Cam 1 · Opp Hall 15",
-        x: 620,
-        y: 446,
-        facingAngleDeg: 270, // look north, across the road into the verge
-        fovDeg: 70,
-        range: 300,
+        x: 590,
+        y: 380,              // on the centreline (same y as the road)
+        facingAngleDeg: 180, // look west, along the road
+        fovDeg: 84,          // wide: covers the road plus both verges
+        range: 150,
         linkedSignalId: "signal1",
       },
     ],
@@ -149,15 +150,16 @@
       idleStartMs: 6000,   // idle time before the demo auto-plays
       spawnGapMs: 850,     // time between auto-spawned animals (lower = faster)
       maxConcurrent: 5,    // cap on simultaneous auto-demo animals
-      // Entry points on the verge; each auto-spawn picks one at random and a
-      // random species. Animals come off the verge and walk south across the road
-      // inside the camera's coverage (so the system can warn). A presenter can
-      // still drop one outside the cone to show a coverage gap.
+      // Entry points; each auto-spawn picks one at random and a random species.
+      // Animals walk across the road inside the camera's coverage (x ~ 440-590)
+      // so the system can warn. Most come off the north verge; one crosses from
+      // the Hall 15 side through the gap between buildings. A presenter can still
+      // drop one outside the cone to show a coverage gap.
       spawns: [
-        { x: 560, y: 190, dirDeg: 92 },
-        { x: 620, y: 165, dirDeg: 88 },
-        { x: 680, y: 200, dirDeg: 96 },
-        { x: 600, y: 235, dirDeg: 85 },
+        { x: 470, y: 190, dirDeg: 92 },
+        { x: 510, y: 165, dirDeg: 88 },
+        { x: 545, y: 215, dirDeg: 95 },
+        { x: 485, y: 500, dirDeg: 270 }, // from the Hall 15 side, heading north
       ],
     },
 
