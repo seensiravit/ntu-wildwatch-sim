@@ -31,13 +31,14 @@ Build Command *empty*, Publish Directory `.`)
 
 ## 3-step presenter demo
 
-1. **Drag an animal** from the tray (Macaque / Wild boar / Pangolin) onto Nanyang
-   Drive where it borders Yunnan Garden. It appears semi-transparent with a
-   **direction arrow** — drag the arrow tip to aim it across the road.
-2. **Click the animal** to release it. It starts walking. When it enters a camera's
-   view cone (**Cam 1 · West edge** or **Cam 2 · South bend**), the camera card shows
-   **Detecting**, a thermal blob appears, its **signal flashes**
-   `WILDLIFE AHEAD – SLOW DOWN`, and a **detection log** entry is recorded.
+1. **Drag an animal** from the tray (Macaque / Wild boar / Pangolin) onto the green
+   verge opposite Hall 15, just north of Nanyang Crescent. It appears
+   semi-transparent with a **direction arrow** — drag the arrow tip to aim it across
+   the road.
+2. **Click the animal** to release it. It starts walking. When it enters the camera's
+   view cone (**Cam 1 · Opp Hall 15**), the camera card shows **Detecting**, a thermal
+   blob appears, the **sign flashes** `WILDLIFE AHEAD – SLOW DOWN`, and a **detection
+   log** entry is recorded.
 3. **Watch the car** loop around the road. As it passes the flashing sign its speed
    drops from **50 → 20 km/h**. If an animal is walking on the road directly ahead,
    the car **stops and waits**, then resumes once the road is clear.
@@ -58,14 +59,16 @@ Extra controls: **Pause** freezes the simulation (drag/drop still works while pa
 ## Editing the scene (`js/config.js`)
 
 Everything about the scene lives in **`js/config.js`**, in logical map units on a
-`1000 × 700` grid. The current map is **Nanyang Drive around Yunnan Garden**; the road
-is a **centerline polyline** (`NANYANG_DRIVE`) so it can follow any real road shape.
-Nothing is hard-coded in the rendering or logic files, so you can reshape the demo by
-editing config alone:
+`1000 × 700` grid. The current map is **Nanyang Crescent opposite Hall 15 (Tamarind
+area)**: one straight road, one camera and one warning sign. The road is a
+**centerline polyline** (`NANYANG_CRESCENT`, currently two points), so it can follow
+any real road shape by adding points. Nothing is hard-coded in the rendering or logic
+files, so you can reshape the demo by editing config alone:
 
-- **Road shape / car route** — the `NANYANG_DRIVE` polyline (used by both
+- **Road shape / car route** — the `NANYANG_CRESCENT` polyline (used by both
   `road.centerline` and `carPath`); `road.crosswalkT` places the crossing.
-- **Garden scene** — `scene`: `gardenArea`, `lake`, `pagoda`, `pie`, and `labels`.
+- **Scene** — `scene`: `greenArea` (verge), `water` (canal), `buildings` (Hall 15)
+  and `labels`. Each part is optional.
 - **Cameras** — `cameras[]`: each has `x, y, facingAngleDeg, fovDeg, range,
   linkedSignalId`. The view cone is drawn from the angle, field-of-view and range.
   (Angles are degrees, clockwise from east, with +y pointing down: `0`=right,
@@ -110,10 +113,10 @@ How it connects to the simulator:
   WildWatch.record({ species, location, camera, confidence /* 0..1 */, proximity });
   ```
   Only while the System is ON (no cameras = no detections).
-- Our two Yunnan Garden cameras are **added to its campus map** as *Yunnan Garden
-  West (CAM-05)* and *Yunnan Garden South (CAM-06)*, next to its own four cameras.
-  Their names, map positions and sample-history mix live in `js/config.js` →
-  `dashboard`.
+- Our camera reports as the dashboard's existing **Tamarind area (CAM-04)** camera
+  (`js/config.js` → `dashboard.cameraLocations`), so no extra map node is needed.
+  To put a camera somewhere its map doesn't cover yet, add it under
+  `dashboard.extraLocations` (plus optional `extraRoads` / `extraLabels`).
 - **Our signals stay authoritative.** The car slows and our signs flash for every
   detection. The dashboard's risk model decides what *it* logs as the
   recommended response; it does not drive the simulation.

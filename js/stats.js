@@ -47,7 +47,9 @@
   function activeMarkers() {
     const now = (WW.clock && WW.clock.ms) || 0;
     const life = WW.config.nearMiss.markerMs;
-    state.markers = state.markers.filter((m) => now - m.bornMs < life);
+    // Keep only markers within their lifetime (0 <= age < life): a negative age would
+    // give drawNearMiss a negative arc radius, and that exception stops the render loop.
+    state.markers = state.markers.filter((m) => { const age = now - m.bornMs; return age >= 0 && age < life; });
     return state.markers;
   }
 

@@ -53,8 +53,8 @@
     if (!WWx || typeof WWx.record !== "function") return;
     // Report under the dashboard's own location name (config.dashboard), not our
     // "Cam 1 · …" label — the extension would alias "cam 1" to its Nanyang Ave camera.
-    const locs = (WW.config.dashboard && WW.config.dashboard.locations) || [];
-    const loc = locs.find((l) => l.simCamera === cam.id);
+    const map = (WW.config.dashboard && WW.config.dashboard.cameraLocations) || {};
+    const loc = map[cam.id];
     try {
       WWx.record({
         species: animal.label,

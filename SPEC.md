@@ -62,6 +62,8 @@ README.md         // how to run + how to edit config
 
 All geometry is defined in `config.js` in logical map units (e.g. a 1000×700 map), scaled to the canvas. **Nothing is hard-coded in the rendering or logic files.** A later version will replace this map with a real NTU road by editing config only.
 
+> **Superseded (current build):** the generic L-road below has been replaced by the real location: **Nanyang Crescent opposite Hall 15 (Tamarind area)**, a straight road with **one camera and one signal**, the green verge and Sungei Choa Chu Kang canal to the north, and the Hall 15 blocks to the south. §4.1–4.3 describe the original generic map.
+
 ### 4.1 Road
 
 - An **L-shaped two-lane road**: a horizontal segment from the left edge to a corner on the right, then a vertical segment from the corner up to the top edge.
@@ -198,11 +200,12 @@ All values update live from the simulation state.
 
 ## 11. Acceptance scenarios
 
-1. **Basic warning:** drop a macaque beside the corner, aim it across the road and click it.
+1. **Basic warning:** drop a macaque on the verge beside the road, aim it across the road and click it.
    - When it enters cam1's cone, Cam 1 shows `Detecting` and a thermal blob with a box.
    - Signal 1 flashes and shows the message, and a log entry appears.
    - When the car passes Signal 1, its label drops to about 20 km/h.
 2. **Localised warning:** an animal in cam2's cone flashes **only Signal 2**. Signal 1 stays off.
+   *(Not applicable to the current single-camera map; it applies again whenever a second camera/signal is configured.)*
 3. **Sign turns off:** when the animal walks out of the cone, the signal turns off immediately and the camera goes back to `Idle`.
 4. **Braking:** when a Walking animal is on the road just ahead of the car, the car stops, waits, and resumes once the road is clear. There is no collision.
 5. **No coverage:** an animal walking where no cone reaches triggers nothing.
@@ -213,7 +216,8 @@ All values update live from the simulation state.
 ## 12. Out of scope for v1 (planned for later versions)
 
 - Day mode and a day/night toggle
-- The real NTU road map, which replaces the config geometry only
+- ~~The real NTU road map, which replaces the config geometry only~~ — **landed**:
+  Nanyang Crescent opposite Hall 15 (Tamarind area), one camera (see §4 note)
 - ~~Before/after comparison ("without system" vs "with system")~~ — **landed early in
   v1.2** as a System ON/OFF toggle with near-miss tally (see README)
 - Multiple cars and two-way traffic, including signals for both directions

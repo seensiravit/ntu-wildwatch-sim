@@ -137,7 +137,7 @@
     ctx.fillText(Math.round(WW.car.currentKmh()) + " km/h", cp.x, cp.y - Wd - 5 * sx);
   }
 
-  // Road follows the centerline polyline (Nanyang Drive around Yunnan Garden).
+  // Road follows the centerline polyline (config.road.centerline).
   function drawRoad(ctx, cfg, sx, P) {
     const pal = cfg.palettes.night;
     const cl = cfg.road.centerline.map(P);
@@ -218,40 +218,20 @@
     }
   }
 
-  // Yunnan Garden scene drawn under the road: park, PIE, lake, pagoda.
+  // Scene under the road (config.scene): green area, water, buildings. Each optional.
   function drawScene(ctx, cfg, P, sx) {
     const pal = cfg.palettes.night, S = cfg.scene;
-    fillPoly(ctx, S.gardenArea.map(P), pal.garden);
-
-    // Pan-Island Expressway: faint band with lane dashes.
-    const a = P(S.pie.a), b = P(S.pie.b);
-    ctx.lineCap = "butt";
-    ctx.strokeStyle = pal.pie;
-    ctx.lineWidth = S.pie.width * sx;
-    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-    ctx.strokeStyle = "rgba(190,190,170,0.14)";
-    ctx.lineWidth = Math.max(1, 1 * sx);
-    ctx.setLineDash([12 * sx, 12 * sx]);
-    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-    ctx.setLineDash([]);
-
-    fillPoly(ctx, S.lake.map(P), pal.water);
-    drawPagoda(ctx, P(S.pagoda), sx);
-  }
-
-  function drawPagoda(ctx, p, sx) {
-    ctx.fillStyle = "#8a3f30"; // three stacked roofs
-    for (let k = 0; k < 3; k++) {
-      const y = p.y - k * 7 * sx, half = (11 - k * 3) * sx;
-      ctx.beginPath();
-      ctx.moveTo(p.x, y - 7 * sx);
-      ctx.lineTo(p.x + half, y);
-      ctx.lineTo(p.x - half, y);
-      ctx.closePath();
+    if (S.greenArea) fillPoly(ctx, S.greenArea.map(P), pal.verge);
+    if (S.water) fillPoly(ctx, S.water.map(P), pal.water);
+    (S.buildings || []).forEach((b) => {
+      const p = P(b);
+      roundRect(ctx, p.x, p.y, b.w * sx, b.h * sx, 4 * sx);
+      ctx.fillStyle = pal.building;
       ctx.fill();
-    }
-    ctx.fillStyle = "#5a4632";
-    ctx.fillRect(p.x - 3 * sx, p.y, 6 * sx, 6 * sx);
+      ctx.strokeStyle = "rgba(160,176,196,0.18)";
+      ctx.lineWidth = Math.max(1, 1 * sx);
+      ctx.stroke();
+    });
   }
 
   function drawLabels(ctx, cfg, P, sx) {
