@@ -33,7 +33,7 @@ js/animals.js     // animal entity, drag/rotate/release, movement
 js/car.js         // car entity, path following, speed logic
 js/detection.js   // camera ↔ animal detection, signal state
 js/render.js      // map + night rendering
-js/dashboard.js   // side panel: camera feeds, signal cards, log
+js/dashboard.js   // dashboard strip under each map: impact, camera feed, signs, log
 js/main.js        // game loop, input wiring
 README.md         // how to run + how to edit config
 ```
@@ -169,6 +169,11 @@ Speed changes smoothly toward the target, with separate acceleration and deceler
 
 ## 9. Dashboard (side panel)
 
+> **Changed:** the page now shows the scene twice, side by side (System OFF | ON),
+> and the dashboard is a strip under each map instead of a side panel. The camera
+> card, signal cards and log below still apply to the ON side; on the OFF side they
+> read "Not installed". See §12 and the README.
+
 All values update live from the simulation state.
 
 ### 9.1 Camera cards (one per camera)
@@ -220,7 +225,9 @@ All values update live from the simulation state.
 - ~~The real NTU road map, which replaces the config geometry only~~ — **landed**:
   Nanyang Crescent opposite Hall 15 (Tamarind area), one camera (see §4 note)
 - ~~Before/after comparison ("without system" vs "with system")~~ — **landed early in
-  v1.2** as a System ON/OFF toggle with near-miss tally (see README)
+  v1.2** as a System ON/OFF toggle with near-miss tally, then replaced by a
+  **split screen**: OFF and ON side by side, same animals, a scoreboard under each
+  (see README)
 - Multiple cars and two-way traffic, including signals for both directions
 - Movable cameras and signals
 - ~~Near-miss alerts~~ (landed in v1.2) and ~~hotspot heatmap on the dashboard~~ —

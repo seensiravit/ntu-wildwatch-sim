@@ -23,7 +23,7 @@ js/animals.js     // animal entity, drag/rotate/release, movement
 js/car.js         // car entity, path following, speed logic
 js/detection.js   // camera <-> animal detection, signal state
 js/render.js      // map + night rendering
-js/dashboard.js   // side panel: camera feeds, signal cards, log
+js/dashboard.js   // dashboard strip under each map: impact, camera feed, signs, log
 js/stats.js       // Impact scoreboard (detections, near-misses, avoided, per-mode speed)
 js/main.js        // game loop, input wiring
 wildwatch-dashboard.js  // teammate's DED dashboard extension (vendored)

@@ -1,23 +1,36 @@
-/* car.js — the single car: path following + speed logic (SPEC §6).
+/* car.js — the car: path following + speed logic (SPEC §6).
  * Position is tracked as distance `s` along the config.carPath polyline.
+ * Each world (system OFF / ON side) has its own car; main.js calls use(world)
+ * to select one, and starts every lap on both sides together (startLap).
  * Exposed as WW.car. */
 (function () {
   const WW = window.WW || (window.WW = {});
 
-  const state = {
-    x: 0, y: 0,
-    headingDeg: 0,
-    speedUnitsPerSec: 0,
-    s: 0,             // distance travelled along the path
-    respawnTimer: 0,  // >0 while waiting to respawn after an exit
-    visible: true,
-    braking: false,
-  };
+  function fresh() {
+    return {
+      state: {
+        x: 0, y: 0,
+        headingDeg: 0,
+        speedUnitsPerSec: 0,
+        s: 0,           // distance travelled along the path
+        visible: true,  // false once it has left the map (waiting for the next lap)
+        braking: false,
+      },
+      scored: new Set(), // animal ids already counted as an encounter
+    };
+  }
+  let state, scored;
+  // Switch to a world's car (created on first use).
+  function use(world) {
+    const c = world.car || (world.car = fresh());
+    state = c.state; scored = c.scored;
+  }
+  use({});
 
+  // The path and warning zones come from config only, so both worlds share them.
   let segs = [];        // [{ax,ay,bx,by,len,ux,uy}]
   let total = 0;        // total path length
   let warnZones = [];   // [{signalId, start, end}] in path distance
-  const scored = new Set(); // animal ids already counted as an encounter
 
   function kmhToUnits(kmh) {
     return kmh / WW.config.tuning.unitsPerSecToKmh;
@@ -92,10 +105,15 @@
     if (!segs.length) buildPath();
     buildWarnZones();
     scored.clear();
+    startLap();
+  }
+
+  // Put the car back at the start of the route at standstill.
+  function startLap() {
     state.s = 0;
     state.speedUnitsPerSec = 0;
-    state.respawnTimer = 0;
     state.visible = true;
+    state.braking = false;
     const p = posAt(0);
     state.x = p.x; state.y = p.y; state.headingDeg = p.headingDeg;
   }
@@ -152,11 +170,7 @@
   function update(dt) {
     const t = WW.config.tuning;
 
-    if (state.respawnTimer > 0) {
-      state.respawnTimer -= dt;
-      if (state.respawnTimer <= 0) reset();
-      return;
-    }
+    if (!state.visible) return; // off the map: main.js starts the next lap
 
     // Target speed by priority: brake (0) > warning slowdown > cruise.
     let targetUnits = kmhToUnits(t.cruiseKmh);
@@ -179,9 +193,9 @@
     state.s += state.speedUnitsPerSec * dt;
 
     if (state.s >= total) {
-      // Exited the top: hide and respawn after a delay.
+      // Left the map: hide until main.js starts the next lap.
       state.visible = false;
-      state.respawnTimer = t.carRespawnDelaySec;
+      state.braking = false;
       return;
     }
 
@@ -193,5 +207,8 @@
     return state.speedUnitsPerSec * WW.config.tuning.unitsPerSecToKmh;
   }
 
-  WW.car = { state, reset, update, currentKmh };
+  WW.car = {
+    get state() { return state; },
+    use, reset, startLap, update, currentKmh,
+  };
 })();

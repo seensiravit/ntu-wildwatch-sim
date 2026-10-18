@@ -1,15 +1,22 @@
 /* detection.js — camera<->animal detection and signal state (SPEC §7).
- * Exposed as WW.detection. */
+ * The state is per world (system OFF / ON side): main.js calls use(world)
+ * to select one. Exposed as WW.detection. */
 (function () {
   const WW = window.WW || (window.WW = {});
 
   // Per-camera runtime status, keyed by camera id:
   //   { detecting, animalsInCone: [{animal, confidence, angNorm, distNorm}],
   //     episodes: Map<animalId, confidence> }
-  const camState = {};
+  let camState = {};
   // Per-signal runtime status, keyed by signal id: { flashing }
-  const sigState = {};
-  const logEntries = []; // newest first; { time, camName, species, confidence }
+  let sigState = {};
+  let logEntries = []; // newest first; { time, camName, species, confidence }
+
+  // Switch to a world's camera/sign/log state (created on first use).
+  function use(world) {
+    const d = world.detection || (world.detection = { camState: {}, sigState: {}, logEntries: [] });
+    camState = d.camState; sigState = d.sigState; logEntries = d.logEntries;
+  }
 
   function randInt(min, max) {
     return Math.floor(min + Math.random() * (max - min + 1));
@@ -137,5 +144,10 @@
     return Math.sin((ms / 1000) * Math.PI * 2 * WW.config.tuning.flashHz) >= 0;
   }
 
-  WW.detection = { camState, sigState, logEntries, reset, update, isSignalActive, flashOn };
+  WW.detection = {
+    get camState() { return camState; },
+    get sigState() { return sigState; },
+    get logEntries() { return logEntries; },
+    use, reset, update, isSignalActive, flashOn,
+  };
 })();

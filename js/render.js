@@ -5,7 +5,10 @@
 (function () {
   const WW = window.WW || (window.WW = {});
 
-  const sigIntensity = {}; // per-signal eased on/off (for a soft board fade)
+  // Per-signal eased on/off (for a soft board fade), kept per world so the
+  // OFF and ON maps fade independently. use(world) is called by main.js.
+  let sigIntensity = {};
+  function use(world) { sigIntensity = world.sigIntensity || (world.sigIntensity = {}); }
 
   function clockMs() { return (WW.clock && WW.clock.ms) || 0; }
 
@@ -259,14 +262,8 @@
   }
 
   function drawCones(ctx, cfg, P, sx) {
-    const systemOn = WW.system.enabled;
+    if (!WW.system.enabled) return; // system OFF side: no camera installed
     cfg.cameras.forEach((cam) => {
-      const cp0 = P(cam);
-      if (!systemOn) { // no system installed: greyed camera, no coverage cone
-        ctx.fillStyle = "#404a58";
-        dot(ctx, cp0.x, cp0.y, 5 * sx);
-        return;
-      }
       const cs = WW.detection.camState[cam.id];
       const detecting = cs && cs.detecting;
       const poly = WW.geo.conePolygon(cam.x, cam.y, cam.facingAngleDeg, cam.fovDeg, cam.range);
@@ -299,6 +296,7 @@
   }
 
   function drawSignals(ctx, cfg, P, sx) {
+    if (!WW.system.enabled) return; // system OFF side: no warning signs installed
     const on = WW.detection.flashOn();
     cfg.signals.forEach((sig) => {
       const s = P(sig);
@@ -528,5 +526,5 @@
     return "rgb(" + r + "," + g + "," + b + ")";
   }
 
-  WW.render = { frame };
+  WW.render = { use, frame };
 })();

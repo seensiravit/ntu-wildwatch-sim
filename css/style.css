@@ -1,5 +1,5 @@
 /* NTU WildWatch — layout shell.
-   Night palette. Map ~65-70% width, dashboard fills the rest.
+   Night palette. Two maps side by side (system OFF | ON), a dashboard strip under each.
    Targets 1920x1080, scales down to 1366x768. */
 
 :root {
@@ -105,22 +105,6 @@ html, body {
   cursor: pointer;
 }
 
-/* System ON/OFF toggle */
-.toggle {
-  font-weight: 600;
-  border-width: 1px;
-  border-style: solid;
-}
-.toggle-on {
-  color: #0e1a12;
-  background: #46d17f;
-  border-color: #46d17f;
-}
-.toggle-off {
-  color: #ffd9d5;
-  background: #7a1e18;
-  border-color: #b3382f;
-}
 .controls button {
   background: var(--panel-2);
   color: var(--text);
@@ -132,35 +116,69 @@ html, body {
 }
 .controls button:hover { border-color: var(--amber-dim); }
 
-/* ---- Stage: map + dashboard ---- */
+/* ---- Stage: the scene twice, side by side (OFF left, ON right) ----
+   Grid rows: panel titles / maps / dashboard strips. The maps take whatever
+   height is left after the titles and strips. */
 #stage {
-  display: flex;
   flex: 1 1 auto;
   min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  padding: 10px 14px 12px;
+}
+.panel-head.off, #map-wrap-off, .panel-dash.off { grid-column: 1; }
+.panel-head.on, #map-wrap-on, .panel-dash.on { grid-column: 2; }
+.panel-head { grid-row: 1; }
+.map-wrap { grid-row: 2; }
+.panel-dash { grid-row: 3; }
+
+.panel-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.panel-tag {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid;
+}
+.panel-head.off .panel-tag { color: #ffd9d5; background: #5a1914; border-color: #b3382f; }
+.panel-head.on .panel-tag { color: #0e1a12; background: #46d17f; border-color: #46d17f; }
+.panel-sub {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-#map-wrap {
+.map-wrap {
   position: relative;
-  flex: 1 1 68%;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
-  min-width: 0;
-  /* Lets #map size itself to whichever of width/height runs out first (cq units). */
+  /* Lets the canvas size itself to whichever of width/height runs out first (cq units). */
   container-type: size;
 }
 
+/* Spans both maps, sitting at their bottom edge between them. */
 .hint {
-  position: absolute;
-  left: 50%;
-  bottom: 34px;
-  transform: translateX(-50%);
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: end;
+  justify-self: center;
+  z-index: 1;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 9px;
   padding: 9px 16px;
-  background: rgba(12, 16, 22, 0.82);
+  background: rgba(12, 16, 22, 0.86);
   border: 1px solid var(--amber-dim);
   border-radius: 999px;
   color: #f2ead6;
@@ -195,7 +213,7 @@ html, body {
 .sw-dim { background: #c9a06a; opacity: 0.4; }
 
 /* Impact scoreboard */
-.stats-card { padding: 12px; }
+.stats-card { padding: 10px; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
 .stat-num { font-size: 22px; font-weight: 700; line-height: 1.1; }
@@ -205,7 +223,6 @@ html, body {
 .stat-num .safe { color: #46d17f; }
 .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .stat-summary { margin-top: 10px; font-size: 12px; color: var(--text); }
-.stat-insight { margin-top: 6px; font-size: 11px; color: var(--muted); font-style: italic; }
 .hint-dot {
   width: 8px;
   height: 8px;
@@ -222,10 +239,9 @@ html, body {
   .hint-dot { animation: none; }
 }
 
-#map {
-  /* Fit inside the wrap on BOTH axes: plain width:100% let a wide-but-short
-     window push the canvas up over the header. 10/7 = the map's aspect ratio. */
-  width: min(100cqw, 100cqh * 10 / 7, var(--map-max));
+.map {
+  /* Fit inside the wrap on BOTH axes. 10/7 = the map's aspect ratio. */
+  width: min(100cqw, 100cqh * 10 / 7);
   height: auto;
   aspect-ratio: 1000 / 700;
   background: #05070b;
@@ -233,16 +249,15 @@ html, body {
   border-radius: 8px;
   touch-action: none;
 }
+#map-off { border-color: rgba(179, 56, 47, 0.55); }
+#map-on { border-color: rgba(70, 209, 127, 0.45); }
 
-#dashboard {
-  flex: 0 0 340px;
-  background: var(--panel);
-  border-left: 1px solid var(--border);
-  padding: 12px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* ---- Dashboard strip under each map: [impact] [camera] [signs + log] ---- */
+.panel-dash {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
 }
 
 /* ---- Cards ---- */
@@ -251,18 +266,26 @@ html, body {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 8px;
+  white-space: nowrap;
 }
+.card-header > span:first-child { overflow: hidden; text-overflow: ellipsis; }
 
 .pill {
+  flex: 0 0 auto;
   font-size: 11px;
+  font-weight: 500;
   padding: 3px 9px;
   border-radius: 12px;
   background: var(--grey-pill);
@@ -271,41 +294,45 @@ html, body {
 .pill-active { background: var(--amber); color: #1a1200; }
 
 .card.detecting { border-color: var(--amber); }
-.card.offline { opacity: 0.45; }
+.card.offline { opacity: 0.5; }
 
-.sig-msg {
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--amber);
-  background: #1a1200;
-  border: 1px solid var(--amber-dim);
-  border-radius: 4px;
-  padding: 5px 8px;
-  text-align: center;
-  letter-spacing: 0.3px;
+.thermal {
+  width: 100%;
+  aspect-ratio: 280 / 110;
+  border-radius: 6px;
+  display: block;
+  background: #120a1e;
 }
 
-.thermal { width: 100%; border-radius: 6px; display: block; background: #120a1e; }
+.sig-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  padding: 3px 0;
+}
+.sig-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.sig-row.active .sig-name { color: var(--amber); }
 
-#log-card { flex: 1 1 auto; min-height: 120px; display: flex; flex-direction: column; }
-#log-list {
+.log-title { font-size: 11px; color: var(--muted); margin: 8px 0 4px; }
+/* height:0 + flex-grow: the log fills the card without making the strip taller. */
+.log-list {
+  flex: 1 1 auto;
+  height: 0;
+  min-height: 2.8em;
   list-style: none;
   margin: 0;
   padding: 0;
   overflow-y: auto;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 12px;
+  font-size: 11px;
 }
-#log-list li { padding: 3px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+.log-list li { padding: 2px 0; border-bottom: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+.log-list li.log-empty { border-bottom: 0; font-family: system-ui, sans-serif; font-style: italic; }
 
 /* Header labels never stack onto two lines. */
 #topbar button, #topbar .badge, #topbar .rate-knob, #ww-tabs-slot .ww-tab { white-space: nowrap; }
-
-/* Scale down for 1366x768 laptops */
-@media (max-width: 1440px) {
-  #dashboard { flex-basis: 300px; }
-}
 
 /* Keep the header to a single row at laptop widths (it now also holds the
    dashboard tabs): drop the tagline and tray label, tighten everything else. */
@@ -320,4 +347,19 @@ html, body {
   .rate-knob input[type="range"] { width: 64px; }
   #topbar .badge { font-size: 11px; padding: 4px 8px; }
   #ww-tabs-slot .ww-tab { padding: 6px 10px; font-size: 12px; }
+
+  /* Compact dashboard strips so the maps keep their height on 768px screens. */
+  #stage { gap: 6px 12px; padding: 8px 12px 10px; }
+  .panel-tag { font-size: 12px; padding: 2px 8px; }
+  .panel-sub { font-size: 11px; }
+  .panel-dash { gap: 8px; }
+  .card { padding: 8px; }
+  .card-header { font-size: 12px; margin-bottom: 6px; }
+  .stats-grid { gap: 6px; }
+  .stat { padding: 5px 8px; }
+  .stat-num { font-size: 18px; }
+  .stat-label { font-size: 10px; }
+  .stat-summary { margin-top: 6px; font-size: 11px; }
+  .pill { font-size: 10px; padding: 2px 7px; }
+  .sig-row { font-size: 11px; padding: 2px 0; }
 }

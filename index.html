@@ -26,7 +26,6 @@
           <span>Spawn rate</span>
           <input id="rate" type="range" min="1" max="10" step="1" value="4" />
         </label>
-        <button id="btn-system" class="toggle toggle-on" type="button">System: ON</button>
         <span class="badge badge-disabled">Day mode – next version</span>
         <button id="btn-legend" type="button">Key</button>
         <button id="btn-pause" type="button">⏸ Pause</button>
@@ -34,25 +33,34 @@
       </div>
     </header>
 
-    <!-- Main: map canvas + dashboard side panel -->
+    <!-- Main: the same scene twice, side by side. Left = system OFF, right = ON.
+         Both share the animals; each has its own car, cameras/signs and scoreboard.
+         Grid rows: panel titles / maps / dashboards. -->
     <main id="stage">
-      <section id="map-wrap">
-        <canvas id="map" width="1000" height="700"></canvas>
-        <div id="legend" class="legend-box" hidden></div>
-        <div id="hint" class="hint" hidden>
-          <span class="hint-dot"></span>
-          <span id="hint-text">Drag an animal onto the road to try it yourself</span>
-        </div>
+      <div class="panel-head off">
+        <span class="panel-tag">System OFF</span>
+        <span class="panel-sub">Today: no cameras, no warning — the driver sees only the headlights</span>
+      </div>
+      <div class="panel-head on">
+        <span class="panel-tag">System ON</span>
+        <span class="panel-sub">With WildWatch: camera detects → signs flash → driver slows</span>
+      </div>
+
+      <section class="map-wrap" id="map-wrap-off">
+        <canvas class="map" id="map-off" width="1000" height="700"></canvas>
       </section>
-      <aside id="dashboard">
-        <div id="stats-card" class="card stats-card"></div>
-        <div id="camera-cards"></div>
-        <div id="signal-cards"></div>
-        <div id="log-card" class="card">
-          <div class="card-header">Detection log</div>
-          <ul id="log-list"></ul>
-        </div>
-      </aside>
+      <section class="map-wrap" id="map-wrap-on">
+        <canvas class="map" id="map-on" width="1000" height="700"></canvas>
+        <div id="legend" class="legend-box" hidden></div>
+      </section>
+      <div id="hint" class="hint" hidden>
+        <span class="hint-dot"></span>
+        <span id="hint-text">Drag an animal onto either road to try it yourself</span>
+      </div>
+
+      <!-- Per-side dashboards: built by dashboard.js -->
+      <div class="panel-dash off" id="dash-off"></div>
+      <div class="panel-dash on" id="dash-on"></div>
     </main>
   </div>
 

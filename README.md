@@ -4,7 +4,9 @@ A visual, **simulated** demo of an *Active Monitoring & Dynamic Warning Pipeline
 for reducing wildlife roadkill around NTU (CC0006 group project, Prong 1).
 
 Roadside cameras "detect" animals near a road; when an animal enters a camera's
-view cone, an upstream warning sign flashes and a car slows down. There is **no
+view cone, an upstream warning sign flashes and a car slows down. The page shows the
+same scene **twice, side by side**: **System OFF** on the left (no cameras, no signs)
+and **System ON** on the right, so you can see whether the system actually helps. There is **no
 real AI or computer vision** — every detection is simulated. See `SPEC.md` for the
 full design.
 
@@ -31,30 +33,38 @@ Build Command *empty*, Publish Directory `.`)
 
 ## 3-step presenter demo
 
+The two maps share their animals: anything you drop, aim or release on **either** map
+appears on both, so both drivers meet exactly the same crossings. Each side has its own
+car and its own dashboard underneath. Both cars start every lap together. The OFF car
+never slows for the signs, so it finishes first and waits off-map for the ON car.
+
 1. **Drag an animal** from the tray (Macaque / Wild boar / Pangolin) onto the green
-   verge opposite Hall 15, just north of Nanyang Crescent. It appears
+   verge opposite Hall 15, just north of Nanyang Crescent, on either map. It appears
    semi-transparent with a **direction arrow** — drag the arrow tip to aim it across
    the road.
-2. **Click the animal** to release it. It starts walking. When it enters the camera's
-   view cone (**Cam 1 · Opp Hall 15**), the camera card shows **Detecting**, a thermal
+2. **Click the animal** to release it. It starts walking. On the **ON** map, when it
+   enters the camera's view cone (**Cam 1 · Opp Hall 15**), the camera card shows **Detecting**, a thermal
    blob appears, **both signs flash** `WILDLIFE AHEAD – SLOW DOWN`, and a **detection
    log** entry is recorded.
-3. **Watch the car** loop around the road. As it passes the flashing sign its speed
-   drops from **50 → 20 km/h**. If an animal is walking on the road directly ahead,
-   the car **stops and waits**, then resumes once the road is clear.
+3. **Compare the two cars.** On the right, the car sees the flashing signs and slows
+   from **50 → 20 km/h** before the crossing. On the left there is no warning: the
+   driver only reacts once the animal is in the headlights, reaches it at full speed,
+   and a red **NEAR MISS** flashes. (Either car stops and waits if an animal is on the
+   road directly ahead; there are no collisions.)
 
-**The key message — flip `System: ON` to `OFF`.** With the system **off**, the
-cameras and signs are gone, the driver gets no early warning, and the car reaches the
-animal at full speed — a red **NEAR MISS** flashes. Turn it back **on** and the same
-crossing is detected early, the sign warns, the car slows, and the encounter is
-**avoided**. The **Impact** panel keeps score: animals detected, near-misses (system
-off) vs near-misses avoided (system on), and average speed at the crossing.
+**The key message is in the two Impact scoreboards.** Each counts near-misses, encounters
+where the car had already slowed ("Slowed in time") and the average speed at the animal.
+The ON side also counts animals detected and shows how many near-misses it prevented
+compared to the OFF side. A typical 90-second auto-demo run: OFF 6 near-misses at about
+38 km/h, ON 0 near-misses at about 14 km/h.
 
-If the booth screen is left idle, an **auto-demo** plays the with/without comparison on
-a loop; any interaction hands control back to the visitor.
+If the booth screen is left idle, an **auto-demo** spawns animals on a loop; any
+interaction hands control back to the visitor.
 
 Extra controls: **Pause** freezes the simulation (drag/drop still works while paused);
-**Reset** clears animals, the log and the scoreboard; **Key** shows the legend.
+**Reset** clears animals, the log and both scoreboards; **Key** shows the legend;
+**Spawn rate** sets how often the auto-demo adds animals. Shortcuts: Space = pause,
+R = reset.
 
 ## Editing the scene (`js/config.js`)
 
@@ -101,11 +111,22 @@ js/animals.js       Animal entities: drag / rotate / release / walk
 js/car.js           Car: path following + speed rules
 js/detection.js     Camera <-> animal detection, signal + log state
 js/render.js        Map + night rendering (road, cones, signals, car, animals)
-js/dashboard.js     Side panel: camera feeds, signal cards, detection log
-js/main.js          Game loop, controls, input wiring
+js/dashboard.js     Dashboard strip under each map: impact, camera feed, signs, log
+js/main.js          The two worlds (OFF | ON), game loop, controls, input wiring
 js/stats.js         Impact scoreboard (detections, near-misses, avoided, speeds)
 wildwatch-dashboard.js  Team's DED dashboard extension (vendored — see below)
 ```
+
+### How the split screen works
+
+`js/main.js` defines two worlds, `WW.worlds.off` and `WW.worlds.on`. Each world has its
+own canvas, car, camera/sign state, log and scoreboard. The animals (`WW.animals.list`)
+are **shared**. `car.js`, `detection.js`, `stats.js` and `render.js` keep their per-world
+state behind a `use(world)` switch, and `WW.useWorld(w)` points them all at one side.
+Each frame the loop moves the animals once, then selects each world in turn to update
+it, and does the same again to draw it. `WW.system.enabled` reads the selected world's
+`systemOn`, so the module code works the same on either side. If you add state to one
+of these modules that differs between the sides, put it behind its `use()` as well.
 
 ## DED dashboard (`wildwatch-dashboard.js`)
 
@@ -121,7 +142,7 @@ How it connects to the simulator:
   ```js
   WildWatch.record({ species, location, camera, confidence /* 0..1 */, proximity });
   ```
-  Only while the System is ON (no cameras = no detections).
+  Only from the System ON side (the OFF side has no cameras, so no detections).
 - Our camera reports as the dashboard's existing **Tamarind area (CAM-04)** camera
   (`js/config.js` → `dashboard.cameraLocations`), so no extra map node is needed.
   To put a camera somewhere its map doesn't cover yet, add it under
@@ -140,6 +161,5 @@ Re-apply them if you pull a newer copy of her file.
 
 ## Scope
 
-This is **v1** (night mode only, generic map). Day mode, the real NTU map,
-before/after comparison, multiple cars, movable cameras, and any real detection
+Night mode only. Day mode, multiple cars, movable cameras, and any real detection
 model are intentionally out of scope — see `SPEC.md §12`.

@@ -1,39 +1,63 @@
-/* main.js — bootstrap: canvas setup, game loop, controls + input wiring.
- * The loop and static render run now; entity updates are wired to the stubs.
- * Exposed side effects only (no global export). */
+/* main.js — bootstrap: two side-by-side worlds, game loop, controls + input.
+ *
+ * Split-screen before/after: the same scene runs twice, system OFF (left) and
+ * ON (right). The animals are SHARED (one list, drawn on both maps), so both
+ * drivers meet exactly the same crossings; each world has its own car,
+ * cameras/signs state and scoreboard. The modules keep their per-world state
+ * behind a use(world) switch, and WW.useWorld() points them all at one side
+ * before it is updated or drawn.
+ * Exposed: WW.worlds, WW.world (current), WW.useWorld, WW.clock, WW.system. */
 (function () {
   const WW = window.WW || (window.WW = {});
 
-  let canvas, ctx;
   let paused = false;
   let lastTs = 0;
+  let lapWaitSec = 0; // both cars off the map: time until the next shared lap
   // Simulation clock: only advances while running, so flashing + feeds freeze
   // on pause (SPEC §10). Read by render.js / dashboard.js / detection.js.
   WW.clock = { ms: 0 };
-  // View size in CSS pixels (the render coordinate space); backing store is
-  // scaled by devicePixelRatio for crisp output on TVs / high-DPI laptops.
-  WW.view = { w: 1000, h: 700 };
-  // Before/after state: is the WildWatch system installed & running?
-  WW.system = { enabled: true };
+
+  // The two worlds. canvas/ctx/view are filled in by init(); the modules add
+  // their own state (car, detection, stats, sigIntensity) on first use.
+  WW.worlds = {
+    off: { id: "off", systemOn: false },
+    on: { id: "on", systemOn: true },
+  };
+  const WORLDS = [WW.worlds.off, WW.worlds.on];
+
+  // Is the WildWatch system installed in the world being updated/drawn?
+  WW.system = { get enabled() { return WW.world ? WW.world.systemOn : true; } };
+
+  WW.useWorld = function (w) {
+    WW.world = w;
+    WW.stats.use(w);
+    WW.car.use(w);
+    WW.detection.use(w);
+    WW.render.use(w);
+  };
 
   // Attract / auto-demo state (SPEC purpose: read the flow in a few seconds).
   let hintEl = null;
   let idleMs = 0;
   let attractActive = false;
   let attractSpawnTimer = 0;
-  let dragActive = false; // a tray chip is being dragged over the map
+  let dragActive = false; // a tray chip is being dragged over a map
 
   function init() {
-    canvas = document.getElementById("map");
-    ctx = canvas.getContext("2d");
-
-    resizeCanvas();
-    syncTopbarHeight();
-    window.addEventListener("resize", () => { resizeCanvas(); syncTopbarHeight(); });
+    WORLDS.forEach((w) => {
+      w.canvas = document.getElementById("map-" + w.id);
+      w.ctx = w.canvas.getContext("2d");
+      // View size in CSS pixels (the render coordinate space); the backing store
+      // is scaled by devicePixelRatio for crisp output on TVs / high-DPI laptops.
+      w.view = { w: 1000, h: 700 };
+    });
 
     hintEl = document.getElementById("hint");
-    WW.system.enabled = WW.config.system.defaultEnabled;
     WW.dashboard.build();
+    syncTopbarHeight();
+    resizeCanvases(); // after build(): the dashboard strips decide how tall the maps can be
+    window.addEventListener("resize", () => { syncTopbarHeight(); resizeCanvases(); });
+
     resetAll();
     wireControls();
     wireInput();
@@ -66,6 +90,7 @@
       if (btn) window.WildWatch.show(btn.dataset.view === "dash" ? "dashboard" : "sim");
     });
     syncTopbarHeight();
+    resizeCanvases(); // the header may have changed height
   }
 
   // Expose the header height to CSS so the extension's overlay starts below it.
@@ -79,7 +104,7 @@
     catch (e) { /* never let the extension break Reset */ }
   }
 
-  // Presenter shortcuts: Space = pause, R = reset, S = toggle system.
+  // Presenter shortcuts: Space = pause, R = reset.
   function wireKeyboard() {
     window.addEventListener("keydown", (e) => {
       if (e.target && e.target.tagName === "INPUT") return; // don't hijack the slider
@@ -88,27 +113,42 @@
       const k = e.key.toLowerCase();
       if (e.code === "Space" || k === " ") { e.preventDefault(); document.getElementById("btn-pause").click(); }
       else if (k === "r") { document.getElementById("btn-reset").click(); }
-      else if (k === "s") { document.getElementById("btn-system").click(); }
     });
   }
 
-  // Match the backing store to the displayed size × DPR, then draw in CSS px.
-  function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
+  // Match each backing store to its displayed size × DPR, then draw in CSS px.
+  function resizeCanvases() {
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 1 unit = 1 CSS px
-    WW.view.w = rect.width;
-    WW.view.h = rect.height;
+    WORLDS.forEach((w) => {
+      const rect = w.canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      w.canvas.width = Math.round(rect.width * dpr);
+      w.canvas.height = Math.round(rect.height * dpr);
+      w.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 1 unit = 1 CSS px
+      w.view.w = rect.width;
+      w.view.h = rect.height;
+    });
   }
 
   function resetAll() {
     WW.animals.clear();
-    WW.car.reset();
-    WW.detection.reset();
-    WW.stats.reset();
+    WORLDS.forEach((w) => {
+      WW.useWorld(w);
+      WW.car.reset();
+      WW.detection.reset();
+      WW.stats.reset();
+    });
+    lapWaitSec = 0;
+  }
+
+  // Both cars start each lap together, so they meet the same animals: the
+  // OFF car (no slowdown) finishes first and waits off-map for the ON car.
+  function syncLaps(dt) {
+    if (WORLDS.some((w) => w.car.state.visible)) return;
+    lapWaitSec += dt;
+    if (lapWaitSec < WW.config.tuning.carRespawnDelaySec) return;
+    lapWaitSec = 0;
+    WORLDS.forEach((w) => { WW.useWorld(w); WW.car.startLap(); });
   }
 
   function loop(ts) {
@@ -121,14 +161,21 @@
       const placing = dragActive || WW.animals.list.some((a) => a.state === "placed");
       const sdt = dt * (placing ? WW.config.tuning.placingTimeScale : 1);
       WW.clock.ms += sdt * 1000;
-      // Order matters: move entities, then detect, then react.
+      // Order matters: move the shared animals, then per world detect, then react.
       WW.animals.update(sdt);
-      WW.detection.update();
-      WW.car.update(sdt);
+      WORLDS.forEach((w) => {
+        WW.useWorld(w);
+        WW.detection.update();
+        WW.car.update(sdt);
+      });
+      syncLaps(sdt);
     }
 
     // Draw every frame (even when paused, so drag/drop stays responsive).
-    WW.render.frame(ctx, WW.view.w, WW.view.h);
+    WORLDS.forEach((w) => {
+      WW.useWorld(w);
+      WW.render.frame(w.ctx, w.view.w, w.view.h);
+    });
     WW.dashboard.update();
 
     requestAnimationFrame(loop);
@@ -141,7 +188,7 @@
     const cfg = WW.config.attract;
     if (attractActive) {
       // Spawn animals from varied points until the concurrency cap is reached.
-      // (The System ON/OFF state is left as the user set it — no auto-switching.)
+      // They are shared, so each one crosses both roads at once.
       attractSpawnTimer -= dt * 1000;
       if (attractSpawnTimer <= 0) {
         if (WW.animals.list.length < cfg.maxConcurrent) spawnAttractAnimal();
@@ -157,7 +204,7 @@
     attractActive = true;
     if (hintEl) hintEl.hidden = false;
     const hintText = document.getElementById("hint-text");
-    if (hintText) hintText.textContent = "Drag an animal onto the road to try it yourself";
+    if (hintText) hintText.textContent = "Drag an animal onto either road to try it yourself";
     attractSpawnTimer = 0;
   }
 
@@ -184,23 +231,16 @@
   function wireControls() {
     const btnPause = document.getElementById("btn-pause");
     const btnReset = document.getElementById("btn-reset");
-    // Pause and System are meta-controls: they keep the scoreboard and any
-    // running auto-demo intact (System toggling is how you compare before/after).
+    // Pause is a meta-control: it keeps the scoreboard and any running auto-demo.
     btnPause.addEventListener("click", () => {
       idleMs = 0;
       paused = !paused;
       btnPause.textContent = paused ? "▶ Play" : "⏸ Pause";
     });
-    // Reset is the only control that clears the scoreboard + scene.
+    // Reset is the only control that clears the scoreboards + scene.
     // (Also wipes the DED dashboard's saved history — kept out of resetAll() so a
     // page load or the first interaction after the auto-demo doesn't erase it.)
     btnReset.addEventListener("click", () => { stopAttract(); resetAll(); idleMs = 0; clearDashboard(); });
-
-    const btnSystem = document.getElementById("btn-system");
-    btnSystem.addEventListener("click", () => {
-      idleMs = 0;                    // don't let the idle demo interrupt a comparison
-      setSystem(!WW.system.enabled); // keep stats + animals so ON vs OFF accumulates
-    });
 
     const btnLegend = document.getElementById("btn-legend");
     btnLegend.addEventListener("click", () => {
@@ -222,16 +262,9 @@
     }
   }
 
-  function setSystem(on) {
-    WW.system.enabled = on;
-    const btn = document.getElementById("btn-system");
-    btn.textContent = "System: " + (on ? "ON" : "OFF");
-    btn.classList.toggle("toggle-on", on);
-    btn.classList.toggle("toggle-off", !on);
-  }
-
-  // Map canvas coordinates (CSS pixels) -> logical map units.
-  function toLogical(evt) {
+  // Map canvas coordinates (CSS pixels) -> logical map units. Both maps show
+  // the same logical area, so a point means the same spot on either side.
+  function toLogical(evt, canvas) {
     const r = canvas.getBoundingClientRect();
     const cx = (evt.clientX - r.left) / r.width;
     const cy = (evt.clientY - r.top) / r.height;
@@ -239,23 +272,7 @@
   }
 
   function wireInput() {
-    // Pointer events on the map -> animal drag/rotate/release (SPEC §5.2).
-    canvas.addEventListener("pointerdown", (e) => {
-      noteInteraction();
-      try { canvas.setPointerCapture(e.pointerId); } catch (_) {} // keep events past the edge
-      const p = toLogical(e);
-      WW.animals.onPointerDown(p.x, p.y);
-    });
-    canvas.addEventListener("pointermove", (e) => {
-      const p = toLogical(e);
-      WW.animals.onPointerMove(p.x, p.y);
-    });
-    canvas.addEventListener("pointerup", (e) => {
-      const p = toLogical(e);
-      WW.animals.onPointerUp(p.x, p.y);
-    });
-
-    // Drag a species chip from the tray and drop it on the map (SPEC §5.2 step 1).
+    // Drag a species chip from the tray (SPEC §5.2 step 1); drop it on either map.
     document.querySelectorAll(".tray-chip").forEach((chip) => {
       chip.addEventListener("dragstart", (e) => {
         noteInteraction();
@@ -265,6 +282,28 @@
       });
       chip.addEventListener("dragend", () => { dragActive = false; });
     });
+
+    // The animals are shared, so editing them on one map shows on both.
+    WORLDS.forEach((w) => wireCanvas(w.canvas));
+  }
+
+  function wireCanvas(canvas) {
+    // Pointer events on the map -> animal drag/rotate/release (SPEC §5.2).
+    canvas.addEventListener("pointerdown", (e) => {
+      noteInteraction();
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {} // keep events past the edge
+      const p = toLogical(e, canvas);
+      WW.animals.onPointerDown(p.x, p.y);
+    });
+    canvas.addEventListener("pointermove", (e) => {
+      const p = toLogical(e, canvas);
+      WW.animals.onPointerMove(p.x, p.y);
+    });
+    canvas.addEventListener("pointerup", (e) => {
+      const p = toLogical(e, canvas);
+      WW.animals.onPointerUp(p.x, p.y);
+    });
+
     canvas.addEventListener("dragover", (e) => {
       e.preventDefault();
       dragActive = true;
@@ -276,7 +315,7 @@
       dragActive = false;
       const speciesId = e.dataTransfer.getData("text/plain");
       if (!speciesId) return;
-      const p = toLogical(e);
+      const p = toLogical(e, canvas);
       WW.animals.create(speciesId, p.x, p.y);
     });
   }

@@ -51,10 +51,9 @@
       { kind: "dim",    label: "Dimmed = beyond the driver's headlights" },
     ],
 
-    // ---- Before/after system state --------------------------------------
-    system: { defaultEnabled: true },
-
-    // ---- Near-miss detection (system OFF danger indicator) --------------
+    // ---- Near-miss detection (the before/after scoreboard) ----------------
+    // The page shows the scene twice, system OFF (left) and ON (right), with
+    // the same animals; these rules score each car's encounters.
     nearMiss: {
       dangerZoneLen: 150,   // how far ahead of the car counts as an encounter
       dangerSpeedKmh: 35,   // above this at the encounter = near-miss, else "avoided"
@@ -141,7 +140,7 @@
       decelUnitsPerSec2: 220, // stronger braking
       brakeAheadLen: 120,     // look-ahead rectangle length for animals on road
       signSightDistance: 320, // drivers react once a flashing sign is this far ahead (~ 4x the road width)
-      carRespawnDelaySec: 1.5,
+      carRespawnDelaySec: 1.5, // pause before the next lap (both cars start it together)
 
       flashHz: 2,             // beacon + message board blink rate
       dragReleaseThreshPx: 5, // pointer move < this on a click = release to Walking

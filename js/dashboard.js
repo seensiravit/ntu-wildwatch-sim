@@ -1,13 +1,12 @@
-/* dashboard.js — side panel: tray chips, camera cards (thermal feed + status),
- * signal cards, detection log (SPEC §9). Static structure built from config;
- * update() reflects live simulation state each frame.
+/* dashboard.js — header tray + one dashboard strip under each map (SPEC §9).
+ * Both strips share one layout so they compare at a glance:
+ *   [Impact scoreboard] [Camera feed] [Warning signs + detection log]
+ * On the OFF side the camera and signs show as "Not installed".
+ * Static structure is built from config; update() reflects live state each frame.
  * Exposed as WW.dashboard. */
 (function () {
   const WW = window.WW || (window.WW = {});
-  const thermalCanvases = {}; // cameraId -> <canvas> for the feed
-  const signalCards = {};     // signalId -> { pill, msgEl }
-  let logEl = null;
-  let lastLogLen = -1;
+  const panels = {}; // world id ("off" | "on") -> DOM refs for that strip
 
   // Deterministic PRNG so thermal noise looks frozen while the sim is paused.
   function mulberry32(seed) {
@@ -19,14 +18,19 @@
     };
   }
 
+  function el(tag, cls, html) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
   function build() {
     const cfg = WW.config;
 
-    // Brand text (title highlights "Wild"; tagline + location from config)
+    // Brand text (title highlights "Wild"; tagline from config)
     const title = document.getElementById("brand-title");
-    if (title) {
-      title.innerHTML = cfg.brand.title.replace("Wild", '<span class="wild">Wild</span>');
-    }
+    if (title) title.innerHTML = cfg.brand.title.replace("Wild", '<span class="wild">Wild</span>');
     const tagline = document.getElementById("brand-tagline");
     if (tagline) tagline.textContent = cfg.brand.tagline;
 
@@ -34,177 +38,163 @@
     const legend = document.getElementById("legend");
     if (legend) {
       cfg.legend.forEach((item) => {
-        const row = document.createElement("div");
-        row.className = "legend-row";
-        row.innerHTML = '<span class="legend-swatch sw-' + item.kind + '"></span>' + item.label;
-        legend.appendChild(row);
+        legend.appendChild(el("div", "legend-row",
+          '<span class="legend-swatch sw-' + item.kind + '"></span>' + item.label));
       });
     }
-
-    buildStats();
 
     // Tray chips (draggable species) — SPEC §5.1
     const tray = document.getElementById("tray");
     cfg.species.forEach((sp) => {
-      const chip = document.createElement("div");
-      chip.className = "tray-chip";
+      const chip = el("div", "tray-chip");
       chip.dataset.species = sp.id;
       chip.draggable = true;
       chip.textContent = sp.label;
       tray.appendChild(chip);
     });
 
-    // Camera cards with a small thermal feed each — SPEC §9.1
-    const camWrap = document.getElementById("camera-cards");
+    buildPanel("off", document.getElementById("dash-off"), false);
+    buildPanel("on", document.getElementById("dash-on"), true);
+  }
+
+  function buildPanel(id, root, systemOn) {
+    const cfg = WW.config;
+    const p = { root, systemOn, nums: {}, cams: {}, sigs: {}, lastLogLen: -1 };
+
+    // 1) Impact scoreboard
+    const stats = el("div", "card stats-card",
+      '<div class="card-header">Impact' + (systemOn ? " · with WildWatch" : " · without") + "</div>");
+    const grid = el("div", "stats-grid");
+    const tile = (key, label, cls) => {
+      const t = el("div", "stat",
+        '<div class="stat-num ' + cls + '">0</div><div class="stat-label">' + label + "</div>");
+      p.nums[key] = t.firstChild;
+      grid.appendChild(t);
+    };
+    tile("nearMiss", "Near-misses", "danger");
+    tile("avoided", "Slowed in time", "safe");
+    tile("speed", "Avg km/h at the animal", "");
+    tile("detections", "Animals detected", "");
+    stats.appendChild(grid);
+    p.summary = el("div", "stat-summary");
+    stats.appendChild(p.summary);
+    root.appendChild(stats);
+
+    // 2) Camera feed (thermal view), or an empty "not installed" frame
     cfg.cameras.forEach((cam) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.id = "card-" + cam.id;
-      card.innerHTML =
-        '<div class="card-header">' + cam.name +
-        '<span class="pill" id="pill-' + cam.id + '">Idle</span></div>';
-      const feed = document.createElement("canvas");
-      feed.className = "thermal";
-      feed.width = 280; feed.height = 120;
+      const card = el("div", "card cam-card" + (systemOn ? "" : " offline"));
+      card.appendChild(el("div", "card-header",
+        "<span>" + cam.name + '</span><span class="pill">' + (systemOn ? "Idle" : "Not installed") + "</span>"));
+      const feed = el("canvas", "thermal");
+      feed.width = 280; feed.height = 110;
       card.appendChild(feed);
-      thermalCanvases[cam.id] = feed;
-      camWrap.appendChild(card);
+      root.appendChild(card);
+      p.cams[cam.id] = { card, pill: card.querySelector(".pill"), feed };
+      if (!systemOn) drawNoCamera(feed);
     });
 
-    // Signal cards — SPEC §9.2
-    const sigWrap = document.getElementById("signal-cards");
+    // 3) Warning signs + detection log
+    const sigCard = el("div", "card sig-card" + (systemOn ? "" : " offline"),
+      '<div class="card-header">Warning signs</div>');
     cfg.signals.forEach((sig) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.id = "card-" + sig.id;
-      card.innerHTML =
-        '<div class="card-header">' + sig.name +
-        '<span class="pill" id="pill-' + sig.id + '">Off</span></div>' +
-        '<div class="sig-msg" id="msg-' + sig.id + '"></div>';
-      sigWrap.appendChild(card);
-      signalCards[sig.id] = {
-        pill: card.querySelector("#pill-" + sig.id),
-        msgEl: card.querySelector("#msg-" + sig.id),
-      };
+      const row = el("div", "sig-row",
+        '<span class="sig-name">' + sig.name + '</span><span class="pill">' +
+        (systemOn ? "Off" : "Not installed") + "</span>");
+      sigCard.appendChild(row);
+      p.sigs[sig.id] = { row, pill: row.querySelector(".pill") };
     });
+    sigCard.appendChild(el("div", "log-title", "Detection log"));
+    p.log = el("ul", "log-list");
+    if (!systemOn) p.log.appendChild(el("li", "log-empty", "Nothing is watching the road."));
+    sigCard.appendChild(p.log);
+    root.appendChild(sigCard);
 
-    logEl = document.getElementById("log-list");
+    panels[id] = p;
   }
 
-  function buildStats() {
-    const el = document.getElementById("stats-card");
-    if (!el) return;
-    const tile = (id, label, cls) =>
-      '<div class="stat"><div class="stat-num ' + cls + '" id="' + id + '">0</div>' +
-      '<div class="stat-label">' + label + '</div></div>';
-    el.innerHTML =
-      '<div class="card-header">Impact</div>' +
-      '<div class="stats-grid">' +
-      tile("st-detected", "Animals detected", "") +
-      tile("st-avoided", "Near-misses avoided", "safe") +
-      tile("st-nearmiss", "Near-misses (system off)", "danger") +
-      '<div class="stat"><div class="stat-num" id="st-speed">' +
-      '<span class="danger">–</span> → <span class="safe">–</span></div>' +
-      '<div class="stat-label">Avg km/h at crossing (off → on)</div></div>' +
-      "</div>" +
-      '<div class="stat-summary" id="stat-summary"></div>' +
-      '<div class="stat-insight">' + WW.config.brand.insight + "</div>";
-  }
-
-  function updateStats() {
-    const s = WW.stats.state;
-    setNum("st-detected", s.detections);
-    setNum("st-avoided", s.avoided);
-    setNum("st-nearmiss", s.nearMiss);
-
-    const off = WW.stats.avgOffKmh(), on = WW.stats.avgOnKmh();
-    const sp = document.getElementById("st-speed");
-    if (sp) {
-      sp.innerHTML =
-        '<span class="danger">' + (off === null ? "–" : off) + "</span> → " +
-        '<span class="safe">' + (on === null ? "–" : on) + "</span>";
-    }
-
-    const sum = document.getElementById("stat-summary");
-    if (sum) {
-      if (s.nearMiss === 0 && s.avoided === 0) {
-        sum.textContent = "Toggle System OFF / ON to compare the same crossings.";
-      } else {
-        sum.textContent =
-          "Without the system: " + s.nearMiss + " near-miss" + (s.nearMiss === 1 ? "" : "es") +
-          ". With it: " + s.avoided + " avoided.";
-      }
-    }
-  }
-  function setNum(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
-
+  // Refresh both strips. Each world's state is selected in turn via WW.useWorld.
   function update() {
+    const worlds = WW.worlds;
+    if (!worlds) return;
+    const offStats = worlds.off.stats;
+    ["off", "on"].forEach((id) => {
+      WW.useWorld(worlds[id]);
+      updatePanel(panels[id], offStats);
+    });
+  }
+
+  function updatePanel(p, offStats) {
     const cfg = WW.config;
     const det = WW.detection;
-    const flashPill = det.flashOn(); // shared phase, freezes on pause
-    const systemOn = WW.system.enabled;
+    const s = WW.stats.state;
+    const avg = WW.stats.avgKmh();
 
-    updateStats();
+    setText(p.nums.nearMiss, s.nearMiss);
+    setText(p.nums.avoided, s.avoided);
+    setText(p.nums.speed, avg === null ? "–" : avg);
+    setText(p.nums.detections, p.systemOn ? s.detections : "–");
+
+    if (!p.systemOn) {
+      setText(p.summary, s.nearMiss || s.avoided
+        ? "No early warning: the driver only reacts once an animal is in the headlights."
+        : "Same animals as the right side. Watch what the driver does.");
+    } else if (offStats.nearMiss === 0 && s.nearMiss === 0) {
+      setText(p.summary, cfg.brand.insight);
+    } else {
+      setText(p.summary, "Near-misses: " + offStats.nearMiss + " without → " + s.nearMiss + " with WildWatch.");
+    }
+
+    if (!p.systemOn) return; // nothing installed: the rest stays "Not installed"
 
     // Camera cards + thermal feeds
     cfg.cameras.forEach((cam) => {
+      const ref = p.cams[cam.id];
       const cs = det.camState[cam.id] || { detecting: false, animalsInCone: [] };
-      const card = document.getElementById("card-" + cam.id);
-      const pill = document.getElementById("pill-" + cam.id);
-      card.classList.toggle("offline", !systemOn);
-      if (!systemOn) {
-        pill.textContent = "Offline";
-        pill.classList.remove("pill-active");
-        card.classList.remove("detecting");
-      } else if (cs.detecting) {
-        pill.textContent = "Detecting";
-        pill.classList.add("pill-active");
-        card.classList.add("detecting");
-      } else {
-        pill.textContent = "Idle";
-        pill.classList.remove("pill-active");
-        card.classList.remove("detecting");
-      }
-      drawThermal(cam, cs);
+      setText(ref.pill, cs.detecting ? "Detecting" : "Idle");
+      ref.pill.classList.toggle("pill-active", cs.detecting);
+      ref.card.classList.toggle("detecting", cs.detecting);
+      drawThermal(cam, cs, ref.feed);
     });
 
-    // Signal cards
+    // Signal rows (pill blinks in sync with the map beacon)
+    const flash = det.flashOn();
     cfg.signals.forEach((sig) => {
-      const ref = signalCards[sig.id];
-      const card = document.getElementById("card-" + sig.id);
-      card.classList.toggle("offline", !systemOn);
+      const ref = p.sigs[sig.id];
       const active = det.isSignalActive(sig.id);
-      if (active) {
-        ref.pill.textContent = "Flashing";
-        // Blink the pill in sync with the map beacon.
-        ref.pill.classList.toggle("pill-active", flashPill);
-        ref.msgEl.textContent = sig.message;
-        ref.msgEl.style.display = "block";
-      } else {
-        ref.pill.textContent = "Off";
-        ref.pill.classList.remove("pill-active");
-        ref.msgEl.textContent = "";
-        ref.msgEl.style.display = "none";
-      }
+      setText(ref.pill, active ? "Flashing" : "Off");
+      ref.pill.classList.toggle("pill-active", active && flash);
+      ref.row.classList.toggle("active", active);
     });
 
-    updateLog(det.logEntries);
+    updateLog(p, det.logEntries);
   }
 
-  function updateLog(entries) {
-    if (!logEl || entries.length === lastLogLen) return; // only rebuild on change
-    lastLogLen = entries.length;
-    logEl.innerHTML = "";
+  function setText(node, v) {
+    const t = String(v);
+    if (node.textContent !== t) node.textContent = t; // avoid needless DOM writes
+  }
+
+  function updateLog(p, entries) {
+    if (entries.length === p.lastLogLen) return; // only rebuild on change
+    p.lastLogLen = entries.length;
+    p.log.innerHTML = "";
+    if (!entries.length) p.log.appendChild(el("li", "log-empty", "No detections yet."));
     entries.forEach((e) => {
-      const li = document.createElement("li");
-      li.textContent =
-        e.time + "  " + e.camName + "  " + e.species + "  " + e.confidence + "%";
-      logEl.appendChild(li);
+      p.log.appendChild(el("li", "", e.time + "  " + e.species + "  " + e.confidence + "%"));
     });
   }
 
-  function drawThermal(cam, cs) {
-    const canvas = thermalCanvases[cam.id];
+  function drawNoCamera(canvas) {
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#0b0e13";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(160,170,190,0.45)";
+    ctx.font = "12px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("No camera installed", canvas.width / 2, canvas.height / 2 + 4);
+  }
+
+  function drawThermal(cam, cs, canvas) {
     const ctx = canvas.getContext("2d");
     const W = canvas.width, H = canvas.height;
 
@@ -235,7 +225,7 @@
     cs.animalsInCone.forEach((hit) => {
       const cx = W * (0.5 + Math.max(-0.5, Math.min(0.5, hit.angNorm)));
       const cy = H * 0.55;
-      const r = 14 + (1 - hit.distNorm) * 26; // near => bigger
+      const r = 14 + (1 - hit.distNorm) * 24; // near => bigger
       const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, r);
       grad.addColorStop(0, "#fff3c0");
       grad.addColorStop(0.4, hit.animal.heatColor);
@@ -257,5 +247,5 @@
     });
   }
 
-  WW.dashboard = { build, update, thermalCanvases };
+  WW.dashboard = { build, update };
 })();
