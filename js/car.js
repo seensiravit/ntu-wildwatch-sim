@@ -68,10 +68,14 @@
     return best.s;
   }
 
-  // A signal's warning zone: from the signal (upstream) to the far end of its
-  // linked camera's coverage along the path (SPEC §4.3).
+  // A signal's warning zone: from where drivers can first SEE the sign
+  // (tuning.signSightDistance upstream of it) to the far end of its linked
+  // camera's coverage along the path. (SPEC §4.3 started the zone at the sign
+  // itself; the sight distance lets a sign placed right at the camera still
+  // warn drivers before the crossing.)
   function buildWarnZones() {
     warnZones = [];
+    const sight = WW.config.tuning.signSightDistance || 0;
     WW.config.signals.forEach((sig) => {
       const cam = WW.config.cameras.find((c) => c.id === sig.linkedCameraId);
       const sSignal = projectS(sig.x, sig.y);
@@ -80,7 +84,7 @@
         const p = posAt(s);
         if (cam && WW.geo.pointInCone(p.x, p.y, cam)) coneEnd = Math.max(coneEnd, s);
       }
-      warnZones.push({ signalId: sig.id, start: sSignal, end: Math.max(coneEnd, sSignal) });
+      warnZones.push({ signalId: sig.id, start: Math.max(0, sSignal - sight), end: Math.max(coneEnd, sSignal) });
     });
   }
 

@@ -118,10 +118,11 @@
 
       cs.animalsInCone = nowInCone;
       cs.detecting = nowInCone.length > 0;
-      // Linked signal flashes exactly while its camera is detecting (no hold time).
-      if (sigState[cam.linkedSignalId]) {
-        sigState[cam.linkedSignalId].flashing = cs.detecting;
-      }
+      // Every signal linked to this camera flashes exactly while it is detecting
+      // (no hold time). A camera can drive several signs (signal.linkedCameraId).
+      WW.config.signals.forEach((sig) => {
+        if (sig.linkedCameraId === cam.id && sigState[sig.id]) sigState[sig.id].flashing = cs.detecting;
+      });
     });
   }
 

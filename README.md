@@ -37,7 +37,7 @@ Build Command *empty*, Publish Directory `.`)
    the road.
 2. **Click the animal** to release it. It starts walking. When it enters the camera's
    view cone (**Cam 1 · Opp Hall 15**), the camera card shows **Detecting**, a thermal
-   blob appears, the **sign flashes** `WILDLIFE AHEAD – SLOW DOWN`, and a **detection
+   blob appears, **both signs flash** `WILDLIFE AHEAD – SLOW DOWN`, and a **detection
    log** entry is recorded.
 3. **Watch the car** loop around the road. As it passes the flashing sign its speed
    drops from **50 → 20 km/h**. If an animal is walking on the road directly ahead,
@@ -60,7 +60,9 @@ Extra controls: **Pause** freezes the simulation (drag/drop still works while pa
 
 Everything about the scene lives in **`js/config.js`**, in logical map units on a
 `1000 × 700` grid. The current map is **Nanyang Crescent opposite Hall 15 (Tamarind
-area)**: one straight road, one camera and one warning sign. The road is a
+area)**: one straight road, one overhead camera on the centreline looking west, and
+two warning signs flanking the road at the camera. Traffic drives **westbound**, so
+drivers see the signs before the detection zone. The road is a
 **centerline polyline** (`NANYANG_CRESCENT`, currently two points), so it can follow
 any real road shape by adding points. Nothing is hard-coded in the rendering or logic
 files, so you can reshape the demo by editing config alone:
@@ -69,12 +71,16 @@ files, so you can reshape the demo by editing config alone:
   `road.centerline` and `carPath`); `road.crosswalkT` places the crossing.
 - **Scene** — `scene`: `greenArea` (verge), `water` (canal), `buildings` (Hall 15)
   and `labels`. Each part is optional.
-- **Cameras** — `cameras[]`: each has `x, y, facingAngleDeg, fovDeg, range,
-  linkedSignalId`. The view cone is drawn from the angle, field-of-view and range.
-  (Angles are degrees, clockwise from east, with +y pointing down: `0`=right,
-  `90`=down, `180`=left, `270`=up.)
-- **Signals** — `signals[]`: each has `x, y, linkedCameraId, message`. Place a
-  signal *upstream* of its camera's coverage along the car's route.
+- **Cameras** — `cameras[]`: each has `x, y, facingAngleDeg, fovDeg, range`. The view
+  cone is drawn from the angle, field-of-view and range. (Angles are degrees,
+  clockwise from east, with +y pointing down: `0`=right, `90`=down, `180`=left,
+  `270`=up.)
+- **Signals** — `signals[]`: each has `x, y, linkedCameraId, message`. One camera can
+  drive several signs. A sign should be before (or at) its camera's coverage along
+  the car's route. Drivers start slowing `tuning.signSightDistance` before a
+  flashing sign, i.e. once they can see it.
+- **Car direction** — `carPath` is the centreline reversed (westbound); drop the
+  `.reverse()` to drive eastbound.
 - **Species** — `species[]`: label, colour, size, speed, heat colour, shape.
 - **Behaviour tuning** — `tuning`: cruise/warning speeds, accel/decel, braking
   look-ahead, confidence range, flash rate, headlight cone, etc.

@@ -66,13 +66,13 @@
     return { x: c.x, y: c.y, facingAngleDeg: c.headingDeg, fovDeg: h.fovDeg, range: h.range };
   }
 
-  // Faint link from each camera to the signal it controls: makes the
+  // Faint link from each signal to the camera that drives it: makes the
   // "this camera drives that sign" relationship visible; brightens on detect.
   function drawLinks(ctx, cfg, P, sx) {
     if (!WW.system.enabled) return; // no camera->sign relationship without the system
-    cfg.cameras.forEach((cam) => {
-      const sig = cfg.signals.find((s) => s.id === cam.linkedSignalId);
-      if (!sig) return;
+    cfg.signals.forEach((sig) => {
+      const cam = cfg.cameras.find((c) => c.id === sig.linkedCameraId);
+      if (!cam) return;
       const a = P(cam), b = P(sig);
       const active = WW.detection.isSignalActive(sig.id);
       ctx.save();

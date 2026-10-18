@@ -63,17 +63,19 @@
       dashLen: 24,          // centre-line dash length
       gapLen: 20,
       edgeColor: "#5b6473", // solid lane-edge lines
-      crosswalkT: 0.24,     // zebra crossing at 24% along the road (west of the camera)
+      crosswalkT: 0.24,     // zebra crossing at 24% along the road, west of the zone
       crosswalkStripes: 5,
     },
 
-    // ---- Car route = the road centerline (single-lane demo), west -> east.
-    carPath: NANYANG_CRESCENT,
+    // ---- Car route = the road centerline, driven east -> west (single-lane
+    // demo). Westbound drivers pass the camera + signs first, then the
+    // detection zone, so the warning comes before the crossing.
+    carPath: NANYANG_CRESCENT.slice().reverse(),
 
     // ---- One overhead camera on the road centreline, looking west along the
-    // road toward oncoming (eastbound) traffic. Its wide cone spans the whole
-    // carriageway and both verges, so an animal crossing from either side is
-    // caught before cars reach it. Cars pass under it. ---------------------
+    // road (the direction traffic is heading) into the stretch drivers are about
+    // to enter. Its wide cone spans the whole carriageway and both verges, so an
+    // animal crossing from either side is caught. Cars pass under it. --------
     cameras: [
       {
         id: "cam1",
@@ -83,18 +85,27 @@
         facingAngleDeg: 180, // look west, along the road
         fovDeg: 84,          // wide: covers the road plus both verges
         range: 150,
-        linkedSignalId: "signal1",
       },
     ],
 
-    // ---- One warning sign, UPSTREAM (west) of the camera's zone, so eastbound
-    // drivers are warned before they reach the crossing.
+    // ---- Two warning signs flanking the road at the camera (like a gantry),
+    // one on each verge, both driven by cam1. For westbound drivers they sit
+    // just before the detection zone. Signs link to their camera via
+    // linkedCameraId; one camera can drive several signs.
     signals: [
       {
         id: "signal1",
-        name: "Signal 1 · Nanyang Cres",
-        x: 300,
-        y: 438,
+        name: "Signal 1 · North verge",
+        x: 554,
+        y: 281,              // north of the road; post reaches down to the kerb
+        linkedCameraId: "cam1",
+        message: "WILDLIFE AHEAD – SLOW DOWN",
+      },
+      {
+        id: "signal2",
+        name: "Signal 2 · Hall 15 side",
+        x: 569,
+        y: 440,              // just south of the road
         linkedCameraId: "cam1",
         message: "WILDLIFE AHEAD – SLOW DOWN",
       },
@@ -116,6 +127,7 @@
       accelUnitsPerSec2: 120, // smooth speed-up
       decelUnitsPerSec2: 220, // stronger braking
       brakeAheadLen: 120,     // look-ahead rectangle length for animals on road
+      signSightDistance: 150, // drivers react once a flashing sign is this far ahead
       carRespawnDelaySec: 1.5,
 
       flashHz: 2,             // beacon + message board blink rate
