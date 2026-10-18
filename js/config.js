@@ -191,15 +191,29 @@
       unitsPerSecToKmh: 0.5,
       cruiseKmh: 50,
       warnKmh: 20,
-      accelUnitsPerSec2: 25,  // speeding up: 0 -> 50 km/h in about 4 s (≈ 3.5 m/s²)
-      // Braking (1 unit/s² = 0.5 km/h lost per second ≈ 0.14 m/s²).
-      comfortDecelUnitsPerSec2: 28, // ordinary slowing: signs, other lane, roadside animal (≈ 4 m/s²)
-      maxDecelUnitsPerSec2: 56,     // emergency stop limit (≈ 8 m/s², about 0.8 g)
-      stopGap: 15,            // a driver stopping for an animal aims to halt this far short of it
-      driverReactionSec: 0.8, // an animal must be in the path ahead this long before the driver brakes
-      alertReactionSec: 0.4,  // ...or this long while a sign is flashing (expected hazard: ~half the surprise reaction)
-      vergeCautionKmh: 40,    // driver eases off to this for an animal at the roadside lit by the headlights
-      vergeCautionDist: 40,   // ...within this distance of the kerb
+      // ---- Driver model (js/car.js; values from driving research, see README
+      // "Driver model"). 1 unit ≈ 0.139 m, so 1 m/s² ≈ 7.2 units/s².
+      driverReactionSec: 1.1,  // perception-reaction time, unexpected animal (Green 2000; SHRP2 mean 1.1-1.3 s)
+      alertReactionSec: 0.7,   // expected hazard: warned by a sign, or already watching the animal (Green 2000)
+      footMoveSec: 0.2,        // last part of the reaction: foot off the accelerator, onto the brake
+      coastDecelUnitsPerSec2: 3.6,      // the car coasts meanwhile (≈ 0.5 m/s²)
+      // Braking builds up at ≈ 2.5 / 6 / 12 m/s³ (gentle below 18 units/s² of braking,
+      // firm below 36, emergency above); letting off the brake takes < 1 s (release);
+      // pressing the accelerator is gentle. Units/s³.
+      jerk: { gentle: 18, firm: 43, emergency: 86, release: 86, firmAbove: 18, emergencyAbove: 36 },
+      stopFrontLoad: 1.3,      // stopping for an animal: brake 1.3x harder than strictly needed, easing into the stop
+      finishSpeedUnits: 11,    // below ≈ 5.5 km/h, brake exactly as needed to land on the stop point
+      maxDecelUnitsPerSec2: 57.6,       // emergency limit ≈ 8 m/s² (≈ 0.8 g)
+      stopGap: 15,             // aim to halt this far short of the animal (units)
+      clearHoldSec: 0.5,       // once the animal has cleared, wait this long before driving off
+      accelUnitsPerSec2: 10.8, // then speed up at ≈ 1.5 m/s² (normal driving)
+      signDecelUnitsPerSec2: 24,        // slowing for a flashing sign ≈ 3.4 m/s² (AASHTO design value)
+      otherLaneDecelUnitsPerSec2: 18,   // animal in the other lane: slow at ≈ 2.5 m/s² (up to 5 if needed) ...
+      otherLaneStopDecelUnitsPerSec2: 36, // ...to a speed it could still stop from at ≈ 5 m/s² if it steps across
+      otherLaneMinKmh: 20,     // ...but passes it no slower than this
+      vergeCautionKmh: 40,     // animal on the verge, lit by the headlights: ease off to this...
+      vergeCautionDist: 40,    // ...if it is within this distance of the kerb
+      vergeDecelUnitsPerSec2: 9,        // ...at ≈ 1.25 m/s²
       signSightDistance: 320, // drivers react once a flashing sign is this far ahead (~ 4x the road width)
       carRespawnDelaySec: 1.5, // pause before the next lap (both cars start it together)
 
@@ -216,9 +230,10 @@
       // the scene is easy to arrange. Set to 0 for a full freeze.
       placingTimeScale: 0.15,
 
-      // The driver sees animals only inside this beam, and spots one on the road
-      // up to `range` ahead. At 50 km/h that is just enough to stop for an animal
-      // already in the lane at the far edge (0.8 s reaction + emergency stop).
+      // The driver spots an animal on the road up to `range` ahead (≈ 32 m, about
+      // how far a dark animal is seen under low beams), and one on the verge only
+      // inside this beam. At 50 km/h an unwarned driver (1.1 s reaction + braking)
+      // can't stop for an animal first seen at the far edge; from ≈ 40 km/h they can.
       headlight: { fovDeg: 40, range: 230, dimAlpha: 0.4 },
     },
 

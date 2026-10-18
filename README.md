@@ -67,36 +67,67 @@ Below the three tiles: the average speed at the animal, (ON side) animals detect
 animals that turned back at the roadside because of the car. The ON side also compares
 its hits and near misses with the OFF side.
 
-How the driver reacts to animals they can see (within headlight range, 230 units ahead):
+### Driver model (`js/car.js`, `config.tuning`)
+
+The driver is modelled on driving research (sources below):
+
+1. **Noticing.** The driver notices an animal once it is on the road ahead within
+   headlight range (230 units ≈ 32 m, about the distance a dark animal is seen under low
+   beams), or on the verge **inside the headlight beam**. They remember it until they
+   have passed it, even if it leaves the beam.
+2. **Reaction.** Speed doesn't change until the perception-reaction time has passed:
+   **1.1 s** for an unexpected animal, **0.7 s** once the driver has been warned by a
+   sign. An animal the driver was already slowing for that steps into the lane is
+   registered as "in my lane" 0.7 s after it enters; meanwhile the driver keeps slowing.
+   In the last 0.2 s the foot moves to the brake and the car coasts slightly. Letting
+   off the brake is quick (under a second).
+3. **Braking** then starts, building up smoothly (limited jerk), never beyond an emergency
+   limit of about 8 m/s² (0.8 g). What the driver does depends on where the animal is:
 
 | Animal is… | Driver |
 |---|---|
-| in the car's own lane | brakes to stop 15 units short of it, then waits until the lane is clear |
-| in the other lane | slows to 20 km/h |
-| on the verge within 40 units of the kerb **and lit by the headlights** | eases off to 40 km/h (`tuning.vergeCautionKmh`) |
-| anywhere else (e.g. on the verge outside the beam) | doesn't notice it |
+| in the car's own lane | brakes about 1.3× harder than strictly needed, easing into a stop 15 units short of it |
+| in the other lane | slows (≈2.5 m/s²) to a speed from which it could still stop if the animal steps across, but no slower than 20 km/h |
+| on the verge within 40 units of the kerb | eases off (≈1.25 m/s²) to 40 km/h until it has passed |
+| on the verge outside the beam | doesn't notice it |
 
-Each reaction starts only after a reaction time (`tuning.driverReactionSec`, 0.8 s). A
-driver warned by a flashing sign is expecting animals, so reacts faster
-(`alertReactionSec`, 0.4 s), and is already slower.
+4. **Afterwards.** Once the animal has cleared, the driver waits about 0.5 s, then speeds
+   up gently (≈1.5 m/s²) back to 50 km/h.
+5. **Signs.** A driver who sees a flashing sign registers it after the 1.1 s reaction
+   time, then slows to 20 km/h at ≈3.4 m/s² (the AASHTO design deceleration) and stays
+   warned (slow and alert) until the end of that sign's zone, even if the sign stops
+   flashing meanwhile.
 
-Braking is realistic: to stop for an animal the driver brakes just hard enough to halt
-15 units short of it, gently when there's room, harder when it's close, up to an
-emergency limit of about 0.8 g (`maxDecelUnitsPerSec2`). Other slowing (signs, the other
-lane, roadside animals) uses a comfortable rate of about 4 m/s², and the car speeds up
-at about 3.5 m/s² (0 to 50 km/h in about 4 s). At 50 km/h an unwarned driver can just stop
-for an animal already in the lane at the far edge of the headlights; one that steps out
-closer gets hit. A warned driver at 20 km/h needs only about 30 units.
+At 50 km/h an unwarned driver can't stop for an animal that is first seen at the far edge
+of the headlights: reaction plus braking need slightly more than the 32 m they can see.
+This is the well-known problem of "outdriving your headlights", and the gap a camera
+warning fills. A warned driver (0.7 s, already slower) usually stops in time.
 
-Over 100 fast-forwarded minutes of the auto-demo (5 runs of 20 min at the default
-activity): OFF 19 hits / 38 near misses / 78 safe passes, average 29 km/h at the animal;
-ON 20 hits / 12 near misses / 102 safe passes, average 25 km/h. With realistic braking,
-hits come from animals stepping out right in front of a nearby car (bold ones, dashing
-boar, or ones that didn't notice it). A warning doesn't stop that happening, but it
-lowers the impact speed: most ON hits are under 35 km/h, most OFF hits are over it. The
-ON hits above 35 km/h are animals outside the single camera's view. Most remaining ON hits are animals crossing outside the single
-camera's view. Hits are rare events (about one every 2–3 minutes on the OFF side), so a
-few minutes of live demo is a small sample: let it run, or raise **Animal activity**.
+**What this means for the demo (an honest result).** With these realistic reaction and
+braking times, the warning only helps if it reaches the driver early enough. Over 20
+fast-forwarded 20-minute demos per layout:
+
+| Warning signs | Hits OFF → ON | Near misses | Safe passes | Avg speed at the animal |
+|---|---|---|---|---|
+| at the camera (current layout) | 176 → 170 (−3%) | 320 → 282 | 117 → 181 | 40 → 36 km/h |
+| upstream, x ≈ 330 | 174 → 149 (−14%) | 289 → 143 | 119 → 310 | 39 → 28 km/h |
+
+With the signs at the camera, a driver first sees them only about 256 units before the
+crossing hotspot, while registering the sign and braking from 50 to 20 km/h takes about
+360. The camera also spots most animals only about 0.7 s before they step into the lane.
+Moved upstream, the signs halve near misses and cut **serious hits (above 30 km/h) by
+44%** (128 → 72); the remaining hits are mostly low-speed. A camera that watches the
+verge approach, and signs placed well before the crossing, are what make the system
+work. Hits are rare events, so compare many runs, not a few minutes of live demo.
+
+Sources for the driver model: Green (2000), reaction times
+(<https://www.visualexpert.com/Resources/reactiontime.html>); NCHRP 15-75 reaction-time and
+deceleration data (<https://onlinepubs.trb.org/onlinepubs/webinars/250206.pdf>); AASHTO
+stopping sight distance (<https://en.wikipedia.org/wiki/Stopping_sight_distance>); Markkula
+et al. 2016, brake build-up in real near-crashes
+(<https://eprints.whiterose.ac.uk/id/eprint/102162/>); Grace et al. 2015, drivers brake
+earlier for deer when warned (<https://natureconservation.pensoft.net/article_preview.php?id=4420>).
+The verge and other-lane responses and the jerk values are estimates.
 
 If the booth screen is left idle, an **auto-demo** plays, with animals arriving as
 described below; any interaction hands control back to the visitor.

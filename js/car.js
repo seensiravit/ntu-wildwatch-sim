@@ -15,10 +15,15 @@
         s: 0,           // distance travelled along the path
         visible: true,  // false once it has left the map (waiting for the next lap)
         braking: false,
+        accel: 0,       // current acceleration (units/s², negative = braking); changes at a limited jerk
+        holdSec: 0,     // > 0: stopped, waiting this much longer before driving off
+        signTimer: -1,  // >= 0: time since the driver first saw a flashing sign for the zone ahead
+        signZoneEnd: -1, // end (path distance) of that sign's warning zone
+        warnedUntil: -1, // the driver is warned (slow, alert) until the car passes this path distance
       },
       scored: new Map(),  // animal id -> outcome already counted this lap ("hit" | "near" | "safe")
       pending: new Map(), // animal id -> { kmh, x, y }: encounter open until the car passes
-      seen: new Map(),    // animal id -> seconds it has been in the path ahead (driver reaction)
+      seen: new Map(),    // animal id -> { sec, laneSec }: animals the driver has noticed (see perceive)
     };
   }
   let state, scored, pending, seen;
@@ -119,14 +124,20 @@
     startLap();
   }
 
-  // Put the car back at the start of the route at standstill. Each lap scores
-  // its own encounters, so an animal still on the road meets the new car afresh.
+  // Put the car back at the start of the route, entering the map at cruising
+  // speed. Each lap scores its own encounters, so an animal still on the road
+  // meets the new car afresh.
   function startLap() {
     scored.clear();
     pending.clear();
     seen.clear();
     state.s = 0;
-    state.speedUnitsPerSec = 0;
+    state.speedUnitsPerSec = kmhToUnits(WW.config.tuning.cruiseKmh);
+    state.accel = 0;
+    state.holdSec = 0;
+    state.signTimer = -1;
+    state.signZoneEnd = -1;
+    state.warnedUntil = -1;
     state.visible = true;
     state.braking = false;
     const p = posAt(0);
@@ -143,63 +154,120 @@
     return false;
   }
 
-  // How should the driver react to the animals they can see? (SPEC §6.2.1)
-  //   "stop"    — an animal in the car's own lane within headlight range;
-  //   "slow"    — an animal elsewhere on the road surface (e.g. the other lane) that close;
-  //   "caution" — an animal on the verge within vergeCautionDist of the kerb, lit
-  //               by the headlights: the driver eases off (to vergeCautionKmh).
-  //               Only the headlight beam counts, so at night the driver sees a
-  //               roadside animal late and briefly (the camera sees the verge sooner);
-  //   null      — nothing to react to (yet).
-  // The driver needs a reaction time after first noticing an animal, so one that
-  // steps out close in front of a fast car can be hit. A driver warned by a
-  // flashing sign is expecting animals, so reacts faster (tuning.alertReactionSec),
-  // and is already slower, so stops sooner.
-  // Returns { action, stopDist }: stopDist is the room from the car's front to the
-  // nearest animal it is stopping for (Infinity if none).
-  const URGENCY = { caution: 1, slow: 2, stop: 3 };
-  function animalAhead(dt) {
-    const t = WW.config.tuning;
-    const road = WW.config.road;
-    const react = inActiveWarnZone() ? t.alertReactionSec : t.driverReactionSec;
+  // ---- Driver model (SPEC §6.2; parameters in config.tuning) ----------------
+  // Based on driving research (README "Driver model"): no change in speed during
+  // the perception-reaction time, the last part of which is the foot moving to
+  // the brake (a slight coast); braking force that builds up at a limited jerk;
+  // stopping that brakes a bit harder than needed at first and eases into the
+  // stop; a short pause once the animal has cleared; gentle re-acceleration.
+
+  // What the driver has noticed. An animal is NOTICED once it is on the road
+  // ahead within headlight range (drivers watch the road) or lit by the
+  // headlight beam on the verge, and stays noticed (the driver remembers it)
+  // until the car has passed it. The reaction clock starts when it is noticed.
+  // Returns [{ a, ahead, where: "lane" | "road" | "verge", fromKerb, n }], where
+  // n = { sec: time since noticed, laneSec: time in the car's lane (-1 if not) }.
+  function perceive(dt) {
+    const t = WW.config.tuning, road = WW.config.road;
     const beam = { x: state.x, y: state.y, facingAngleDeg: state.headingDeg, fovDeg: t.headlight.fovDeg, range: t.headlight.range };
-    const sight = t.headlight.range; // how far ahead the driver can spot an animal on the road
-    const now = new Map(); // animal id -> { kind: "stop" | "slow" | "caution", a }
+    const sight = t.headlight.range;
+    const out = [], present = new Set();
     for (const a of WW.animals.list) {
       if (a.state !== "walking") continue;
-      if (inPathAhead(a, sight)) { now.set(a.id, { kind: "stop", a: a }); continue; }
-      const fromKerb = WW.geo.distToPolyline(a.x, a.y, road.centerline) - road.roadWidth / 2;
       const ahead = projectS(a.x, a.y) - state.s;
-      if (fromKerb <= 0 && ahead >= 0 && ahead <= sight) now.set(a.id, { kind: "slow", a: a });
-      else if (fromKerb > 0 && fromKerb <= t.vergeCautionDist && ahead >= 0 &&
-               WW.geo.pointInCone(a.x, a.y, beam)) now.set(a.id, { kind: "caution", a: a });
-    }
-    seen.forEach((secs, id) => { if (!now.has(id)) seen.delete(id); });
-    let action = null, stopDist = Infinity;
-    now.forEach((n, id) => {
-      const secs = (seen.get(id) || 0) + dt;
-      seen.set(id, secs);
-      if (secs < react) return; // not reacted yet
-      if (!action || URGENCY[n.kind] > URGENCY[action]) action = n.kind;
-      if (n.kind === "stop") {
-        const room = projectS(n.a.x, n.a.y) - state.s - WW.config.ui.carLen / 2 - n.a.radius;
-        stopDist = Math.min(stopDist, room);
+      if (ahead < -(WW.config.ui.carLen / 2 + a.radius)) continue; // passed it: forgotten below
+      const fromKerb = WW.geo.distToPolyline(a.x, a.y, road.centerline) - road.roadWidth / 2;
+      const where = inPathAhead(a, sight) ? "lane" : fromKerb <= 0 ? "road" : "verge";
+      let n = seen.get(a.id);
+      if (!n) {
+        const visible = ahead >= 0 && ahead <= sight && (where !== "verge" || WW.geo.pointInCone(a.x, a.y, beam));
+        if (!visible) continue;
+        n = { sec: 0, laneSec: -1 };
+        seen.set(a.id, n);
       }
-    });
-    return { action: action, stopDist: stopDist };
+      present.add(a.id);
+      n.sec += dt;
+      n.laneSec = where === "lane" ? (n.laneSec < 0 ? 0 : n.laneSec + dt) : -1;
+      out.push({ a: a, ahead: ahead, where: where, fromKerb: fromKerb, n: n });
+    }
+    seen.forEach((n, id) => { if (!present.has(id)) seen.delete(id); });
+    return out;
   }
 
-  // How hard to brake this frame. To stop for an animal, brake just hard enough
-  // to halt tuning.stopGap short of it (from v² = 2·a·d): gently when there is
-  // room, harder when it is close, but never beyond an emergency stop
-  // (maxDecel); if even that isn't enough, the car can't stop in time. Any other
-  // slowing (signs, the other lane, a roadside animal) uses a comfortable rate.
-  function brakeRate(v, react) {
+  // What the driver wants to do this frame: the speed to aim for (targetV), the
+  // strongest braking wanted to get there (decel, units/s²), whether the foot is
+  // on its way to the brake (coast) and whether the car is stopping for an animal.
+  function plan(noticed) {
     const t = WW.config.tuning;
-    if (react.action !== "stop") return t.comfortDecelUnitsPerSec2;
-    const room = react.stopDist - t.stopGap;
-    const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
-    return Math.min(t.maxDecelUnitsPerSec2, need);
+    const v = state.speedUnitsPerSec;
+    // Warned: the driver saw a flashing sign and has reacted to it (see update()).
+    const warned = state.s <= state.warnedUntil;
+    const rt = warned ? t.alertReactionSec : t.driverReactionSec;
+    const cap = t.maxDecelUnitsPerSec2;
+    const p = { targetV: kmhToUnits(t.cruiseKmh), decel: 0, coast: false, stopping: false };
+    // Aim for speed vt at braking `rate`. Easing toward a non-zero target, the
+    // driver lets off the brake in time to arrive smoothly (limited jerk).
+    const want = (vt, rate) => {
+      if (vt < p.targetV) p.targetV = vt;
+      if (v <= vt + 0.01) return;
+      if (vt > 0) rate = Math.min(rate, Math.sqrt(2 * t.jerk.release * (v - vt)));
+      p.decel = Math.max(p.decel, rate);
+    };
+    // Gap from the car's front to the animal, less the stop margin.
+    const roomTo = (o) => o.ahead - WW.config.ui.carLen / 2 - o.a.radius - t.stopGap;
+
+    // Animal on the road but not (yet, as far as the driver has registered) in
+    // the car's lane: slow to a speed it could still stop from if it steps
+    // across, v = a·(−t_r + √(t_r² + 2d/a)) with t_r = alert reaction, braking at
+    // 2.5–5 m/s², never below otherLaneMinKmh (drivers pass a watched animal slowly).
+    const slowFor = (o) => {
+      const d = Math.max(0, roomTo(o));
+      const af = t.otherLaneStopDecelUnitsPerSec2, tr = t.alertReactionSec;
+      const vSafe = Math.max(kmhToUnits(t.otherLaneMinKmh), af * (-tr + Math.sqrt(tr * tr + (2 * d) / af)));
+      const needed = (v * v - vSafe * vSafe) / (2 * Math.max(1, d));
+      want(vSafe, Math.min(af, Math.max(t.otherLaneDecelUnitsPerSec2, needed)));
+    };
+
+    if (warned) want(kmhToUnits(t.warnKmh), t.signDecelUnitsPerSec2);
+
+    noticed.forEach((o) => {
+      const n = o.n;
+      // Reaction: nothing changes until rt after noticing it (the foot moves to
+      // the brake in the last footMoveSec, coasting).
+      const left = rt - n.sec;
+      if (left > 0) { if (left <= t.footMoveSec) p.coast = true; return; }
+
+      if (o.where === "lane") {
+        // Registering that it is in the lane takes alertReactionSec from when it
+        // entered; until then, keep slowing for it as for an animal on the road.
+        if (n.laneSec < t.alertReactionSec) { slowFor(o); return; }
+        // Stop stopGap short of it: v² = 2·a·d, braking front-loaded (1.3x what
+        // is needed, easing off as it goes), exactly as needed at crawling speed
+        // to land on the stop point, never beyond the emergency limit.
+        const room = roomTo(o);
+        const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
+        const rate = v < t.finishSpeedUnits ? need : t.stopFrontLoad * need;
+        want(0, Math.min(cap, rate));
+        p.stopping = true;
+      } else if (o.where === "road") {
+        slowFor(o);
+      } else if (o.fromKerb <= t.vergeCautionDist) {
+        want(kmhToUnits(t.vergeCautionKmh), t.vergeDecelUnitsPerSec2);
+      }
+    });
+    return p;
+  }
+
+  // Move the car's acceleration toward `aCmd` at a limited jerk: braking builds
+  // up faster the harder it is (gentle / firm / emergency); letting off the
+  // brake is quick (release); pressing the accelerator is gentle.
+  function applyJerk(aCmd, dt) {
+    const j = WW.config.tuning.jerk;
+    let rate;
+    if (aCmd < state.accel) rate = -aCmd > j.emergencyAbove ? j.emergency : -aCmd > j.firmAbove ? j.firm : j.gentle;
+    else rate = state.accel < 0 ? j.release : j.gentle;
+    const da = aCmd - state.accel;
+    state.accel += Math.sign(da) * Math.min(Math.abs(da), rate * dt);
   }
 
   // Does animal `a` touch the car body? (Rectangle from config.ui; the animal
@@ -265,13 +333,27 @@
     WW.stats.onEncounter(kind, e.x, e.y, e.kmh);
   }
 
-  function inActiveWarnZone() {
+  // The warning zone the car is in whose sign is flashing right now (or null).
+  function activeZone() {
     for (const z of warnZones) {
-      if (state.s >= z.start && state.s <= z.end && WW.detection.isSignalActive(z.signalId)) {
-        return true;
-      }
+      if (state.s >= z.start && state.s <= z.end && WW.detection.isSignalActive(z.signalId)) return z;
     }
-    return false;
+    return null;
+  }
+  function inActiveWarnZone() { return !!activeZone(); }
+
+  // The driver and the signs. Seeing a flashing sign starts a reaction time
+  // (driverReactionSec); after it the driver is warned (slows to warnKmh and
+  // reacts faster to animals) until the end of that sign's zone, even if the
+  // sign stops flashing meanwhile: a driver who has read "WILDLIFE AHEAD – SLOW
+  // DOWN" stays careful through the area.
+  function watchSigns(dt) {
+    const z = activeZone();
+    if (z && state.signTimer < 0) { state.signTimer = 0; state.signZoneEnd = z.end; }
+    if (state.signTimer < 0) return;
+    state.signTimer += dt;
+    if (state.signTimer >= WW.config.tuning.driverReactionSec) state.warnedUntil = Math.max(state.warnedUntil, state.signZoneEnd);
+    if (state.s > state.signZoneEnd) state.signTimer = -1; // past that zone: a new sign starts afresh
   }
 
   function update(dt) {
@@ -279,28 +361,32 @@
 
     if (!state.visible) return; // off the map: main.js starts the next lap
 
-    // Target speed by priority: brake (0) > warning slowdown > cruise.
-    let targetUnits = kmhToUnits(t.cruiseKmh);
-    if (inActiveWarnZone()) targetUnits = kmhToUnits(t.warnKmh);
-    const react = animalAhead(dt);
-    if (react.action === "caution") targetUnits = Math.min(targetUnits, kmhToUnits(t.vergeCautionKmh));
-    if (react.action === "slow") targetUnits = Math.min(targetUnits, kmhToUnits(t.warnKmh));
-    if (react.action === "stop") targetUnits = 0;
+    watchSigns(dt);
+    const want = plan(perceive(dt));
+    const v = state.speedUnitsPerSec;
 
-    // Brake lights: on when stopping for an animal or actively slowing down.
-    state.braking = targetUnits === 0 || state.speedUnitsPerSec > targetUnits + 0.5;
+    // Stopped for an animal: once it has cleared, wait a moment before driving off.
+    if (want.stopping && v < 0.5) state.holdSec = t.clearHoldSec;
+    else if (state.holdSec > 0) state.holdSec -= dt;
 
-    // Score hits / near misses / safe passes (an encounter opens at the CURRENT speed).
+    // Wanted acceleration: brake > coast (foot moving to the brake) > hold >
+    // speed up (easing in as the target nears) > drift down to the target.
+    let aCmd = 0;
+    if (want.decel > 0) aCmd = -want.decel;
+    else if (want.coast) aCmd = -t.coastDecelUnitsPerSec2;
+    else if (state.holdSec > 0 && v < 0.5) aCmd = 0;
+    else if (v < want.targetV) aCmd = Math.min(t.accelUnitsPerSec2, Math.sqrt(2 * t.jerk.gentle * (want.targetV - v)));
+    else if (v > want.targetV + 0.3) aCmd = -t.coastDecelUnitsPerSec2;
+    applyJerk(aCmd, dt);
+
+    // Brake lights: on while braking harder than a coast, or held stopped.
+    state.braking = state.accel < -(t.coastDecelUnitsPerSec2 + 1) || (v < 0.5 && (want.stopping || state.holdSec > 0));
+
+    // Score hits / near misses / safe passes.
     detectEncounters();
 
-    // Ease speed toward target: accelerate gently, brake at brakeRate().
-    if (state.speedUnitsPerSec < targetUnits) {
-      state.speedUnitsPerSec = Math.min(targetUnits, state.speedUnitsPerSec + t.accelUnitsPerSec2 * dt);
-    } else {
-      const decel = brakeRate(state.speedUnitsPerSec, react);
-      state.speedUnitsPerSec = Math.max(targetUnits, state.speedUnitsPerSec - decel * dt);
-    }
-
+    state.speedUnitsPerSec = Math.max(0, v + state.accel * dt);
+    if (state.speedUnitsPerSec === 0 && state.accel < 0) state.accel = 0;
     state.s += state.speedUnitsPerSec * dt;
 
     if (state.s >= total) {
