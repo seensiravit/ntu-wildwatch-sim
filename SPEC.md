@@ -160,7 +160,7 @@ Animals ignore the road and car when choosing their path; they just walk straigh
      > short of it (just hard enough, up to an emergency limit); one on the verge
      > near the kerb and lit by the headlights makes them ease off to 40 km/h.
      > Braking and acceleration use realistic rates (config `tuning`). Drivers react
-     > after a perception-reaction time (1.1 s, 0.7 s once warned), build braking up at
+     > after a perception-reaction time (0.5 s, 0.35 s once warned), build braking up at
      > a limited jerk, and remember animals they have noticed and signs they have seen
      > (README "Driver model").
 2. **Warning slowdown:** if the car is inside the warning zone of an **active** signal, the target speed is **20 km/h**.

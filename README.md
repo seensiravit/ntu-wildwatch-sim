@@ -76,9 +76,11 @@ The driver is modelled on driving research (sources below):
    beams), or on the verge **inside the headlight beam**. They remember it until they
    have passed it, even if it leaves the beam.
 2. **Reaction.** Speed doesn't change until the perception-reaction time has passed:
-   **1.1 s** for an unexpected animal, **0.7 s** once the driver has been warned by a
-   sign. An animal the driver was already slowing for that steps into the lane is
-   registered as "in my lane" 0.7 s after it enters; meanwhile the driver keeps slowing.
+   **0.5 s** for an unexpected animal, **0.35 s** once the driver has been warned by a
+   sign. (These are quick, attentive-driver values chosen so the demo car visibly stops;
+   research means are 1.1–1.3 s.) An animal the driver was already slowing for that
+   steps into the lane is registered as "in my lane" 0.35 s after it enters; meanwhile
+   the driver keeps slowing.
    In the last 0.2 s the foot moves to the brake and the car coasts slightly. Letting
    off the brake is quick (under a second).
 3. **Braking** then starts, building up smoothly (limited jerk), never beyond an emergency
@@ -93,32 +95,29 @@ The driver is modelled on driving research (sources below):
 
 4. **Afterwards.** Once the animal has cleared, the driver waits about 0.5 s, then speeds
    up gently (≈1.5 m/s²) back to 50 km/h.
-5. **Signs.** A driver who sees a flashing sign registers it after the 1.1 s reaction
+5. **Signs.** A driver who sees a flashing sign registers it after the 0.5 s reaction
    time, then slows to 20 km/h at ≈3.4 m/s² (the AASHTO design deceleration) and stays
    warned (slow and alert) until the end of that sign's zone, even if the sign stops
    flashing meanwhile.
 
-At 50 km/h an unwarned driver can't stop for an animal that is first seen at the far edge
-of the headlights: reaction plus braking need slightly more than the 32 m they can see.
-This is the well-known problem of "outdriving your headlights", and the gap a camera
-warning fills. A warned driver (0.7 s, already slower) usually stops in time.
+At 50 km/h the driver can stop for an animal first seen in the lane at the far edge of
+the headlights (about 21 m needed of the 32 m visible). An animal that steps into the
+lane closer than about 22 m ahead gets hit; a warned driver, already at 20 km/h, needs
+only about 5 m.
 
-**What this means for the demo (an honest result).** With these realistic reaction and
-braking times, the warning only helps if it reaches the driver early enough. Over 20
-fast-forwarded 20-minute demos per layout:
+**What this means for the demo.** Over 20 fast-forwarded 20-minute demos per layout
+(hits split by the car's speed at contact):
 
-| Warning signs | Hits OFF → ON | Near misses | Safe passes | Avg speed at the animal |
+| Warning signs | Hits OFF → ON | …of which over 30 km/h | Near misses | Safe passes |
 |---|---|---|---|---|
-| at the camera (current layout) | 176 → 170 (−3%) | 320 → 282 | 117 → 181 | 40 → 36 km/h |
-| upstream, x ≈ 330 | 174 → 149 (−14%) | 289 → 143 | 119 → 310 | 39 → 28 km/h |
+| at the camera (current layout) | 168 → 169 | 78 → 62 (−21%) | 159 → 131 | 404 → 461 |
+| upstream, x ≈ 330 | 134 → 160 | 68 → 39 (−43%) | 154 → 70 | 339 → 453 |
 
-With the signs at the camera, a driver first sees them only about 256 units before the
-crossing hotspot, while registering the sign and braking from 50 to 20 km/h takes about
-360. The camera also spots most animals only about 0.7 s before they step into the lane.
-Moved upstream, the signs halve near misses and cut **serious hits (above 30 km/h) by
-44%** (128 → 72); the remaining hits are mostly low-speed. A camera that watches the
-verge approach, and signs placed well before the crossing, are what make the system
-work. Hits are rare events, so compare many runs, not a few minutes of live demo.
+The warning doesn't reduce the *number* of contacts: a warned car is slower and spends
+longer at the crossing, so more animals walk into it at low speed (most ON hits are under
+30 km/h). What it reduces is **speed at impact**: serious hits fall by a fifth with the
+current signs and by nearly half with signs moved upstream, and near misses halve. Hits
+are rare events, so compare many runs, not a few minutes of live demo.
 
 Sources for the driver model: Green (2000), reaction times
 (<https://www.visualexpert.com/Resources/reactiontime.html>); NCHRP 15-75 reaction-time and
@@ -168,16 +167,16 @@ Each animal decides once, 25 units before the road edge:
   units of the crossing point (it sees and hears it coming), or stopped within 70 units of it.
 - **Doesn't notice the car:** a few animals never notice it and keep walking: 5% of
   macaques, 10% of boar and 25% of pangolins (which have poor eyesight).
-- **Car nearby:** its boldness and species decide whether it crosses anyway, waits
-  (shown by three pulsing dots), or turns back (shown by "↩"). The species types follow
+- **Car nearby:** its boldness and species decide whether it crosses anyway (macaque
+  30%, boar 60%, pangolin 35%), waits (shown by three pulsing dots), or turns back
+  (shown by "↩"). The species types follow
   Jacobson et al. (2016): macaques are avoiders, wild boar are speeders (they dash across,
   faster), and pangolins are pausers (they freeze, and curl up when threatened).
 - **Waiting:** a waiting animal crosses once the car has been gone for 1 s, a gap in
   traffic like the ones deer studies describe. If it waits too long, it turns back.
 
-With a car parked at the hotspot, 55% of animals still cross (the ones outside its
-70-unit range, the bold ones and the ones that don't notice it), against all of them on
-an empty road. The
+Counting the ones that don't notice it, about half of the animals that meet a car nearby
+still cross: 34% of macaques, 64% of boar and 51% of pangolins. The
 response probabilities and the demo arrival rate are assumptions chosen to match these
 patterns, not measured values.
 

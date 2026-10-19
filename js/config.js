@@ -141,13 +141,13 @@
     species: [
       { id: "macaque", label: "Macaque",  color: "#c9a06a", radius: 12, speedUnitsPerSec: 40,  heatColor: "#ffd24d", shape: "circle",
         spawn: { weight: 0.40, extraMean: 1.0, maxGroup: 4 },  // troops cross in a line
-        traffic: { type: "avoider", notice: 0.95, cross: 0.15, wait: 0.55, maxWaitSec: 10, crossSpeedMul: 1 } },
+        traffic: { type: "avoider", notice: 0.95, cross: 0.30, wait: 0.45, maxWaitSec: 10, crossSpeedMul: 1 } },
       { id: "boar",    label: "Wild boar", color: "#8a6b52", radius: 18, speedUnitsPerSec: 60,  heatColor: "#ff9a3d", shape: "ellipse",
         spawn: { weight: 0.45, extraMean: 0.6, maxGroup: 4 },  // sounders
-        traffic: { type: "speeder", notice: 0.90, cross: 0.45, wait: 0.35, maxWaitSec: 6, crossSpeedMul: 1.6 } },
+        traffic: { type: "speeder", notice: 0.90, cross: 0.60, wait: 0.25, maxWaitSec: 6, crossSpeedMul: 1.6 } },
       { id: "pangolin",label: "Pangolin", color: "#9a8f70", radius: 11, speedUnitsPerSec: 22,  heatColor: "#ffe08a", shape: "triangle",
         spawn: { weight: 0.15, extraMean: 0, maxGroup: 1 },    // solitary
-        traffic: { type: "pauser", notice: 0.75, cross: 0.20, wait: 0.70, maxWaitSec: 12, crossSpeedMul: 1 } },  // poor eyesight; curls up when threatened
+        traffic: { type: "pauser", notice: 0.75, cross: 0.35, wait: 0.55, maxWaitSec: 12, crossSpeedMul: 1 } },  // poor eyesight; curls up when threatened
     ],
 
     // ---- When and where animals arrive (js/spawner.js) -------------------
@@ -193,8 +193,11 @@
       warnKmh: 20,
       // ---- Driver model (js/car.js; values from driving research, see README
       // "Driver model"). 1 unit ≈ 0.139 m, so 1 m/s² ≈ 7.2 units/s².
-      driverReactionSec: 1.1,  // perception-reaction time, unexpected animal (Green 2000; SHRP2 mean 1.1-1.3 s)
-      alertReactionSec: 0.7,   // expected hazard: warned by a sign, or already watching the animal (Green 2000)
+      // Perception-reaction time before the driver starts braking. Set to a quick
+      // 0.5 s for the demo (an attentive driver; research means are 1.1-1.3 s,
+      // Green 2000 / SHRP2) so the car visibly stops for animals it has seen.
+      driverReactionSec: 0.5,
+      alertReactionSec: 0.35,  // expected hazard: warned by a sign, or already watching the animal
       footMoveSec: 0.2,        // last part of the reaction: foot off the accelerator, onto the brake
       coastDecelUnitsPerSec2: 3.6,      // the car coasts meanwhile (≈ 0.5 m/s²)
       // Braking builds up at ≈ 2.5 / 6 / 12 m/s³ (gentle below 18 units/s² of braking,
