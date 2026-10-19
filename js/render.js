@@ -44,6 +44,7 @@
     drawLinks(ctx, cfg, P, sx);
     drawCones(ctx, cfg, P, sx);
     drawSignals(ctx, cfg, P, sx);
+    drawStopLines(ctx, cfg, P, sx);
     drawCar(ctx, cfg, P, sx);
     drawAnimals(ctx, cfg, P, sx);
     drawNearMiss(ctx, P, sx);
@@ -86,6 +87,28 @@
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(b.x, b.y);
       ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // Stop line across the car's lane just before the crossing area, shown while
+  // a sign is flashing: this is where a warned driver stops and waits.
+  function drawStopLines(ctx, cfg, P, sx) {
+    if (!WW.system.enabled) return;
+    const half = cfg.road.laneWidth / 2;
+    const drawn = new Set();
+    WW.car.warnZones.forEach((z) => {
+      if (!WW.detection.isSignalActive(z.signalId) || drawn.has(z.stopS)) return;
+      drawn.add(z.stopS);
+      const p = WW.car.posAt(z.stopS);
+      const rad = WW.geo.degToRad(p.headingDeg);
+      const nx = -Math.sin(rad) * half, ny = Math.cos(rad) * half;
+      const a = P({ x: p.x + nx, y: p.y + ny }), b = P({ x: p.x - nx, y: p.y - ny });
+      ctx.save();
+      ctx.strokeStyle = WW.detection.flashOn() ? "rgba(255,176,32,0.9)" : "rgba(255,176,32,0.45)";
+      ctx.lineWidth = 3 * sx;
+      ctx.setLineDash([5 * sx, 4 * sx]);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
       ctx.restore();
     });
   }

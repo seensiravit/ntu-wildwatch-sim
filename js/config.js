@@ -211,13 +211,19 @@
       clearHoldSec: 0.5,       // once the animal has cleared, wait this long before driving off
       accelUnitsPerSec2: 10.8, // then speed up at ≈ 1.5 m/s² (normal driving)
       signDecelUnitsPerSec2: 24,        // slowing for a flashing sign ≈ 3.4 m/s² (AASHTO design value)
+      // A flashing sign means an animal is in the crossing area: the driver stops
+      // before the area (the camera's coverage) and waits for the sign to go off.
+      stopBeforeArea: 20,      // stop line: this far before the coverage starts (units)
+      signStopMaxDecelUnitsPerSec2: 45, // stop for the sign only if it needs ≤ ≈ 6 m/s²; else go through slowly
+      signClearSec: 1.0,       // drive on once the sign has been off this long
+      signMaxWaitSec: 20,      // ...or after waiting this long at the line (then go through slowly)
       otherLaneDecelUnitsPerSec2: 18,   // animal in the other lane: slow at ≈ 2.5 m/s² (up to 5 if needed) ...
       otherLaneStopDecelUnitsPerSec2: 36, // ...to a speed it could still stop from at ≈ 5 m/s² if it steps across
       otherLaneMinKmh: 20,     // ...but passes it no slower than this
       vergeCautionKmh: 40,     // animal on the verge, lit by the headlights: ease off to this...
       vergeCautionDist: 40,    // ...if it is within this distance of the kerb
       vergeDecelUnitsPerSec2: 9,        // ...at ≈ 1.25 m/s²
-      signSightDistance: 320, // drivers react once a flashing sign is this far ahead (~ 4x the road width)
+      signSightDistance: 400, // drivers see a flashing sign from this far ahead (≈ 56 m; far enough to stop before the area at ≈ 3.5 m/s²)
       carRespawnDelaySec: 1.5, // pause before the next lap (both cars start it together)
 
       flashHz: 2,             // beacon + message board blink rate

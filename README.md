@@ -95,10 +95,14 @@ The driver is modelled on driving research (sources below):
 
 4. **Afterwards.** Once the animal has cleared, the driver waits about 0.5 s, then speeds
    up gently (≈1.5 m/s²) back to 50 km/h.
-5. **Signs.** A driver who sees a flashing sign registers it after the 0.5 s reaction
-   time, then slows to 20 km/h at ≈3.4 m/s² (the AASHTO design deceleration) and stays
-   warned (slow and alert) until the end of that sign's zone, even if the sign stops
-   flashing meanwhile.
+5. **Signs.** Signs are visible from 400 units (≈56 m). A flashing sign means an animal
+   is in the crossing area, so a driver who sees one registers it after the 0.5 s
+   reaction time and brakes steadily to a **stop line** 20 units before the camera's
+   coverage begins (drawn as an amber dashed line across the lane while the sign
+   flashes). The car waits there until the sign has been off for 1 s (20 s at most),
+   then drives on at 20 km/h through the area, staying warned (slow and alert) until the
+   end of the zone. A driver who sees the sign too late to stop at the line without
+   braking harder than ≈6 m/s² goes through slowly at 20 km/h instead.
 
 At 50 km/h the driver can stop for an animal first seen in the lane at the far edge of
 the headlights (about 21 m needed of the 32 m visible). An animal that steps into the
@@ -108,16 +112,16 @@ only about 5 m.
 **What this means for the demo.** Over 20 fast-forwarded 20-minute demos per layout
 (hits split by the car's speed at contact):
 
-| Warning signs | Hits OFF → ON | …of which over 30 km/h | Near misses | Safe passes |
-|---|---|---|---|---|
-| at the camera (current layout) | 168 → 169 | 78 → 62 (−21%) | 159 → 131 | 404 → 461 |
-| upstream, x ≈ 330 | 134 → 160 | 68 → 39 (−43%) | 154 → 70 | 339 → 453 |
+| | Hits OFF → ON | …of which over 30 km/h | …under 5 km/h | Near misses | Safe passes | Avg speed at the animal |
+|---|---|---|---|---|---|---|
+| signs at the camera, driver stops at the line | 137 → 158 | 63 → 47 (−25%) | 20 → 37 | 159 → 83 (−48%) | 369 → 614 | 26 → 17 km/h |
 
-The warning doesn't reduce the *number* of contacts: a warned car is slower and spends
-longer at the crossing, so more animals walk into it at low speed (most ON hits are under
-30 km/h). What it reduces is **speed at impact**: serious hits fall by a fifth with the
-current signs and by nearly half with signs moved upstream, and near misses halve. Hits
-are rare events, so compare many runs, not a few minutes of live demo.
+The warning doesn't reduce the *number* of contacts. A warned car waits at the stop line
+or creeps through the area, and the stop line sits at the western edge of the crossing
+hotspot, so more animals walk into a car that is stopped or barely moving (the "under
+5 km/h" column). What it reduces is **speed at impact**: serious hits fall by a quarter
+and near misses halve. Hits are rare events, so compare many runs, not a few minutes of
+live demo.
 
 Sources for the driver model: Green (2000), reaction times
 (<https://www.visualexpert.com/Resources/reactiontime.html>); NCHRP 15-75 reaction-time and

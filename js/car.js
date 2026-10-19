@@ -20,6 +20,8 @@
         signTimer: -1,  // >= 0: time since the driver first saw a flashing sign for the zone ahead
         signZoneEnd: -1, // end (path distance) of that sign's warning zone
         warnedUntil: -1, // the driver is warned (slow, alert) until the car passes this path distance
+        signOffSec: 99,  // time since the sign for the zone the car is in last flashed
+        lineWaitSec: 0,  // time spent stopped at the stop line waiting for the sign to go off
       },
       scored: new Map(),  // animal id -> outcome already counted this lap ("hit" | "near" | "safe")
       pending: new Map(), // animal id -> { kmh, x, y }: encounter open until the car passes
@@ -113,8 +115,13 @@
       if (sig.dir && carDir && sig.dir !== carDir) return;
       const cam = WW.config.cameras.find((c) => c.id === sig.linkedCameraId);
       const sSignal = projectS(sig.x, sig.y);
-      const coneEnd = cam ? coverage(cam).end : sSignal;
-      warnZones.push({ signalId: sig.id, start: Math.max(0, sSignal - sight), end: Math.max(coneEnd, sSignal) });
+      const cov = cam ? coverage(cam) : { start: sSignal, end: sSignal };
+      // stopS: where a driver who sees the sign flashing stops to wait, just before
+      // the camera's coverage (the crossing area) begins along the path.
+      warnZones.push({
+        signalId: sig.id, start: Math.max(0, sSignal - sight), end: Math.max(cov.end, sSignal),
+        stopS: Math.max(0, cov.start - WW.config.tuning.stopBeforeArea),
+      });
     });
   }
 
@@ -138,6 +145,8 @@
     state.signTimer = -1;
     state.signZoneEnd = -1;
     state.warnedUntil = -1;
+    state.signOffSec = 99;
+    state.lineWaitSec = 0;
     state.visible = true;
     state.braking = false;
     const p = posAt(0);
@@ -228,7 +237,26 @@
       want(vSafe, Math.min(af, Math.max(t.otherLaneDecelUnitsPerSec2, needed)));
     };
 
-    if (warned) want(kmhToUnits(t.warnKmh), t.signDecelUnitsPerSec2);
+    if (warned) {
+      // The sign is flashing (or only just went off): an animal is in the crossing
+      // area, so stop at the stop line before it and wait. If the car can't stop
+      // there without braking harder than signStopMaxDecel (it saw the sign too
+      // late), or has already passed the line, or has waited long enough, go
+      // through slowly at warnKmh instead.
+      const z = zoneHere();
+      const busy = z && (WW.detection.isSignalActive(z.signalId) || state.signOffSec < t.signClearSec) &&
+        state.lineWaitSec < t.signMaxWaitSec;
+      const room = z ? z.stopS - state.s - WW.config.ui.carLen / 2 : -Infinity;
+      const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
+      if (busy && room > -1 && (need <= t.signStopMaxDecelUnitsPerSec2 || v < t.finishSpeedUnits)) {
+        // A planned stop at a known line: brake steadily at what is needed (no front-loading).
+        want(0, Math.min(cap, v < t.finishSpeedUnits ? Math.max(need, t.signDecelUnitsPerSec2) : need));
+        p.stopping = true;
+        p.atLine = true;
+      } else {
+        want(kmhToUnits(t.warnKmh), t.signDecelUnitsPerSec2);
+      }
+    }
 
     noticed.forEach((o) => {
       const n = o.n;
@@ -341,6 +369,10 @@
     return null;
   }
   function inActiveWarnZone() { return !!activeZone(); }
+  // The zone the car is in: the one whose sign is flashing if any, else the first.
+  function zoneHere() {
+    return activeZone() || warnZones.find((z) => state.s >= z.start && state.s <= z.end) || null;
+  }
 
   // The driver and the signs. Seeing a flashing sign starts a reaction time
   // (driverReactionSec); after it the driver is warned (slows to warnKmh and
@@ -354,6 +386,8 @@
     state.signTimer += dt;
     if (state.signTimer >= WW.config.tuning.driverReactionSec) state.warnedUntil = Math.max(state.warnedUntil, state.signZoneEnd);
     if (state.s > state.signZoneEnd) state.signTimer = -1; // past that zone: a new sign starts afresh
+    const here = zoneHere();
+    state.signOffSec = here && WW.detection.isSignalActive(here.signalId) ? 0 : state.signOffSec + dt;
   }
 
   function update(dt) {
@@ -365,9 +399,10 @@
     const want = plan(perceive(dt));
     const v = state.speedUnitsPerSec;
 
-    // Stopped for an animal: once it has cleared, wait a moment before driving off.
+    // Stopped for an animal or at the stop line: once clear, wait a moment before driving off.
     if (want.stopping && v < 0.5) state.holdSec = t.clearHoldSec;
     else if (state.holdSec > 0) state.holdSec -= dt;
+    state.lineWaitSec = want.atLine && v < 0.5 ? state.lineWaitSec + dt : (want.atLine ? state.lineWaitSec : 0);
 
     // Wanted acceleration: brake > coast (foot moving to the brake) > hold >
     // speed up (easing in as the target nears) > drift down to the target.

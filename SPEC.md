@@ -95,7 +95,7 @@ Each signal has: `id, name, x, y, linkedCameraId, message`.
   - an **amber beacon** (circle) that flashes on and off at about 2 Hz while active
   - an **LED message board** (small dark rectangle) that shows `WILDLIFE AHEAD – SLOW DOWN` in amber while active and is blank when off
 - Each signal also defines a **warning zone** along the car path, from the signal to the end of its camera's coverage. The car uses this zone for slowing (see 6.2).
-  *(Current build: the zone starts `tuning.signSightDistance` (320 units) **before** the sign — where drivers can first see it — so signs placed right at the camera still warn drivers before the crossing.)*
+  *(Current build: the zone starts `tuning.signSightDistance` (400 units) **before** the sign — where drivers can first see it — so signs placed right at the camera still warn drivers before the crossing.)*
 
 ## 5. Animals
 
@@ -165,6 +165,11 @@ Animals ignore the road and car when choosing their path; they just walk straigh
      > (README "Driver model").
 2. **Warning slowdown:** if the car is inside the warning zone of an **active** signal, the target speed is **20 km/h**.
 3. **Otherwise** the target speed is **50 km/h** (cruise).
+
+> **Changed:** a flashing sign now makes the driver brake to a **stop line** just before
+> the camera's coverage and wait until the sign goes off, then proceed at 20 km/h
+> through the area (README "Driver model"). Signs are visible from
+> `tuning.signSightDistance` (400 units).
 
 Speed changes smoothly toward the target, with separate acceleration and deceleration constants. The label updates live.
 
