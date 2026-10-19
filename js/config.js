@@ -141,13 +141,13 @@
     species: [
       { id: "macaque", label: "Macaque",  color: "#c9a06a", radius: 12, speedUnitsPerSec: 40,  heatColor: "#ffd24d", shape: "circle",
         spawn: { weight: 0.40, extraMean: 1.0, maxGroup: 4 },  // troops cross in a line
-        traffic: { type: "avoider", notice: 0.95, cross: 0.30, wait: 0.45, maxWaitSec: 10, crossSpeedMul: 1 } },
+        traffic: { type: "avoider", notice: 0.95, cross: 0.25, wait: 0.50, maxWaitSec: 10, crossSpeedMul: 1 } },
       { id: "boar",    label: "Wild boar", color: "#8a6b52", radius: 18, speedUnitsPerSec: 60,  heatColor: "#ff9a3d", shape: "ellipse",
         spawn: { weight: 0.45, extraMean: 0.6, maxGroup: 4 },  // sounders
-        traffic: { type: "speeder", notice: 0.90, cross: 0.60, wait: 0.25, maxWaitSec: 6, crossSpeedMul: 1.6 } },
+        traffic: { type: "speeder", notice: 0.90, cross: 0.50, wait: 0.35, maxWaitSec: 6, crossSpeedMul: 1.6 } },
       { id: "pangolin",label: "Pangolin", color: "#9a8f70", radius: 11, speedUnitsPerSec: 22,  heatColor: "#ffe08a", shape: "triangle",
         spawn: { weight: 0.15, extraMean: 0, maxGroup: 1 },    // solitary
-        traffic: { type: "pauser", notice: 0.75, cross: 0.35, wait: 0.55, maxWaitSec: 12, crossSpeedMul: 1 } },  // poor eyesight; curls up when threatened
+        traffic: { type: "pauser", notice: 0.75, cross: 0.30, wait: 0.60, maxWaitSec: 12, crossSpeedMul: 1 } },  // poor eyesight; curls up when threatened
     ],
 
     // ---- When and where animals arrive (js/spawner.js) -------------------
@@ -213,7 +213,7 @@
       signDecelUnitsPerSec2: 24,        // slowing for a flashing sign ≈ 3.4 m/s² (AASHTO design value)
       // A flashing sign means an animal is in the crossing area: the driver stops
       // before the area (the camera's coverage) and waits for the sign to go off.
-      stopBeforeArea: 20,      // stop line: this far before the coverage starts (units)
+      stopBeforeArea: 80,      // stop line: this far before the coverage starts (units), clear of the crossing hotspot
       signStopMaxDecelUnitsPerSec2: 45, // stop for the sign only if it needs ≤ ≈ 6 m/s²; else go through slowly
       signClearSec: 1.0,       // drive on once the sign has been off this long
       signMaxWaitSec: 20,      // ...or after waiting this long at the line (then go through slowly)
@@ -223,7 +223,7 @@
       vergeCautionKmh: 40,     // animal on the verge, lit by the headlights: ease off to this...
       vergeCautionDist: 40,    // ...if it is within this distance of the kerb
       vergeDecelUnitsPerSec2: 9,        // ...at ≈ 1.25 m/s²
-      signSightDistance: 400, // drivers see a flashing sign from this far ahead (≈ 56 m; far enough to stop before the area at ≈ 3.5 m/s²)
+      signSightDistance: 480, // drivers see a flashing sign from this far ahead (≈ 67 m; far enough to stop at the line at ≈ 3.5 m/s²)
       carRespawnDelaySec: 1.5, // pause before the next lap (both cars start it together)
 
       flashHz: 2,             // beacon + message board blink rate

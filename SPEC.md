@@ -169,7 +169,7 @@ Animals ignore the road and car when choosing their path; they just walk straigh
 > **Changed:** a flashing sign now makes the driver brake to a **stop line** just before
 > the camera's coverage and wait until the sign goes off, then proceed at 20 km/h
 > through the area (README "Driver model"). Signs are visible from
-> `tuning.signSightDistance` (400 units).
+> `tuning.signSightDistance` (480 units).
 
 Speed changes smoothly toward the target, with separate acceleration and deceleration constants. The label updates live.
 

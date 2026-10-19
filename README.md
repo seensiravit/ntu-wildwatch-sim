@@ -95,11 +95,11 @@ The driver is modelled on driving research (sources below):
 
 4. **Afterwards.** Once the animal has cleared, the driver waits about 0.5 s, then speeds
    up gently (≈1.5 m/s²) back to 50 km/h.
-5. **Signs.** Signs are visible from 400 units (≈56 m). A flashing sign means an animal
+5. **Signs.** Signs are visible from 480 units (≈67 m). A flashing sign means an animal
    is in the crossing area, so a driver who sees one registers it after the 0.5 s
-   reaction time and brakes steadily to a **stop line** 20 units before the camera's
-   coverage begins (drawn as an amber dashed line across the lane while the sign
-   flashes). The car waits there until the sign has been off for 1 s (20 s at most),
+   reaction time and brakes steadily (≈3.5 m/s²) to a **stop line** 80 units before the
+   camera's coverage begins, clear of the crossing hotspot (drawn as an amber dashed
+   line across the lane while the sign flashes). The car waits there until the sign has been off for 1 s (20 s at most),
    then drives on at 20 km/h through the area, staying warned (slow and alert) until the
    end of the zone. A driver who sees the sign too late to stop at the line without
    braking harder than ≈6 m/s² goes through slowly at 20 km/h instead.
@@ -114,13 +114,12 @@ only about 5 m.
 
 | | Hits OFF → ON | …of which over 30 km/h | …under 5 km/h | Near misses | Safe passes | Avg speed at the animal |
 |---|---|---|---|---|---|---|
-| signs at the camera, driver stops at the line | 137 → 158 | 63 → 47 (−25%) | 20 → 37 | 159 → 83 (−48%) | 369 → 614 | 26 → 17 km/h |
+| signs at the camera, driver stops at the line | 105 → 136 | 63 → 42 (−33%) | 7 → 21 | 151 → 74 (−51%) | 296 → 464 | 28 → 18 km/h |
 
 The warning doesn't reduce the *number* of contacts. A warned car waits at the stop line
-or creeps through the area, and the stop line sits at the western edge of the crossing
-hotspot, so more animals walk into a car that is stopped or barely moving (the "under
-5 km/h" column). What it reduces is **speed at impact**: serious hits fall by a quarter
-and near misses halve. Hits are rare events, so compare many runs, not a few minutes of
+and then creeps through the area at 20 km/h, so it spends far longer where animals
+cross, and more of them walk into it at low speed (most ON hits are under 30 km/h). What
+it reduces is **speed at impact**: serious hits fall by a third and near misses halve. Hits are rare events, so compare many runs, not a few minutes of
 live demo.
 
 Sources for the driver model: Green (2000), reaction times
@@ -172,15 +171,15 @@ Each animal decides once, 25 units before the road edge:
 - **Doesn't notice the car:** a few animals never notice it and keep walking: 5% of
   macaques, 10% of boar and 25% of pangolins (which have poor eyesight).
 - **Car nearby:** its boldness and species decide whether it crosses anyway (macaque
-  30%, boar 60%, pangolin 35%), waits (shown by three pulsing dots), or turns back
+  25%, boar 50%, pangolin 30%), waits (shown by three pulsing dots), or turns back
   (shown by "↩"). The species types follow
   Jacobson et al. (2016): macaques are avoiders, wild boar are speeders (they dash across,
   faster), and pangolins are pausers (they freeze, and curl up when threatened).
 - **Waiting:** a waiting animal crosses once the car has been gone for 1 s, a gap in
   traffic like the ones deer studies describe. If it waits too long, it turns back.
 
-Counting the ones that don't notice it, about half of the animals that meet a car nearby
-still cross: 34% of macaques, 64% of boar and 51% of pangolins. The
+Counting the ones that don't notice it, the share of animals that meet a car nearby and
+still cross is 29% for macaques, 55% for boar and 48% for pangolins. The
 response probabilities and the demo arrival rate are assumptions chosen to match these
 patterns, not measured values.
 
