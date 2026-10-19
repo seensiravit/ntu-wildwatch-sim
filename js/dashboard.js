@@ -224,6 +224,7 @@
     }
 
     // Heat blobs: x from angle within FOV, size from distance (closer = bigger).
+    const labels = []; // label boxes already drawn this frame, to keep them from overlapping
     cs.animalsInCone.forEach((hit) => {
       const cx = W * (0.5 + Math.max(-0.5, Math.min(0.5, hit.angNorm)));
       const cy = H * 0.55;
@@ -245,7 +246,15 @@
       ctx.fillStyle = "#4dff88";
       ctx.font = "11px ui-monospace, monospace";
       ctx.textAlign = "left";
-      ctx.fillText(hit.animal.label + " " + hit.confidence + "%", cx - bw / 2, cy - bh / 2 - 3);
+      // Two animals at a similar angle would print their labels on top of each
+      // other, so each label moves up a line until it overlaps none drawn before it.
+      const text = hit.animal.label + " " + hit.confidence + "%";
+      const lw = ctx.measureText(text).width, lh = 12;
+      let lx = cx - bw / 2, ly = cy - bh / 2 - 3;
+      if (lx + lw > W - 2) lx = W - 2 - lw;
+      while (labels.some((b) => lx < b.x + b.w && lx + lw > b.x && ly - lh < b.y && ly > b.y - lh)) ly -= lh;
+      labels.push({ x: lx, y: ly, w: lw });
+      ctx.fillText(text, lx, ly);
     });
   }
 
@@ -292,7 +301,7 @@
     const avg = (s) => (s.speedCount ? Math.round(s.speedSum / s.speedCount) : null);
     const enc = (s) => s.hits + s.nearMiss + s.safe;
     const pctDrop = (a, b) => (a ? Math.round(((a - b) / a) * 100) : null);
-    const fewer = (a, b) => { const d = pctDrop(a, b); return d === null ? "–" : d >= 0 ? d + "% fewer" : "more so far"; };
+    const fewer = (a, b) => { const d = pctDrop(a, b); return d === null ? (b ? "more so far" : "none on either side") : d >= 0 ? d + "% fewer" : "more so far"; };
     const offAvg = avg(off), onAvg = avg(on);
     const unit = (v, u) => (v === null ? "–" : v + u);
     // A count with its share of all encounters on that side.
@@ -314,8 +323,8 @@
         "each detection flashes both signs") +
       "</tbody></table></div>" +
       '<p class="wwx-note">' +
-      (off.hits + off.nearMiss
-        ? "<b>What it means for DED:</b> at this crossing, early warning cut animals hit from " + off.hits + " to " + on.hits +
+      (off.seriousHits + off.nearMiss
+        ? "<b>What it means for DED:</b> at this crossing, early warning cut serious hits from " + off.seriousHits + " to " + on.seriousHits +
           " and near misses from " + off.nearMiss + " to " + on.nearMiss +
           ". The hotspot map and priority list below show where to install it next."
         : '<span class="ww-muted">Start the simulation (or wait for the auto-demo) to fill in the comparison.</span>') +

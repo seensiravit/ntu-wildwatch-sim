@@ -51,7 +51,7 @@
 
   // Report each detection to the WildWatch dashboard extension, if loaded.
   // Contract (shared with the team's wildwatch-dashboard.js):
-  //   WildWatch.record({ species, location, confidence: 0..1, proximity })
+  //   WildWatch.record({ species, location, camera, confidence: 0..1, proximity })
   //   -> { time, riskLevel, beaconActivated }
   // Our own signal/beacon logic stays authoritative; this is fire-and-forget
   // reporting so the extension's panel populates. Never let it break the sim.

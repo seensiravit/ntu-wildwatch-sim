@@ -95,7 +95,7 @@ Each signal has: `id, name, x, y, linkedCameraId, message`.
   - an **amber beacon** (circle) that flashes on and off at about 2 Hz while active
   - an **LED message board** (small dark rectangle) that shows `WILDLIFE AHEAD – SLOW DOWN` in amber while active and is blank when off
 - Each signal also defines a **warning zone** along the car path, from the signal to the end of its camera's coverage. The car uses this zone for slowing (see 6.2).
-  *(Current build: the zone starts `tuning.signSightDistance` (400 units) **before** the sign — where drivers can first see it — so signs placed right at the camera still warn drivers before the crossing.)*
+  *(Current build: the zone starts `tuning.signSightDistance` (480 units) **before** the sign — where drivers can first see it — so signs placed right at the camera still warn drivers before the crossing.)*
 
 ## 5. Animals
 
@@ -119,7 +119,7 @@ Each species has: `id, label, color, radius, speedUnitsPerSec, heatColor`.
    - The user drags the arrow's tip to rotate it, with free 360°.
    - The default direction is straight down.
 3. **Move:** dragging the animal's body moves it while it is still Placed.
-4. **Release:** a **click** on the animal (a pointer-down/up with less than 5 px of movement) switches it to **Walking**.
+4. **Release:** a **click** on the animal (a pointer-down/up with less than `tuning.dragReleaseThreshPx` = 6 px of movement) switches it to **Walking**.
    - It becomes fully opaque, the arrow is hidden, and it walks in a straight line at its species speed.
 5. **Exit:** when a Walking animal leaves the map bounds, it is removed.
 6. **Reset** clears all animals and restarts the car.

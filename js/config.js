@@ -393,5 +393,6 @@
     extraLabels: dash.extraLabels,
     showDock: dash.showDock,
     autoWatchLog: false, // we always call WildWatch.record(), so skip log scraping
+    persist: false, // each demo starts from zero; a saved history would show stale counts on load
   });
 })();

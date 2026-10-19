@@ -52,10 +52,13 @@ never slows for the signs, so it finishes first and waits off-map for the ON car
    **NEAR MISS** or a red **HIT** marker shows what happened. There are no crash graphics.
 
 **The key message is in the two Impact scoreboards.** Each sorts every car–animal
-encounter into one of three outcomes:
+encounter into one of four outcomes:
 
-- **Animals hit:** the car and the animal touched, whoever moved into whom, even with
-  the car standing still (a car stopped in an animal's path is in the wrong place).
+- **Serious hits:** the car and the animal touched while the car was doing more than
+  30 km/h (`scenario.seriousKmh`).
+- **Low-speed contacts:** any other touch, whoever moved into whom, even with the car
+  standing still (a car stopped in an animal's path is in the wrong place). With the
+  system on these are mostly animals walking into a car waiting at the line.
 - **Near misses:** the car was going faster than 35 km/h when it got closest to the
   animal, but didn't touch it.
 - **Safe passes:** the car was at 35 km/h or slower by then, and nothing touched.
@@ -63,7 +66,7 @@ encounter into one of three outcomes:
 Each animal is scored once per lap. If an animal already counted as a near miss or safe
 pass touches the car later in the same lap, it moves to hits.
 
-Below the three tiles: the average speed at the animal, (ON side) animals detected, and
+Below the four tiles: the average speed at the animal, (ON side) animals detected, and
 animals that turned back at the roadside because of the car. The ON side also compares
 its hits and near misses with the OFF side.
 
@@ -114,7 +117,9 @@ headlights" problem the camera and signs exist to fix. A warned driver, already 
 20 km/h or waiting at the stop line, needs only about 5 m.
 
 **What this means for the demo.** Over 20 fast-forwarded 20-minute demos per layout
-(hits split by the car's speed at contact):
+(hits split by the car's speed at contact; measured before the driver was made to resume
+sooner and drive off briskly, so today's absolute counts differ a little, see the
+short-run study below for current ones):
 
 | | Hits OFF → ON | …of which over 30 km/h | …under 5 km/h | Near misses | Safe passes | Avg speed at the animal |
 |---|---|---|---|---|---|---|
@@ -354,12 +359,12 @@ Node across all cores with `node research/run-demo-runs.js` (~2 min) or in the b
 
 Findings (re-run after the driver was made to resume sooner and drive off briskly): on
 serious hits + near misses the system is ahead in **100% of 10-minute runs** at today's
-settings (88% after 2 min, 99% after 5), and near misses alone also 100%. On the hits
-tile as it was ("Animals hit", all contacts together) only **75%** of runs showed ON
-lower, 11% equal and **14% higher**, because the ON car stops at the line or creeps
+settings (88% after 2 min, 98% after 5), and near misses alone also 100%. On the hits
+tile as it was ("Animals hit", all contacts together) only **74%** of runs showed ON
+lower, 10% equal and **17% higher**, because the ON car stops at the line or creeps
 through the hotspot and animals walk into it at under 5 km/h. That is why the scoreboard
 now splits hits into serious (over 30 km/h) and low-speed contacts. No setting fixes the
-combined tile (best 77% / 10%, at warned speed 30). Because both cars start laps
+combined tile (best 77% / 9%, at warned speed 30). Because both cars start laps
 together, OFF rates shift between settings; compare shares and the ON column, not OFF
 across settings.
 
