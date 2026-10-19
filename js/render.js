@@ -49,6 +49,7 @@
     drawAnimals(ctx, cfg, P, sx);
     drawNearMiss(ctx, P, sx);
     if (!WW.system.enabled) drawSystemOff(ctx, W, H);
+    drawScenarioBanner(ctx, W, H, sx);
 
     // Vignette for depth (darkens the edges only).
     const v = ctx.createRadialGradient(W * 0.5, H * 0.5, Math.min(W, H) * 0.35, W * 0.5, H * 0.5, Math.max(W, H) * 0.62);
@@ -545,6 +546,29 @@
       ctx.fillText(hit ? "HIT" : "NEAR MISS", s.x, s.y - rad - 4 * sx);
       ctx.restore();
     });
+  }
+
+  // Act banner across the top of the map while the preset scenario plays.
+  function drawScenarioBanner(ctx, W, H, sx) {
+    const sc = WW.scenario && WW.scenario.state;
+    if (!sc || !sc.active || sc.phase === "done") return;
+    const h = 30 * sx;
+    ctx.save();
+    ctx.fillStyle = "rgba(12,16,22,0.78)";
+    ctx.fillRect(0, 0, W, h);
+    ctx.fillStyle = "#ffb020";
+    ctx.font = "700 " + Math.round(13 * sx) + "px system-ui, sans-serif";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.fillText(sc.title.toUpperCase(), 14 * sx, h / 2);
+    if (sc.phase === "caption") {
+      ctx.fillStyle = "rgba(207,216,227,0.8)";
+      ctx.font = Math.round(12 * sx) + "px system-ui, sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText("cars waiting…", W - 14 * sx, h / 2);
+    }
+    ctx.restore();
+    ctx.textBaseline = "alphabetic";
   }
 
   // Watermark shown while the system is switched off.

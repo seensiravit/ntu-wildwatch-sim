@@ -259,6 +259,49 @@
       carColor: "#e8e2d0",
     },
 
+    // ---- Preset scenario (js/scenario.js): a scripted with/without comparison --
+    // Three acts; each starts when both cars begin a lap, and its animals are
+    // released `atSec` after that, placed and aimed like the auto-demo's. Each
+    // animal has fixed boldness / noticeRoll so both twins behave alike. Timing
+    // is set against the OFF car at 50 km/h (x 500 at 5.4 s into a lap).
+    scenario: {
+      captionPauseSec: 2.5, // pause between acts (caption on screen, cars waiting)
+      seriousKmh: 30,       // a hit above this counts as serious on the results card
+      // atSec is seconds after both cars start the act's lap; negative = that many
+      // seconds BEFORE they start (released during the caption), e.g. an animal that
+      // is already in the camera's view so the sign is flashing as the warned car
+      // approaches. The OFF car (50 km/h) passes x 500 about 5.4 s into a lap.
+      acts: [
+        {
+          title: "Out of the dark",
+          caption: "A macaque is already on the verge; a wild boar follows and steps into the road as the car arrives. Only the camera can see them on the verge.",
+          animals: [
+            { atSec: -1.5, speciesId: "macaque", x: 440, y: 290, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5 },
+            { atSec: 2.4, speciesId: "boar", x: 500, y: 290, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5 },
+          ],
+        },
+        {
+          title: "A troop crosses",
+          caption: "A macaque troop crosses in a line. Without a warning the driver meets them one after another at speed.",
+          animals: [
+            { atSec: -1.5, speciesId: "macaque", x: 430, y: 290, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5, groupId: 1 },
+            { atSec: 1.7, speciesId: "macaque", x: 470, y: 300, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5, groupId: 1 },
+            { atSec: 2.7, speciesId: "macaque", x: 486, y: 302, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5, groupId: 1 },
+            { atSec: 3.7, speciesId: "macaque", x: 502, y: 300, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5, groupId: 1 },
+            { atSec: 4.7, speciesId: "macaque", x: 518, y: 303, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5, groupId: 1 },
+          ],
+        },
+        {
+          title: "The one that doesn't notice",
+          caption: "A pangolin crosses slowly from the Hall 15 side and never notices the car. Pangolins have poor eyesight.",
+          animals: [
+            // Slow (22 units/s): released during the caption so it is on the road as the OFF car arrives.
+            { atSec: -3.0, speciesId: "pangolin", x: 540, y: 480, dirDeg: 270, boldness: 0.5, noticeRoll: 1 },
+          ],
+        },
+      ],
+    },
+
     // ---- Attract / auto-demo mode ---------------------------------------
     // After this much idle time the demo plays itself, with animals arriving as
     // described in `spawning`.

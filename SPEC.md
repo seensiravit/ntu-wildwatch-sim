@@ -253,6 +253,9 @@ All values update live from the simulation state.
   v1.2** as a System ON/OFF toggle with near-miss tally, then replaced by a
   **split screen**: OFF and ON side by side, same animals, a scoreboard under each
   (see README)
+- ~~A scripted, repeatable demo scenario~~ — **landed**: the ▶ Scenario button plays a
+  3-act comparison with identical animals on both maps and ends on a results card
+  (`js/scenario.js`, script in `config.scenario`)
 - Multiple cars and two-way traffic, including signals for both directions
 - Movable cameras and signals
 - ~~Near-miss alerts~~ (landed in v1.2) and ~~hotspot heatmap on the dashboard~~ —

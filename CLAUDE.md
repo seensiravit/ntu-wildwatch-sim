@@ -21,6 +21,7 @@ js/config.js      // map, cameras, signals, species, tuning constants
 js/geometry.js    // path, cone, point-in-polygon helpers
 js/animals.js     // animal entity, drag/rotate/release, movement, roadside decisions
 js/spawner.js     // when/where animals arrive (Poisson groups, hotspot), seeded RNG
+js/scenario.js    // preset 3-act scenario: scripted animals on both maps, results card
 js/car.js         // car entity, path following, speed logic
 js/detection.js   // camera <-> animal detection, signal state
 js/render.js      // map + night rendering

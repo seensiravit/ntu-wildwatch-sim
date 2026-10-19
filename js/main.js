@@ -109,7 +109,8 @@
     catch (e) { /* never let the extension break Reset */ }
   }
 
-  // Presenter shortcuts: Space = pause, R = reset.
+  // Presenter shortcuts: Space = pause, R = reset, S = play / replay the preset
+  // scenario, Esc = leave the scenario and return to the live demo.
   function wireKeyboard() {
     window.addEventListener("keydown", (e) => {
       if (e.target && e.target.tagName === "INPUT") return; // don't hijack the slider
@@ -118,7 +119,63 @@
       const k = e.key.toLowerCase();
       if (e.code === "Space" || k === " ") { e.preventDefault(); document.getElementById("btn-pause").click(); }
       else if (k === "r") { document.getElementById("btn-reset").click(); }
+      else if (k === "s") { startScenario(); }
+      else if (k === "escape" && WW.scenario.state.active) { leaveScenario(); }
     });
+  }
+
+  // ---- Preset scenario (js/scenario.js) ----------------------------------
+  // A scripted 3-act comparison with identical animals on both maps. While it
+  // plays there is no auto-demo and no random arrivals; the cars are held
+  // off-map during each act's caption; at the end the sim freezes on a results
+  // card until S (replay) or Esc / Reset (back to the live demo).
+  function startScenario() {
+    stopAttract();
+    resetAll();
+    hideScenarioCard();
+    idleMs = 0;
+    WW.scenario.start(WORLDS);
+  }
+  function leaveScenario() {
+    WW.scenario.stop();
+    hideScenarioCard();
+    resetAll();
+    idleMs = 0;
+  }
+  function hideScenarioCard() {
+    const card = document.getElementById("scenario-card");
+    if (card) { card.hidden = true; card.dataset.shown = ""; }
+  }
+  // Fill and show the results card once (scenario.state.results is set when done).
+  function showScenarioCard() {
+    const card = document.getElementById("scenario-card");
+    const r = WW.scenario.state.results;
+    if (!card || !r || card.dataset.shown === "1") return;
+    card.dataset.shown = "1";
+    const serious = WW.config.scenario.seriousKmh;
+    const row = (label, a, b, unit) =>
+      "<tr><td>" + label + '</td><td class="n off">' + (a === null ? "–" : a + (unit || "")) + '</td><td class="n on">' + (b === null ? "–" : b + (unit || "")) + "</td></tr>";
+    const kmhList = (k) => (k.length ? " (at " + k.join(", ") + " km/h)" : "");
+    const plural = (n, word, pl) => n + " " + (n === 1 ? word : pl || word + "s");
+    const verdict =
+      "<b>Without WildWatch:</b> " + plural(r.off.seriousHits, "serious hit") + kmhList(r.off.hitKmh.filter((v) => v > serious)) +
+      " and " + plural(r.off.nearMiss, "near miss", "near misses") + ". " +
+      "<b>With it:</b> " + plural(r.on.seriousHits, "serious hit") + " and " + plural(r.on.nearMiss, "near miss", "near misses") +
+      (r.on.minorHits ? ", plus " + plural(r.on.minorHits, "low-speed contact") + kmhList(r.on.hitKmh.filter((v) => v <= serious)) : "") +
+      ". The same animals crossed both roads.";
+    card.innerHTML =
+      "<h2>Scenario complete</h2>" +
+      '<p class="sub">Three scripted crossings, identical on both sides. Serious = the car was faster than ' + serious + " km/h when it touched the animal.</p>" +
+      '<table><thead><tr><th></th><th style="text-align:right">System OFF</th><th style="text-align:right">System ON</th></tr></thead><tbody>' +
+      row("Serious hits (over " + serious + " km/h)", r.off.seriousHits, r.on.seriousHits) +
+      row("Low-speed contacts", r.off.minorHits, r.on.minorHits) +
+      row("Near misses", r.off.nearMiss, r.on.nearMiss) +
+      row("Safe passes", r.off.safe, r.on.safe) +
+      row("Average speed at the animal", r.off.avgKmh, r.on.avgKmh, " km/h") +
+      "</tbody></table>" +
+      '<p class="verdict">' + verdict + "</p>" +
+      '<p class="keys"><kbd>S</kbd> replay · <kbd>Esc</kbd> or <kbd>Reset</kbd> back to the live demo</p>';
+    card.hidden = false;
   }
 
   // Match each backing store to its displayed size × DPR, then draw in CSS px.
@@ -148,8 +205,11 @@
 
   // Both cars start each lap together, so they meet the same animals: the
   // OFF car (no slowdown) finishes first and waits off-map for the ON car.
-  function syncLaps(dt) {
+  // `hold` (from the scenario's caption phase) keeps the cars waiting and, once
+  // released, starts the lap at once rather than after the respawn delay.
+  function syncLaps(dt, hold) {
     if (WORLDS.some((w) => w.car.state.visible)) return;
+    if (hold) { lapWaitSec = WW.config.tuning.carRespawnDelaySec; return; }
     lapWaitSec += dt;
     if (lapWaitSec < WW.config.tuning.carRespawnDelaySec) return;
     lapWaitSec = 0;
@@ -160,8 +220,11 @@
     const dt = Math.min((ts - lastTs) / 1000, 0.05) || 0; // seconds, clamped
     lastTs = ts;
 
-    if (!paused) {
-      updateAttract(dt); // idle/spawn timing runs on real time
+    // The preset scenario replaces the auto-demo while it plays, and freezes the
+    // sim (drawing continues) once it is done, until S (replay) or Esc / Reset.
+    const sc = WW.scenario.state;
+    if (!paused && sc.phase !== "done") {
+      if (!sc.active) updateAttract(dt); // idle/spawn timing runs on real time
       // Slow the whole scene while the user is placing/aiming an animal.
       const placing = dragActive || WORLDS.some((w) => w.animals.some((a) => a.state === "placed"));
       const sdt = dt * (placing ? WW.config.tuning.placingTimeScale : 1);
@@ -174,8 +237,10 @@
         WW.detection.update();
         WW.car.update(sdt);
       });
-      syncLaps(sdt);
+      const hold = sc.active ? WW.scenario.update(sdt) : false;
+      syncLaps(sdt, hold);
     }
+    if (sc.phase === "done") showScenarioCard();
 
     // Draw every frame (even when paused, so drag/drop stays responsive).
     WORLDS.forEach((w) => {
@@ -213,7 +278,9 @@
   let hintShown = null;
   function syncHint() {
     const placing = WORLDS.some((w) => w.animals.some((a) => a.state === "placed"));
+    const sc = WW.scenario.state;
     const text = placing ? "Drag the arrow to aim, then click the animal to let it go"
+      : sc.active && sc.phase !== "done" ? sc.title + " — " + sc.caption
       : attractActive ? "Drag an animal onto either road to try it yourself" : null;
     if (text === hintShown || !hintEl) return;
     hintShown = text;
@@ -253,7 +320,9 @@
     // Reset is the only control that clears the scoreboards + scene.
     // (Also wipes the DED dashboard's saved history — kept out of resetAll() so a
     // page load or the first interaction after the auto-demo doesn't erase it.)
-    btnReset.addEventListener("click", () => { stopAttract(); resetAll(); idleMs = 0; clearDashboard(); });
+    btnReset.addEventListener("click", () => { stopAttract(); WW.scenario.stop(); hideScenarioCard(); resetAll(); idleMs = 0; clearDashboard(); });
+
+    document.getElementById("btn-scenario").addEventListener("click", startScenario);
 
     const btnLegend = document.getElementById("btn-legend");
     btnLegend.addEventListener("click", () => {

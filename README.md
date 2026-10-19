@@ -137,10 +137,27 @@ The verge and other-lane responses and the jerk values are estimates.
 If the booth screen is left idle, an **auto-demo** plays, with animals arriving as
 described below; any interaction hands control back to the visitor.
 
+**Preset scenario (▶ Scenario, or `S`).** A scripted, repeatable 3-act comparison, about
+80 seconds, with identical animals on both maps so the only difference is the car:
+
+| Act | What happens | System OFF | System ON |
+|---|---|---|---|
+| 1 · Out of the dark | A macaque is already on the verge; a wild boar steps into the road as the car arrives | near miss, then a hit at ~41 km/h | camera sees them on the verge, signs flash, car stops at the stop line |
+| 2 · A troop crosses | Five macaques cross in a line | near misses one after another, a low-speed hit | waits at the line until the sign clears |
+| 3 · The one that doesn't notice | A slow pangolin crosses from the Hall 15 side and never notices the car | near miss at 50 km/h | stops at the line |
+
+The hint shows each act's caption; the cars wait during captions. At the end the sim
+freezes on a **results card** (serious hits over 30 km/h, low-speed contacts, near misses,
+safe passes, average speed at the animal, per side). `S` replays, `Esc` or **Reset**
+returns to the live demo. The script lives in `js/config.js` → `scenario` (an animal
+with a negative `atSec` is released during the caption, before the cars start, e.g. so
+the sign is already flashing as the warned car approaches).
+
 Extra controls: **Pause** freezes the simulation (drag/drop still works while paused);
 **Reset** clears animals, the log and both scoreboards; **Key** shows the legend;
 **Animal activity** sets how often animals arrive (level 4 = a group every 12 s on
-average, level 10 = every 4.8 s). Shortcuts: Space = pause, R = reset.
+average, level 10 = every 4.8 s). Shortcuts: Space = pause, R = reset, S = scenario,
+Esc = leave the scenario.
 
 ## Animal arrivals and roadside behaviour
 
@@ -242,6 +259,7 @@ js/config.js        All geometry, cameras, signals, species, tuning  <-- edit th
 js/geometry.js      Pure helpers (cones, point-in-polygon)
 js/animals.js       Animal entities: drag / rotate / release / walk, roadside decisions
 js/spawner.js       When and where animals arrive (Poisson groups, hotspot locations)
+js/scenario.js      Preset 3-act scenario (scripted animals, results card)
 js/car.js           Car: path following + speed rules
 js/detection.js     Camera <-> animal detection, signal + log state
 js/render.js        Map + night rendering (road, cones, signals, car, animals)

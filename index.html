@@ -27,6 +27,7 @@
           <input id="rate" type="range" min="1" max="10" step="1" value="4" />
         </label>
         <span class="badge badge-disabled">Day mode – next version</span>
+        <button id="btn-scenario" type="button" title="Play the preset 3-act comparison (S)">▶ Scenario</button>
         <button id="btn-legend" type="button">Key</button>
         <button id="btn-pause" type="button">⏸ Pause</button>
         <button id="btn-reset" type="button">↺ Reset</button>
@@ -57,6 +58,8 @@
         <span class="hint-dot"></span>
         <span id="hint-text">Drag an animal onto either road to try it yourself</span>
       </div>
+      <!-- Preset scenario: results card shown over both maps when it ends (js/scenario.js) -->
+      <div id="scenario-card" class="scenario-card" hidden></div>
 
       <!-- Per-side dashboards: built by dashboard.js -->
       <div class="panel-dash off" id="dash-off"></div>
@@ -74,6 +77,7 @@
   <script src="js/detection.js"></script>
   <script src="js/render.js"></script>
   <script src="js/dashboard.js"></script>
+  <script src="js/scenario.js"></script>
   <script src="js/main.js"></script>
 
   <!-- Team DED dashboard extension (vendored). Loads last so js/config.js has set
