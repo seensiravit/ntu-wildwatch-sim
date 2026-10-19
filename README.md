@@ -216,6 +216,14 @@ Sources:
 - Singapore road crossings, wild boar 68% (Ecosphere 2024): <https://doaj.org/article/c309a3e824954f2d8463f925c73d158d>
 - Sunda pangolins, roadkill and curling up (NParks): <https://avs.nparks.gov.sg/wildlife/encountering-wildlife/pangolins/>
 
+## Further reading
+
+- [docs/scenario.md](docs/scenario.md): the preset scenario act by act, the results card,
+  how to change the script, presenter notes.
+- [docs/simulation-model.md](docs/simulation-model.md): every rule and number behind the
+  demo: how animals arrive, what they do at the roadside, what the driver sees, how the
+  car decides to slow, stop and move on (in priority order), scoring, sources, tuning.
+
 ## Editing the scene (`js/config.js`)
 
 Everything about the scene lives in **`js/config.js`**, in logical map units on a

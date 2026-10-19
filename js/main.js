@@ -159,7 +159,8 @@
     const plural = (n, word, pl) => n + " " + (n === 1 ? word : pl || word + "s");
     const verdict =
       "<b>Without WildWatch:</b> " + plural(r.off.seriousHits, "serious hit") + kmhList(r.off.hitKmh.filter((v) => v > serious)) +
-      " and " + plural(r.off.nearMiss, "near miss", "near misses") + ". " +
+      " and " + plural(r.off.nearMiss, "near miss", "near misses") +
+      (r.off.minorHits ? ", plus " + plural(r.off.minorHits, "low-speed contact") : "") + ". " +
       "<b>With it:</b> " + plural(r.on.seriousHits, "serious hit") + " and " + plural(r.on.nearMiss, "near miss", "near misses") +
       (r.on.minorHits ? ", plus " + plural(r.on.minorHits, "low-speed contact") + kmhList(r.on.hitKmh.filter((v) => v <= serious)) : "") +
       ". The same animals crossed both roads.";
