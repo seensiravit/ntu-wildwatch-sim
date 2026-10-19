@@ -239,11 +239,12 @@
       // the scene is easy to arrange. Set to 0 for a full freeze.
       placingTimeScale: 0.15,
 
-      // The driver spots an animal on the road up to `range` ahead (≈ 32 m, about
-      // how far a dark animal is seen under low beams), and one on the verge only
-      // inside this beam. At 50 km/h an unwarned driver (1.1 s reaction + braking)
-      // can't stop for an animal first seen at the far edge; from ≈ 40 km/h they can.
-      headlight: { fovDeg: 40, range: 230, dimAlpha: 0.4 },
+      // The driver spots an animal on the road up to `range` ahead (≈ 21 m: an
+      // unalerted driver sees a dark animal under low beams at roughly half the
+      // ~34 m an alerted one does), and one on the verge only inside this beam.
+      // At 50 km/h that is just short of the distance needed to stop for an animal
+      // first seen at the edge of the light ("outdriving the headlights").
+      headlight: { fovDeg: 40, range: 150, dimAlpha: 0.4 },
     },
 
     // ---- UI / interaction affordance sizes (logical map units) ----------

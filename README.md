@@ -72,8 +72,9 @@ its hits and near misses with the OFF side.
 The driver is modelled on driving research (sources below):
 
 1. **Noticing.** The driver notices an animal once it is on the road ahead within
-   headlight range (230 units ≈ 32 m, about the distance a dark animal is seen under low
-   beams), or on the verge **inside the headlight beam**. They remember it until they
+   headlight range (150 units ≈ 21 m: an unalerted driver sees a dark animal under low
+   beams at roughly half the ~34 m an alerted one does), or on the verge **inside the
+   headlight beam**. They remember it until they
    have passed it, even if it leaves the beam.
 2. **Reaction.** Speed doesn't change until the perception-reaction time has passed:
    **0.5 s** for an unexpected animal, **0.35 s** once the driver has been warned by a
@@ -104,23 +105,23 @@ The driver is modelled on driving research (sources below):
    end of the zone. A driver who sees the sign too late to stop at the line without
    braking harder than ≈6 m/s² goes through slowly at 20 km/h instead.
 
-At 50 km/h the driver can stop for an animal first seen in the lane at the far edge of
-the headlights (about 21 m needed of the 32 m visible). An animal that steps into the
-lane closer than about 22 m ahead gets hit; a warned driver, already at 20 km/h, needs
-only about 5 m.
+At 50 km/h the driver **cannot** stop for an animal first seen in the lane at the far edge
+of the headlights: reaction plus braking need about 22 m and the light reaches 21 m, so
+the car arrives at the animal still doing about 20 km/h. This is the "outdriving your
+headlights" problem the camera and signs exist to fix. A warned driver, already at
+20 km/h or waiting at the stop line, needs only about 5 m.
 
 **What this means for the demo.** Over 20 fast-forwarded 20-minute demos per layout
 (hits split by the car's speed at contact):
 
 | | Hits OFF → ON | …of which over 30 km/h | …under 5 km/h | Near misses | Safe passes | Avg speed at the animal |
 |---|---|---|---|---|---|---|
-| camera range 250, signs at the camera, driver stops at the line | 108 → 107 | 56 → 26 (−54%) | 11 → 22 | 114 → 21 (−82%) | 312 → 646 | 26 → 11 km/h |
+| headlights 150, camera range 250, signs at the camera, driver stops at the line | 178 → 114 (−36%) | 142 → 27 (−81%) | 6 → 24 | 271 → 38 (−86%) | 69 → 627 | 40 → 12 km/h |
 
-The warning doesn't reduce the *number* of contacts. A warned car waits at the stop line
-and then creeps through the area at 20 km/h, so it spends far longer where animals
-cross, and more of them walk into it at low speed (most ON hits are under 30 km/h). What
-it reduces is **speed at impact**: serious hits fall by half and near misses by four
-fifths. Hits are rare events, so compare many runs, not a few minutes of
+Without the system the driver outdrives the headlights: most contacts happen above
+30 km/h. With it the car waits at the stop line and then creeps through the area, so the
+contacts that remain are mostly animals walking into a slow or stopped car (most ON hits
+are under 30 km/h). Serious hits fall by four fifths and near misses by six sevenths. Hits are rare events, so compare many runs, not a few minutes of
 live demo.
 
 Sources for the driver model: Green (2000), reaction times
