@@ -116,21 +116,20 @@ the car arrives at the animal still doing about 20 km/h. This is the "outdriving
 headlights" problem the camera and signs exist to fix. A warned driver, already at
 20 km/h or waiting at the stop line, needs only about 5 m.
 
-**What this means for the demo.** Over 20 fast-forwarded 20-minute demos per layout
-(hits split by the car's speed at contact; measured before the driver was made to resume
-sooner and drive off briskly, so today's absolute counts differ a little, see the
-short-run study below for current ones):
+**What this means for the demo.** Over 1,500 fast-forwarded 20-minute demos of today's
+settings (the settings study's baseline, 244,000 crossings per side; counts per 100
+animals that reached the road, hits split by the car's speed at contact):
 
 | | Hits OFF → ON | …of which over 30 km/h | …under 5 km/h | Near misses | Safe passes | Avg speed at the animal |
 |---|---|---|---|---|---|---|
-| today's settings (camera 110°, range 250; headlights 150; signs at the camera; driver stops at the line) | 165 → 118 (−28%) | 132 → 23 (−83%) | 4 → 28 | 241 → 19 (−92%) | 49 → 648 | 41 → 9 km/h |
-| same with the earlier 84° camera view | 178 → 114 (−36%) | 142 → 27 (−81%) | 6 → 24 | 271 → 38 (−86%) | 69 → 627 | 40 → 12 km/h |
+| today's settings (camera 110°, range 250; headlights 150; signs at the camera; driver stops at the line) | 5.3 → 3.2 (−39%) | 4.3 → 0.95 (−78%) | 0.2 → 0.4 | 8.6 → 1.0 (−88%) | 1.9 → 21.5 | 41 → 10 km/h |
+| same with the earlier 84° camera view (800 seeds) | 5.9 → 4.0 (−34%) | 4.8 → 1.6 (−66%) | 0.3 → 0.5 | 9.3 → 1.9 (−80%) | 2.0 → 19.0 | 41 → 14 km/h |
 
 Without the system the driver outdrives the headlights: most contacts happen above
 30 km/h. With it the car waits at the stop line and then creeps through the area, so the
 contacts that remain are mostly animals walking into a slow or stopped car (most ON hits
-are under 30 km/h). Serious hits fall by four fifths and near misses by six sevenths. Hits are rare events, so compare many runs, not a few minutes of
-live demo.
+are under 30 km/h). Serious hits fall by four fifths and near misses by seven eighths.
+Hits are rare events, so compare many runs, not a few minutes of live demo.
 
 Sources for the driver model: Green (2000), reaction times
 (<https://www.visualexpert.com/Resources/reactiontime.html>); NCHRP 15-75 reaction-time and
@@ -318,8 +317,11 @@ verge; it prevents about 77% of serious hits. Looking across the road beats look
 it (60% from the same spot facing west). Two cameras prevent about 85% (add x 400 on the
 wildlife verge facing south), three 87%, four 90%, so two is where the benefit levels
 off. The lens matters most: with the old 84°/150 lens one camera prevents only about
-36%. The demo keeps its centreline camera at x 590 facing west for a clearer picture;
-this study is the deployment recommendation. Add `?quick` to the URL for a 15-second
+36%. The demo keeps its centreline camera at x 590 facing west: in the demo loop
+(eastbound traffic, three in four animals from the wildlife verge) it beats the verge
+camera, which cannot see the Hall 15 side until an animal is on the road (settings study
+below). This study's ranking, which averages both directions of travel, is the
+deployment recommendation. Add `?quick` to the URL for a 15-second
 smoke test.
 
 ### Settings study (`research/settings.html`)
@@ -327,8 +329,9 @@ smoke test.
 `research/settings.html` asks a different question: under which settings does the system
 work best, and which settings make the difference between OFF and ON clearest? It runs
 the split-screen demo itself (both sides, same animals, laps started together, exactly
-like `js/main.js`) for 20 simulated minutes per seed, 10 seeds per setting, changing one
-factor at a time from today's settings: camera range, field of view and placement; how
+like `js/main.js`) for 20 simulated minutes per seed, 10 seeds per setting in the
+browser (800 with the Node driver below), changing one factor at a time from today's
+settings: camera range, field of view and placement; how
 far the sign is visible; whether the warned driver stops at the line, and where; the
 warned speed; the driver's headlight range, reaction time and cruise speed; animal
 activity and boldness; and hotspot vs anywhere crossings. It then tries the best level of
@@ -336,18 +339,28 @@ each system-controlled factor together. Hits are split by the car's speed at con
 ("serious" = over 30 km/h) and normalised per 100 crossings so busy and quiet settings
 compare fairly. Results are saved in `research/results/settings-study.csv` / `.json`;
 `?quick` gives a 30-second smoke run. `tuning.stopForSign` exists for this study (false =
-the warned driver only slows to 20 km/h).
+the warned driver only slows to 20 km/h). `node research/run-settings-study.js` runs the
+same study across all cores with 800 seeds per setting and 1,500 for the combined check
+(19,800 runs, about 45 minutes on 22 cores); it gives the same numbers as the page, seed
+for seed, and wrote the results that are checked in.
 
-Findings (250 runs): today's settings are already near the best of the grid, cutting
-serious hits by 78% and near misses by 86%. The one change that helps on both counts is a
-**wider camera view, 110°** (serious ON hits 0.88 → 0.72 per 100 crossings, near misses
-−92%, about +2 s per lap for the warned car). A longer range (350), a 60° view, the other
-two camera positions, a sign visible from only 320, and a stop line 80 units back all did
-worse. Without the stop line, serious hits are unchanged but the near-miss cut drops to
-78% and the total-hit cut to 10%. Busy traffic (a group every 6 s) shows the biggest
-contrast (91%) but makes the warned car wait 13 s more per lap; crossings anywhere along
-the road cut the effect to 23%, which is the case for deploying at a known hotspot. With
-research-mean reaction times (1.1 / 0.7 s) the system still cuts serious hits by 62%.
+Findings (19,800 runs, today's driver): today's settings are the best system
+configuration in the grid, cutting serious hits by 78% (interval 77–79%) and near misses
+by 88%; the ON side has 0.95 serious hits per 100 crossings. No system setting beats it:
+a sign visible from 640 is a tie (0.94), a 350 range or no stop line gives a similar cut
+with a quicker warned lap (+2.3 s instead of +5.1 s) but more serious ON hits (0.99 /
+1.10) and more low-speed contacts; the previous 84° view is clearly worse (1.62, cut
+66%), as are 60° (2.59), range 150 (2.51), a sign visible from only 320 (2.13), the stop
+line 80 units back (1.13) and both other camera positions. The placement study's best
+camera (south verge, x 550, facing north) scores 70% here because it cannot see animals
+coming from the Hall 15 side until they are on the road; at the demo's 75% north
+arrivals the centreline camera wins. The combined check (best level per factor) picked
+only the 640 sign distance: 79% against the baseline's 78% on the same 1,500 seeds, so
+nothing to change. Busy traffic (a group every 6 s) shows the biggest contrast (87%) but
+makes the warned car wait 13 s more per lap; crossings anywhere along the road cut the
+effect to 21%, which is the case for deploying at a known hotspot. With research-mean
+reaction times (1.1 / 0.7 s) the system still cuts serious hits by 72%, and with brighter
+headlights (32 m) by 58%.
 
 ### Short-run reliability study (`research/demo-runs.html`)
 

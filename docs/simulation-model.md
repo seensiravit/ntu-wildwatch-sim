@@ -205,6 +205,6 @@ Full links are in the README ("Animal arrivals and roadside behaviour", "Driver 
 | Busier road | `spawning.meanGapSec` (or the knob) | more events per minute; the warned car waits at the line more, laps slow down; the OFF/ON contrast on the hits tile gets worse (more low-speed contacts) |
 | Braver animals | `species[].traffic.cross` up | more crossings in front of cars on both sides; contrast roughly unchanged |
 | More cautious drivers | `driverReactionSec` down, `headlight.range` up | the OFF side gets safer and the contrast shrinks (headlights 230: serious-hit cut 54% instead of 81%) |
-| Earlier warning | `signSightDistance` up, camera `range` / `fovDeg` | 110° view was the one clear improvement (serious ON hits 0.88 → 0.72 per 100 crossings) |
+| Earlier warning | `signSightDistance` up, camera `range` / `fovDeg` | 110° view is the one clear win over the earlier 84° (serious ON hits 0.95 vs 1.62 per 100 crossings, 800 seeds); 640 sight is a tie with 480, range 350 trades a few more serious hits for a 3 s quicker warned lap |
 | Less creeping | `clearKmh` up, `signClearSec` down | fewer low-speed contacts on the ON side |
 | Different crossing place | `spawning.hotspot`, and the camera position | one camera covers one place: crossings anywhere drop its effect to ~23% |

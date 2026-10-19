@@ -35,9 +35,9 @@
     { id: "range150", factor: "camera range", system: true, label: "camera range 150", apply: (c) => { c.cameras[0].range = 150; } },
     { id: "range350", factor: "camera range", system: true, label: "camera range 350", apply: (c) => { c.cameras[0].range = 350; } },
     { id: "fov60", factor: "camera field of view", system: true, label: "camera 60° view", apply: (c) => { c.cameras[0].fovDeg = 60; } },
-    { id: "fov110", factor: "camera field of view", system: true, label: "camera 110° view", apply: (c) => { c.cameras[0].fovDeg = 110; } },
+    { id: "fov84", factor: "camera field of view", system: true, label: "camera 84° view (previous)", apply: (c) => { c.cameras[0].fovDeg = 84; } },
     { id: "camE", factor: "camera placement", system: true, label: "camera x 400 centreline facing E", apply: cam(400, 380, 0) },
-    { id: "camS", factor: "camera placement", system: true, label: "camera x 490 south verge facing N", apply: cam(490, 430, 270) },
+    { id: "camS", factor: "camera placement", system: true, label: "camera x 550 south verge facing N (placement-study best)", apply: cam(550, 430, 270) },
     { id: "sight320", factor: "sign visible from", system: true, label: "sign visible from 320", apply: (c) => { c.tuning.signSightDistance = 320; } },
     { id: "sight640", factor: "sign visible from", system: true, label: "sign visible from 640", apply: (c) => { c.tuning.signSightDistance = 640; } },
     { id: "line80", factor: "warned driver", system: true, label: "stop line 80 before the area", apply: (c) => { c.tuning.stopBeforeArea = 80; } },
@@ -324,6 +324,6 @@
     });
   }
 
-  window.SettingsStudy = { S, SETTINGS, run, evaluate, runTwin, toCSV, restore };
+  window.SettingsStudy = { S, SETTINGS, run, evaluate, runTwin, summarise, toCSV, restore };
   if (window.addEventListener && typeof document !== "undefined") window.addEventListener("DOMContentLoaded", init);
 })();
