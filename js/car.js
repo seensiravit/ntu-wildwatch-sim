@@ -407,7 +407,13 @@
     // Stopped for an animal or at the stop line: once clear, wait a moment before driving off.
     if (want.stopping && v < 0.5) state.holdSec = t.clearHoldSec;
     else if (state.holdSec > 0) state.holdSec -= dt;
-    state.lineWaitSec = want.atLine && v < 0.5 ? state.lineWaitSec + dt : (want.atLine ? state.lineWaitSec : 0);
+    // Time stopped at the stop line. It is only cleared once the car has driven
+    // past the line, so that after signMaxWaitSec the driver really does give up
+    // and go through (otherwise the clock restarted every frame and the car never
+    // left).
+    const line = zoneHere();
+    if (want.atLine && v < 0.5) state.lineWaitSec += dt;
+    else if (!line || state.s > line.stopS + 1) state.lineWaitSec = 0;
 
     // Wanted acceleration: brake > coast (foot moving to the brake) > hold >
     // speed up (easing in as the target nears) > drift down to the target.

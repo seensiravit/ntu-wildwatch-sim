@@ -49,12 +49,19 @@
     orig.onEncounter = orig.upgradeToHit = null;
   }
 
-  // main.js calls this with the two worlds after resetAll().
+  // main.js calls this with the two worlds after resetAll(). Starting again
+  // while a scenario is running restarts it cleanly (stop() first, so the stats
+  // hook is never installed twice).
   function start(ws) {
+    stop();
     worlds = ws;
     hitKmh = {};
     worlds.forEach((w) => { hitKmh[w.id] = []; });
     hookStats();
+    // Act 1's caption should play like the others, with the cars waiting off-map
+    // (resetAll() has just put them at the lap start); main.js starts the lap
+    // together once the caption ends.
+    worlds.forEach((w) => { w.car.state.visible = false; });
     state.active = true;
     state.results = null;
     state.act = -1;

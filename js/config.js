@@ -280,7 +280,7 @@
           caption: "A macaque is already on the verge; a wild boar follows and steps into the road as the car arrives. Only the camera can see them on the verge.",
           animals: [
             { atSec: -1.5, speciesId: "macaque", x: 440, y: 290, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5 },
-            { atSec: 2.4, speciesId: "boar", x: 500, y: 290, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5 },
+            { atSec: 4.5, speciesId: "boar", x: 500, y: 290, dirDeg: 90, boldness: 0.05, noticeRoll: 0.5 },
           ],
         },
         {
