@@ -337,14 +337,16 @@ near misses, and fewer of at least one) and by today's "Animals hit" tile. Run i
 Node across all cores with `node research/run-demo-runs.js` (~2 min) or in the browser
 (`?quick` for a smoke run).
 
-Findings: on serious hits + near misses the system is ahead in **100% of 10-minute runs**
-at today's settings (88% after 2 min, 98% after 5), and near misses alone also 100%. On
-the hits tile only **63%** of runs show ON lower, 14% equal and **24% higher**: the ON car
-stops at the line or creeps through the hotspot, and animals walk into it at under
-5 km/h, which the tile counts like a 50 km/h hit. No setting fixes that (best 71% / 20%,
-by dropping the stop line, which doubles serious ON hits). The fix is to show impact
-speed on the scoreboard. Because both cars start laps together, OFF rates shift between
-settings; compare shares and the ON column, not OFF across settings.
+Findings (re-run after the driver was made to resume sooner and drive off briskly): on
+serious hits + near misses the system is ahead in **100% of 10-minute runs** at today's
+settings (88% after 2 min, 99% after 5), and near misses alone also 100%. On the hits
+tile as it was ("Animals hit", all contacts together) only **75%** of runs showed ON
+lower, 11% equal and **14% higher**, because the ON car stops at the line or creeps
+through the hotspot and animals walk into it at under 5 km/h. That is why the scoreboard
+now splits hits into serious (over 30 km/h) and low-speed contacts. No setting fixes the
+combined tile (best 77% / 10%, at warned speed 30). Because both cars start laps
+together, OFF rates shift between settings; compare shares and the ON column, not OFF
+across settings.
 
 For the study, `js/car.js` measures a camera's coverage from its whole view footprint
 projected onto the road, so a verge camera that sees the crossing also covers it. It
