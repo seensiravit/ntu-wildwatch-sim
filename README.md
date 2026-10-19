@@ -97,9 +97,9 @@ The driver is modelled on driving research (sources below):
    up gently (≈1.5 m/s²) back to 50 km/h.
 5. **Signs.** Signs are visible from 480 units (≈67 m). A flashing sign means an animal
    is in the crossing area, so a driver who sees one registers it after the 0.5 s
-   reaction time and brakes steadily (≈3.5 m/s²) to a **stop line** 80 units before the
-   camera's coverage begins, clear of the crossing hotspot (drawn as an amber dashed
-   line across the lane while the sign flashes). The car waits there until the sign has been off for 1 s (20 s at most),
+   reaction time and brakes steadily (≈4 m/s²) to a **stop line** 20 units before the
+   camera's coverage begins (x 320 with the current camera, clear of the crossing
+   hotspot; drawn as an amber dashed line across the lane while the sign flashes). The car waits there until the sign has been off for 1 s (20 s at most),
    then drives on at 20 km/h through the area, staying warned (slow and alert) until the
    end of the zone. A driver who sees the sign too late to stop at the line without
    braking harder than ≈6 m/s² goes through slowly at 20 km/h instead.
@@ -114,12 +114,13 @@ only about 5 m.
 
 | | Hits OFF → ON | …of which over 30 km/h | …under 5 km/h | Near misses | Safe passes | Avg speed at the animal |
 |---|---|---|---|---|---|---|
-| signs at the camera, driver stops at the line | 105 → 136 | 63 → 42 (−33%) | 7 → 21 | 151 → 74 (−51%) | 296 → 464 | 28 → 18 km/h |
+| camera range 250, signs at the camera, driver stops at the line | 108 → 107 | 56 → 26 (−54%) | 11 → 22 | 114 → 21 (−82%) | 312 → 646 | 26 → 11 km/h |
 
 The warning doesn't reduce the *number* of contacts. A warned car waits at the stop line
 and then creeps through the area at 20 km/h, so it spends far longer where animals
 cross, and more of them walk into it at low speed (most ON hits are under 30 km/h). What
-it reduces is **speed at impact**: serious hits fall by a third and near misses halve. Hits are rare events, so compare many runs, not a few minutes of
+it reduces is **speed at impact**: serious hits fall by half and near misses by four
+fifths. Hits are rare events, so compare many runs, not a few minutes of
 live demo.
 
 Sources for the driver model: Green (2000), reaction times
@@ -198,7 +199,9 @@ Sources:
 
 Everything about the scene lives in **`js/config.js`**, in logical map units on a
 `1000 × 700` grid. The current map is **Nanyang Crescent opposite Hall 15 (Tamarind
-area)**: one straight road, one overhead camera on the centreline looking west, and
+area)**: one straight road, one overhead camera on the centreline looking west (84° view, 250-unit range, reaching
+about 90 units up the wildlife verge at the hotspot so animals are seen before they step
+out), and
 two warning signs flanking the road at the camera. Traffic drives **eastbound** (left
 to right) toward the camera; drivers see the flashing signs ahead and slow before the
 crossing. The road is a
