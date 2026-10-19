@@ -228,6 +228,8 @@ Sources:
 - [docs/simulation-model.md](docs/simulation-model.md): every rule and number behind the
   demo: how animals arrive, what they do at the roadside, what the driver sees, how the
   car decides to slow, stop and move on (in priority order), scoring, sources, tuning.
+- [docs/presentation-script.md](docs/presentation-script.md): a 2½-minute spoken script
+  for presenting the demo, with timings and where each number comes from.
 
 ## Editing the scene (`js/config.js`)
 
