@@ -213,6 +213,7 @@
       signDecelUnitsPerSec2: 24,        // slowing for a flashing sign ≈ 3.4 m/s² (AASHTO design value)
       // A flashing sign means an animal is in the crossing area: the driver stops
       // before the area (the camera's coverage) and waits for the sign to go off.
+      stopForSign: true,       // false = a warned driver only slows to warnKmh (no stop line); used by research/settings
       stopBeforeArea: 20,      // stop line: this far before the camera's coverage starts (units); with range 250 that is x 320, clear of the hotspot
       signStopMaxDecelUnitsPerSec2: 45, // stop for the sign only if it needs ≤ ≈ 6 m/s²; else go through slowly
       signClearSec: 1.0,       // drive on once the sign has been off this long

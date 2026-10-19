@@ -279,6 +279,33 @@ camera prevents about 45% of near-misses, two about 60%, three about 70% and fou
 72%, so three is where the benefit levels off. Add `?quick` to the URL for a 15-second
 smoke test.
 
+### Settings study (`research/settings.html`)
+
+`research/settings.html` asks a different question: under which settings does the system
+work best, and which settings make the difference between OFF and ON clearest? It runs
+the split-screen demo itself (both sides, same animals, laps started together, exactly
+like `js/main.js`) for 20 simulated minutes per seed, 10 seeds per setting, changing one
+factor at a time from today's settings: camera range, field of view and placement; how
+far the sign is visible; whether the warned driver stops at the line, and where; the
+warned speed; the driver's headlight range, reaction time and cruise speed; animal
+activity and boldness; and hotspot vs anywhere crossings. It then tries the best level of
+each system-controlled factor together. Hits are split by the car's speed at contact
+("serious" = over 30 km/h) and normalised per 100 crossings so busy and quiet settings
+compare fairly. Results are saved in `research/results/settings-study.csv` / `.json`;
+`?quick` gives a 30-second smoke run. `tuning.stopForSign` exists for this study (false =
+the warned driver only slows to 20 km/h).
+
+Findings (250 runs): today's settings are already near the best of the grid, cutting
+serious hits by 78% and near misses by 86%. The one change that helps on both counts is a
+**wider camera view, 110°** (serious ON hits 0.88 → 0.72 per 100 crossings, near misses
+−92%, about +2 s per lap for the warned car). A longer range (350), a 60° view, the other
+two camera positions, a sign visible from only 320, and a stop line 80 units back all did
+worse. Without the stop line, serious hits are unchanged but the near-miss cut drops to
+78% and the total-hit cut to 10%. Busy traffic (a group every 6 s) shows the biggest
+contrast (91%) but makes the warned car wait 13 s more per lap; crossings anywhere along
+the road cut the effect to 23%, which is the case for deploying at a known hotspot. With
+research-mean reaction times (1.1 / 0.7 s) the system still cuts serious hits by 62%.
+
 For the study, `js/car.js` measures a camera's coverage from its whole view footprint
 projected onto the road, so a verge camera that sees the crossing also covers it. It
 also honours an optional `dir` on signals (`config.carDir`). The demo's signs have no

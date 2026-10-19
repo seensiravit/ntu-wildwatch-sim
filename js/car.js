@@ -244,7 +244,8 @@
       // late), or has already passed the line, or has waited long enough, go
       // through slowly at warnKmh instead.
       const z = zoneHere();
-      const busy = z && (WW.detection.isSignalActive(z.signalId) || state.signOffSec < t.signClearSec) &&
+      const busy = t.stopForSign !== false && z &&
+        (WW.detection.isSignalActive(z.signalId) || state.signOffSec < t.signClearSec) &&
         state.lineWaitSec < t.signMaxWaitSec;
       const room = z ? z.stopS - state.s - WW.config.ui.carLen / 2 : -Infinity;
       const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
