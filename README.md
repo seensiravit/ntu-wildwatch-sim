@@ -325,6 +325,25 @@ contrast (91%) but makes the warned car wait 13 s more per lap; crossings anywhe
 the road cut the effect to 23%, which is the case for deploying at a known hotspot. With
 research-mean reaction times (1.1 / 0.7 s) the system still cuts serious hits by 62%.
 
+### Short-run reliability study (`research/demo-runs.html`)
+
+Hits are rare, so a single demo-length run can show the ON side with *more* hits than
+OFF. `research/demo-runs.html` runs the split-screen demo many times (200 seeds × 10 min
+per setting, 2,600 runs, every run recorded in `research/results/demo-runs.csv`) and
+scores each run two ways: by the real benefit (ON has no more serious hits and no more
+near misses, and fewer of at least one) and by today's "Animals hit" tile. Run it in
+Node across all cores with `node research/run-demo-runs.js` (~2 min) or in the browser
+(`?quick` for a smoke run).
+
+Findings: on serious hits + near misses the system is ahead in **100% of 10-minute runs**
+at today's settings (88% after 2 min, 98% after 5), and near misses alone also 100%. On
+the hits tile only **63%** of runs show ON lower, 14% equal and **24% higher**: the ON car
+stops at the line or creeps through the hotspot, and animals walk into it at under
+5 km/h, which the tile counts like a 50 km/h hit. No setting fixes that (best 71% / 20%,
+by dropping the stop line, which doubles serious ON hits). The fix is to show impact
+speed on the scoreboard. Because both cars start laps together, OFF rates shift between
+settings; compare shares and the ON column, not OFF across settings.
+
 For the study, `js/car.js` measures a camera's coverage from its whole view footprint
 projected onto the road, so a verge camera that sees the crossing also covers it. It
 also honours an optional `dir` on signals (`config.carDir`). The demo's signs have no

@@ -74,6 +74,16 @@
   };
 
   // ---- One twin run (mirrors the loop in js/main.js) -----------------------------
+  // opts.onMinute(minute, snapshot) is called at each whole simulated minute with the
+  // cumulative counts so far (used by research/demo-runs.js).
+  function snapshot(w) {
+    const st = w.stats, m = w.m;
+    return {
+      hits: st.hits, serious: m.hitKmh.filter((k) => k > S.seriousKmh).length, crawl: m.hitKmh.filter((k) => k < 5).length,
+      near: st.nearMiss, safe: st.safe, back: st.turnedBack, speedSum: st.speedSum, speedCount: st.speedCount,
+      laps: m.laps, lapSum: m.lapSum, lineWait: m.lineWait, crossings: m.crossings,
+    };
+  }
   function runTwin(seed, minutes, opts) {
     const worlds = [{ id: "off", systemOn: false }, { id: "on", systemOn: true }];
     WW.system = { get enabled() { return curWorld ? curWorld.systemOn : true; } };
@@ -89,9 +99,13 @@
       meanGapSec: () => CFG.spawning.meanGapSec, xDist: opts && opts.xDist,
     });
     const dt = S.dt, end = minutes * 60, halfRoad = CFG.road.roadWidth / 2;
-    let t = 0, lapWait = 0;
+    let t = 0, lapWait = 0, nextMinute = 60;
     while (t < end) {
       t += dt; WW.clock.ms += dt * 1000;
+      if (opts && opts.onMinute && t >= nextMinute - 1e-9) {
+        opts.onMinute(Math.round(nextMinute / 60), worlds.map(snapshot));
+        nextMinute += 60;
+      }
       const onScreen = Math.max.apply(null, worlds.map((w) => w.animals.length));
       stream.due(t).forEach((ev) => { if (onScreen < CFG.spawning.maxConcurrent) WW.animals.spawn(Object.assign({}, ev, { state: "walking" })); });
       worlds.forEach((w) => {
@@ -112,14 +126,7 @@
       }
     }
     curWorld = null;
-    return worlds.map((w) => {
-      const st = w.stats, m = w.m;
-      return {
-        hits: st.hits, serious: m.hitKmh.filter((k) => k > S.seriousKmh).length, crawl: m.hitKmh.filter((k) => k < 5).length,
-        near: st.nearMiss, safe: st.safe, back: st.turnedBack, speedSum: st.speedSum, speedCount: st.speedCount,
-        laps: m.laps, lapSum: m.lapSum, lineWait: m.lineWait, crossings: m.crossings,
-      };
-    });
+    return worlds.map(snapshot);
   }
 
   // ---- Evaluate a setting over seeds ------------------------------------------------
