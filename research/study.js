@@ -3,7 +3,9 @@
  * Runs the demo's own simulation modules (animals, car, detection, stats)
  * headlessly on a fixed timestep, for many camera layouts, against the SAME
  * seeded schedules of animal crossings, and compares each layout with a
- * "no system" baseline. Scored in four scenarios: {hotspot, uniform crossings}
+ * "no system" baseline. Headline: serious hits (car faster than
+ * config.scenario.seriousKmh at contact) prevented; also near misses and all
+ * dangerous encounters (hits + near misses). Scored in four scenarios: {hotspot, uniform crossings}
  * x {eastbound, westbound traffic}.
  *
  * Stages: 1) every single-camera setup (5 positions x 3 lateral x 8 directions),
@@ -42,11 +44,12 @@
       { id: "south", label: "south verge", y: 430 }, // Hall 15 side
     ],
     lens: {
-      wide: { fovDeg: 84, range: 150, label: "wide 84°/150" },   // today
+      today: { fovDeg: CFG.cameras[0].fovDeg, range: CFG.cameras[0].range, label: "today " + CFG.cameras[0].fovDeg + "°/" + CFG.cameras[0].range },
+      wide: { fovDeg: 84, range: 150, label: "wide 84°/150" },   // the first study's camera
       standard: { fovDeg: 60, range: 200, label: "standard 60°/200" },
       narrow: { fovDeg: 40, range: 260, label: "narrow 40°/260" },
     },
-    sights: [320, 200],
+    sights: [CFG.tuning.signSightDistance, 320], // today's sign visibility, and a shorter one
   };
   // Eight compass directions (screen angles: 0 = east, 90 = south). Includes
   // facing away from the road, i.e. watching a verge for animals approaching it.
@@ -188,6 +191,7 @@
     // The study's "near-miss" counts every dangerous encounter: hits plus near
     // misses (the sim now tells them apart). "avoided" = safe passes.
     m.hits = st.hits;
+    m.serious = st.seriousHits;
     m.turnedBack = st.turnedBack;
     m.nearMiss = st.hits + st.nearMiss; m.avoided = st.safe; m.speedSum = st.speedSum; m.speedCount = st.speedCount;
     m.detections = st.detections;
@@ -203,7 +207,7 @@
   const baselineCache = {};
   function baseline(pattern, dir, seed) {
     const k = pattern + dir + seed;
-    return baselineCache[k] || (baselineCache[k] = runOnce(null, pattern, dir, seed, 320));
+    return baselineCache[k] || (baselineCache[k] = runOnce(null, pattern, dir, seed, S.sights[0]));
   }
 
   function sum(runs, key) { return runs.reduce((acc, r) => acc + r[key], 0); }
@@ -219,10 +223,15 @@
           on.push(runOnce(layout, pattern, dir, seed, sight));
           await work();
         }
+        const cut = (a, b) => (a ? 1 - b / a : 0);
+        const serOff = sum(off, "serious"), serOn = sum(on, "serious");
         const nmOff = sum(off, "nearMiss"), nmOn = sum(on, "nearMiss");
+        const nearOff = nmOff - sum(off, "hits"), nearOn = nmOn - sum(on, "hits");
         scen.push({
-          pattern, dir, nmOff, nmOn,
-          reduction: nmOff ? 1 - nmOn / nmOff : 0,
+          pattern, dir, serOff, serOn, nmOff, nmOn, nearOff, nearOn,
+          reduction: cut(serOff, serOn),   // serious hits prevented (the headline)
+          dangerCut: cut(nmOff, nmOn),     // all dangerous encounters (hits + near misses)
+          nearCut: cut(nearOff, nearOn),   // near misses alone
           extraLap: sum(on, "lapSum") / Math.max(1, sum(on, "laps")) - sum(off, "lapSum") / Math.max(1, sum(off, "laps")),
           on,
         });
@@ -235,7 +244,10 @@
       cams: layout.length,
       reduction: avg(scen.map((s) => s.reduction)),
       worst: Math.min.apply(null, scen.map((s) => s.reduction)),
-      byScenario: scen.map((s) => ({ pattern: s.pattern, dir: s.dir, reduction: s.reduction, nmOff: s.nmOff, nmOn: s.nmOn })),
+      dangerCut: avg(scen.map((s) => s.dangerCut)),
+      nearCut: avg(scen.map((s) => s.nearCut)),
+      seriousOn: sum(all, "serious"), seriousOff: scen.reduce((a, s) => a + s.serOff, 0),
+      byScenario: scen.map((s) => ({ pattern: s.pattern, dir: s.dir, reduction: s.reduction, serOff: s.serOff, serOn: s.serOn, dangerCut: s.dangerCut, nearCut: s.nearCut })),
       early: crossings ? sum(all, "early") / crossings : 0,
       protectedPct: onRoad ? sum(all, "protectedSteps") / onRoad : 0,
       extraLap: avg(scen.map((s) => s.extraLap)),
@@ -245,17 +257,20 @@
   }
   function avg(a) { return a.reduce((x, y) => x + y, 0) / (a.length || 1); }
 
-  // Ranking: near-miss reduction (to 0.5 %), then protected time, then driver delay.
+  // Ranking: serious-hit reduction (to 0.5 %), then near-miss reduction, then
+  // protected time, then driver delay.
   function compare(a, b) {
     const ra = Math.round(a.res.reduction * 200), rb = Math.round(b.res.reduction * 200);
     if (ra !== rb) return rb - ra;
+    const na = Math.round(a.res.nearCut * 200), nb = Math.round(b.res.nearCut * 200);
+    if (na !== nb) return nb - na;
     if (Math.abs(a.res.protectedPct - b.res.protectedPct) > 0.005) return b.res.protectedPct - a.res.protectedPct;
     return a.res.extraLap - b.res.extraLap;
   }
 
   // ---- Layout helpers --------------------------------------------------------
   function cam(x, lat, face, lens) {
-    const l = lens || S.lens.wide;
+    const l = lens || S.lens.today;
     return { x, y: lat.y, facingAngleDeg: face.deg, fovDeg: l.fovDeg, range: l.range,
       label: "x" + x + " · " + lat.label + " · " + face.label, latId: lat.id, faceId: face.id };
   }
@@ -288,7 +303,7 @@
 
     // Stage 1: every single camera.
     ui.status("Stage 1: " + singles.length + " single-camera setups");
-    for (const L of singles) result.stage1.push({ label: layoutLabel(L), layout: L, res: await evaluate(L, S.seeds, 320, work) });
+    for (const L of singles) result.stage1.push({ label: layoutLabel(L), layout: L, res: await evaluate(L, S.seeds, S.sights[0], work) });
     result.stage1.sort(compare);
 
     // Stage 2a: greedy forward selection from the best single cameras.
@@ -301,7 +316,7 @@
       for (const c of pool) {
         if (current.indexOf(c) >= 0) continue;
         const L = current.concat([c]);
-        tried.push({ label: layoutLabel(L), layout: L, res: await evaluate(L, S.greedySeeds, 320, work) });
+        tried.push({ label: layoutLabel(L), layout: L, res: await evaluate(L, S.greedySeeds, S.sights[0], work) });
       }
       tried.sort(compare);
       current = tried[0].layout;
@@ -325,11 +340,11 @@
     ui.status("Stage 2: re-running finalists with " + S.finalSeeds.length + " seeds");
     for (const g of result.greedy) {
       result.finals.push({ kind: "greedy", name: g.layout.length + " camera" + (g.layout.length > 1 ? "s" : "") + " (best found)",
-        label: g.label, layout: g.layout, res: await evaluate(g.layout, S.finalSeeds, 320, work) });
+        label: g.label, layout: g.layout, res: await evaluate(g.layout, S.finalSeeds, S.sights[0], work) });
     }
     for (const h of hand) {
       result.finals.push({ kind: "hand", name: h.name, label: layoutLabel(h.layout), layout: h.layout,
-        res: await evaluate(h.layout, S.finalSeeds, 320, work) });
+        res: await evaluate(h.layout, S.finalSeeds, S.sights[0], work) });
     }
 
     // Stage 3: sensitivity of the best layout per camera count.
@@ -357,13 +372,14 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   function scenCells(res) {
-    return res.byScenario.map((s) => "<td>" + pct(s.reduction) + ' <span class="muted">(' + s.nmOff + "→" + s.nmOn + ")</span></td>").join("");
+    return res.byScenario.map((s) => "<td>" + pct(s.reduction) + ' <span class="muted">(' + s.serOff + "→" + s.serOn + ")</span></td>").join("");
   }
   const SCEN_HEAD = "<th>Hotspot · E</th><th>Hotspot · W</th><th>Uniform · E</th><th>Uniform · W</th>";
-  const METRIC_HEAD = "<th>Near-miss cut (mean)</th><th>Worst scenario</th>" + SCEN_HEAD +
-    "<th>Early detection</th><th>Protected time</th><th>Extra s / lap</th><th>Unneeded slowdown</th>";
+  const METRIC_HEAD = "<th>Serious-hit cut (mean)</th><th>Worst scenario</th>" + SCEN_HEAD +
+    "<th>Near-miss cut</th><th>Dangerous cut (hits+near)</th><th>Early detection</th><th>Protected time</th><th>Extra s / lap</th><th>Unneeded slowdown</th>";
   function metricCells(res) {
     return '<td class="strong">' + pct(res.reduction) + "</td><td>" + pct(res.worst) + "</td>" + scenCells(res) +
+      "<td>" + pct(res.nearCut) + "</td><td>" + pct(res.dangerCut) + "</td>" +
       "<td>" + pct(res.early) + "</td><td>" + pct(res.protectedPct) + "</td><td>" + num(res.extraLap) + "</td><td>" + pct(res.unneeded) + "</td>";
   }
 
@@ -378,12 +394,12 @@
     const s3 = r.stage3.map((x) => "<tr><td>" + x.cams + "</td><td>" + esc(x.lens) + "</td><td>" + x.sight + "</td>" + metricCells(x.res) + "</tr>").join("");
     out.innerHTML =
       "<h2>Recommended layouts</h2><p class=\"muted\">Best layout found for each number of cameras (finals, " + S.finalSeeds.length +
-      " seeds), drawn on the map. The bars show near-miss reduction vs no system.</p>" +
+      " seeds), drawn on the map. The bars show serious-hit reduction vs no system.</p>" +
       '<div class="layouts" id="layouts"></div>' +
       "<h2>Stage 2: number of cameras</h2>" +
       table("<th>Layout</th><th>Cameras</th>" + METRIC_HEAD, fin, false) +
       "<h2>Stage 1: one camera, " + r.stage1.length + " setups</h2><p class=\"muted\">Click a column to sort. " +
-      "Each scenario cell shows the reduction and the near-miss count without → with (summed over " + S.seeds.length + " seeds).</p>" +
+      "Each scenario cell shows the serious-hit reduction and the serious-hit count without → with (summed over " + S.seeds.length + " seeds). Serious = the car was faster than " + ((CFG.scenario && CFG.scenario.seriousKmh) || 30) + " km/h at contact.</p>" +
       table("<th>#</th><th>Camera</th>" + METRIC_HEAD, s1, true) +
       "<h2>Stage 3: sensitivity (lens, driver sight distance)</h2>" +
       table("<th>Cameras</th><th>Lens</th><th>Sight</th>" + METRIC_HEAD, s3, true);
@@ -400,7 +416,7 @@
       const c = document.createElement("canvas");
       c.width = 500; c.height = 260;
       card.appendChild(c);
-      card.insertAdjacentHTML("beforeend", "<div><b>" + esc(f.name) + "</b> · near-miss cut " + pct(f.res.reduction) +
+      card.insertAdjacentHTML("beforeend", "<div><b>" + esc(f.name) + "</b> · serious-hit cut " + pct(f.res.reduction) +
         " (worst " + pct(f.res.worst) + ")</div>" +
         '<div class="bar"><span style="width:' + Math.max(0, f.res.reduction * 100).toFixed(1) + '%"></span></div>' +
         '<div class="muted small">' + esc(f.label) + "</div>");
@@ -454,10 +470,11 @@
   }
 
   function toCSV(r) {
-    const head = ["stage", "name", "layout", "cameras", "lens", "sight", "reduction_mean", "reduction_worst",
-      "hotspot_E", "hotspot_W", "uniform_E", "uniform_W", "early_detection", "protected_time", "extra_s_per_lap", "unneeded_slowdown"];
-    const row = (stage, name, label, res, lens, sight) => [stage, name, label, res.cams, lens || "wide 84°/150", sight || 320,
-      res.reduction, res.worst].concat(res.byScenario.map((s) => s.reduction)).concat([res.early, res.protectedPct, res.extraLap, res.unneeded]);
+    const head = ["stage", "name", "layout", "cameras", "lens", "sight", "serious_cut_mean", "serious_cut_worst",
+      "hotspot_E", "hotspot_W", "uniform_E", "uniform_W", "serious_off", "serious_on", "near_cut", "danger_cut",
+      "early_detection", "protected_time", "extra_s_per_lap", "unneeded_slowdown"];
+    const row = (stage, name, label, res, lens, sight) => [stage, name, label, res.cams, lens || S.lens.today.label, sight || S.sights[0],
+      res.reduction, res.worst].concat(res.byScenario.map((s) => s.reduction)).concat([res.seriousOff, res.seriousOn, res.nearCut, res.dangerCut, res.early, res.protectedPct, res.extraLap, res.unneeded]);
     const rows = []
       .concat(r.stage1.map((x) => row("1", "single", x.label, x.res)))
       .concat(r.finals.map((x) => row("2", x.name, x.label, x.res)))
@@ -476,7 +493,7 @@
     const csv = document.getElementById("csv");
     document.getElementById("settings").textContent =
       S.crossings + " animals per run (a group every " + S.meanGapSec + " s on average) · seeds: " + S.seeds.length + " (stage 1), " + S.greedySeeds.length + " (greedy), " +
-      S.finalSeeds.length + " (finals) · step " + (1000 * S.dt).toFixed(0) + " ms" + (QUICK ? " · QUICK MODE" : "");
+      S.finalSeeds.length + " (finals) · step " + (1000 * S.dt).toFixed(0) + " ms · lens " + S.lens.today.label + ", sign visible from " + S.sights[0] + (QUICK ? " · QUICK MODE" : "");
     const ui = {
       progress: (f, text) => { bar.style.width = (f * 100).toFixed(1) + "%"; label.textContent = text; },
       status: (text) => { status.textContent = text; },
