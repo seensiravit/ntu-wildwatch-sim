@@ -63,7 +63,10 @@
       grid.appendChild(t);
     };
     // The three encounter outcomes (see car.js detectEncounters), worst first.
-    tile("hits", "Animals hit", "danger");
+    // Serious = contact above config.scenario.seriousKmh; low-speed contacts are
+    // mostly animals walking into a car that has stopped or is creeping.
+    tile("serious", "Serious hits", "danger");
+    tile("minor", "Low-speed contacts", "");
     tile("nearMiss", "Near misses", "warn");
     tile("safe", "Safe passes", "safe");
     stats.appendChild(grid);
@@ -124,7 +127,8 @@
     const s = WW.stats.state;
     const avg = WW.stats.avgKmh();
 
-    setText(p.nums.hits, s.hits);
+    setText(p.nums.serious, s.seriousHits);
+    setText(p.nums.minor, s.hits - s.seriousHits);
     setText(p.nums.nearMiss, s.nearMiss);
     setText(p.nums.safe, s.safe);
     setText(p.foot, "Avg " + (avg === null ? "–" : avg) + " km/h at the animal · " +
@@ -135,10 +139,10 @@
       setText(p.summary, s.hits + s.nearMiss + s.safe
         ? "No early warning: the driver only reacts once an animal is in the headlights."
         : "Same animals as the right side. Watch what the driver does.");
-    } else if (offStats.hits + offStats.nearMiss === 0 && s.hits + s.nearMiss === 0) {
+    } else if (offStats.seriousHits + offStats.nearMiss === 0 && s.seriousHits + s.nearMiss === 0) {
       setText(p.summary, cfg.brand.insight);
     } else {
-      setText(p.summary, "Animals hit: " + offStats.hits + " without → " + s.hits + " with WildWatch. " +
+      setText(p.summary, "Serious hits: " + offStats.seriousHits + " without → " + s.seriousHits + " with WildWatch. " +
         "Near misses: " + offStats.nearMiss + " → " + s.nearMiss + ".");
     }
 
@@ -300,7 +304,8 @@
     const html =
       '<div class="ww-tablebox"><table class="ww-table wwx-table"><thead><tr>' +
       "<th>Measure</th><th>Without WildWatch</th><th>With WildWatch</th><th>Difference</th></tr></thead><tbody>" +
-      row("Animals hit", ofEnc(off.hits, off), ofEnc(on.hits, on), fewer(off.hits, on.hits)) +
+      row("Serious hits (over " + ((WW.config.scenario && WW.config.scenario.seriousKmh) || 30) + " km/h)", ofEnc(off.seriousHits, off), ofEnc(on.seriousHits, on), fewer(off.seriousHits, on.seriousHits)) +
+      row("Low-speed contacts", ofEnc(off.hits - off.seriousHits, off), ofEnc(on.hits - on.seriousHits, on), "mostly animals walking into a stopped or creeping car") +
       row("Near misses", ofEnc(off.nearMiss, off), ofEnc(on.nearMiss, on), fewer(off.nearMiss, on.nearMiss)) +
       row("Safe passes", ofEnc(off.safe, off), ofEnc(on.safe, on), "car had slowed down in time") +
       row("Avg speed at the animal", unit(offAvg, " km/h"), unit(onAvg, " km/h"),

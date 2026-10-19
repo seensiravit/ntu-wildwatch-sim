@@ -100,10 +100,12 @@ The driver is modelled on driving research (sources below):
    is in the crossing area, so a driver who sees one registers it after the 0.5 s
    reaction time and brakes steadily (≈4 m/s²) to a **stop line** 20 units before the
    camera's coverage begins (x 320 with the current camera, clear of the crossing
-   hotspot; drawn as an amber dashed line across the lane while the sign flashes). The car waits there until the sign has been off for 1 s (20 s at most),
-   then drives on at 20 km/h through the area, staying warned (slow and alert) until the
-   end of the zone. A driver who sees the sign too late to stop at the line without
-   braking harder than ≈6 m/s² goes through slowly at 20 km/h instead.
+   hotspot; drawn as an amber dashed line across the lane while the sign flashes). The
+   car waits there until the sign has been off for 0.5 s (20 s at most), then drives on:
+   at 20 km/h while the sign is still flashing, otherwise at 35 km/h (`tuning.clearKmh`)
+   through the area, alert, and back to cruise past the end of the zone. A driver who
+   sees the sign too late to stop at the line without braking harder than ≈6 m/s² goes
+   through slowly instead.
 
 At 50 km/h the driver **cannot** stop for an animal first seen in the lane at the far edge
 of the headlights: reaction plus braking need about 22 m and the light reaches 21 m, so

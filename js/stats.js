@@ -11,6 +11,7 @@
     return {
       detections: 0,   // animals seen by a camera (system on only)
       hits: 0,         // the car and an animal touched
+      seriousHits: 0,  // ...of which the car was faster than config.scenario.seriousKmh
       nearMiss: 0,     // the car came at an animal fast but didn't touch it
       safe: 0,         // the car had already slowed down, no contact
       turnedBack: 0,   // animals that turned back at the roadside because of the car
@@ -26,6 +27,7 @@
   function reset() {
     state.detections = 0;
     state.hits = 0;
+    state.seriousHits = 0;
     state.nearMiss = 0;
     state.safe = 0;
     state.turnedBack = 0;
@@ -40,22 +42,26 @@
   function onTurnedBack() { state.turnedBack++; }
 
   // One car–animal encounter ended. kind: "hit" | "near" | "safe" (see car.js).
+  // For a hit, kmh is the car's speed at contact; above seriousKmh it is serious.
   function onEncounter(kind, x, y, kmh) {
     state.speedSum += kmh; state.speedCount++;
     if (kind === "safe") { state.safe++; return; }
-    if (kind === "hit") state.hits++;
+    if (kind === "hit") { state.hits++; if (kmh > seriousKmh()) state.seriousHits++; }
     else state.nearMiss++;
     state.markers.push({ x: x, y: y, bornMs: (WW.clock && WW.clock.ms) || 0, kind: kind });
   }
 
   // An encounter already counted as "near" or "safe" ended in contact after all
   // (e.g. the animal walked into the car once it had stopped): move it to hits.
-  function upgradeToHit(from, x, y) {
+  function upgradeToHit(from, x, y, kmh) {
     if (from === "near") state.nearMiss--;
     else if (from === "safe") state.safe--;
     state.hits++;
+    if (kmh > seriousKmh()) state.seriousHits++;
     state.markers.push({ x: x, y: y, bornMs: (WW.clock && WW.clock.ms) || 0, kind: "hit" });
   }
+
+  function seriousKmh() { return (WW.config.scenario && WW.config.scenario.seriousKmh) || 30; }
 
   // Average car speed at the crossing (null when no data yet).
   function avgKmh() { return state.speedCount ? Math.round(state.speedSum / state.speedCount) : null; }

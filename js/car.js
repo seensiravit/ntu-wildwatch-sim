@@ -254,8 +254,12 @@
         want(0, Math.min(cap, v < t.finishSpeedUnits ? Math.max(need, t.signDecelUnitsPerSec2) : need));
         p.stopping = true;
         p.atLine = true;
-      } else {
+      } else if (z && WW.detection.isSignalActive(z.signalId)) {
+        // Through a busy area (sign still flashing, couldn't stop): crawl.
         want(kmhToUnits(t.warnKmh), t.signDecelUnitsPerSec2);
+      } else {
+        // Sign off: still alert, but back up to clearKmh through the area.
+        want(kmhToUnits(t.clearKmh), t.signDecelUnitsPerSec2);
       }
     }
 
@@ -338,7 +342,7 @@
       if (touches(a)) {
         scored.set(a.id, "hit");
         pending.delete(a.id);
-        if (done) WW.stats.upgradeToHit(done, a.x, a.y);
+        if (done) WW.stats.upgradeToHit(done, a.x, a.y, kmh);
         else WW.stats.onEncounter("hit", a.x, a.y, kmh);
         continue;
       }

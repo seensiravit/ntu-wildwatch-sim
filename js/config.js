@@ -208,15 +208,18 @@
       finishSpeedUnits: 11,    // below ≈ 5.5 km/h, brake exactly as needed to land on the stop point
       maxDecelUnitsPerSec2: 57.6,       // emergency limit ≈ 8 m/s² (≈ 0.8 g)
       stopGap: 15,             // aim to halt this far short of the animal (units)
-      clearHoldSec: 0.5,       // once the animal has cleared, wait this long before driving off
-      accelUnitsPerSec2: 10.8, // then speed up at ≈ 1.5 m/s² (normal driving)
+      clearHoldSec: 0.3,       // once the animal has cleared, wait this long before driving off
+      accelUnitsPerSec2: 18,   // then speed up at ≈ 2.5 m/s² (0 -> 50 km/h in about 6 s; brisk normal driving)
+      // After the sign goes off, the driver stays alert but gets back up to speed:
+      // through the camera's area at clearKmh, cruise again once past it.
+      clearKmh: 35,
       signDecelUnitsPerSec2: 24,        // slowing for a flashing sign ≈ 3.4 m/s² (AASHTO design value)
       // A flashing sign means an animal is in the crossing area: the driver stops
       // before the area (the camera's coverage) and waits for the sign to go off.
       stopForSign: true,       // false = a warned driver only slows to warnKmh (no stop line); used by research/settings
       stopBeforeArea: 20,      // stop line: this far before the camera's coverage starts (units); with range 250 that is x 320, clear of the hotspot
       signStopMaxDecelUnitsPerSec2: 45, // stop for the sign only if it needs ≤ ≈ 6 m/s²; else go through slowly
-      signClearSec: 1.0,       // drive on once the sign has been off this long
+      signClearSec: 0.5,       // drive on once the sign has been off this long
       signMaxWaitSec: 20,      // ...or after waiting this long at the line (then go through slowly)
       otherLaneDecelUnitsPerSec2: 18,   // animal in the other lane: slow at ≈ 2.5 m/s² (up to 5 if needed) ...
       otherLaneStopDecelUnitsPerSec2: 36, // ...to a speed it could still stop from at ≈ 5 m/s² if it steps across
@@ -266,7 +269,7 @@
     // is set against the OFF car at 50 km/h (x 500 at 5.4 s into a lap).
     scenario: {
       captionPauseSec: 2.5, // pause between acts (caption on screen, cars waiting)
-      seriousKmh: 30,       // a hit above this counts as serious on the results card
+      seriousKmh: 30,       // a hit above this counts as serious on the results card (and the scoreboard)
       // atSec is seconds after both cars start the act's lap; negative = that many
       // seconds BEFORE they start (released during the caption), e.g. an animal that
       // is already in the camera's view so the sign is flashing as the warned car

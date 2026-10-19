@@ -243,7 +243,7 @@ html, body {
 
 /* Impact scoreboard */
 .stats-card { padding: 10px; }
-.stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
 .stat-num { font-size: 28px; font-weight: 700; line-height: 1.1; }
 /* Each outcome tile gets a colour-coded top edge: hit (red), near miss (orange), safe (green). */
