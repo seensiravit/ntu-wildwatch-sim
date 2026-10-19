@@ -116,7 +116,8 @@ headlights" problem the camera and signs exist to fix. A warned driver, already 
 
 | | Hits OFF → ON | …of which over 30 km/h | …under 5 km/h | Near misses | Safe passes | Avg speed at the animal |
 |---|---|---|---|---|---|---|
-| headlights 150, camera range 250, signs at the camera, driver stops at the line | 178 → 114 (−36%) | 142 → 27 (−81%) | 6 → 24 | 271 → 38 (−86%) | 69 → 627 | 40 → 12 km/h |
+| today's settings (camera 110°, range 250; headlights 150; signs at the camera; driver stops at the line) | 165 → 118 (−28%) | 132 → 23 (−83%) | 4 → 28 | 241 → 19 (−92%) | 49 → 648 | 41 → 9 km/h |
+| same with the earlier 84° camera view | 178 → 114 (−36%) | 142 → 27 (−81%) | 6 → 24 | 271 → 38 (−86%) | 69 → 627 | 40 → 12 km/h |
 
 Without the system the driver outdrives the headlights: most contacts happen above
 30 km/h. With it the car waits at the stop line and then creeps through the area, so the
@@ -200,9 +201,9 @@ Sources:
 
 Everything about the scene lives in **`js/config.js`**, in logical map units on a
 `1000 × 700` grid. The current map is **Nanyang Crescent opposite Hall 15 (Tamarind
-area)**: one straight road, one overhead camera on the centreline looking west (84° view, 250-unit range, reaching
-about 90 units up the wildlife verge at the hotspot so animals are seen before they step
-out), and
+area)**: one straight road, one overhead camera on the centreline looking west (110° view, 250-unit range, reaching
+well up the wildlife verge at the hotspot so animals are seen before they step out; the
+settings study found 110° cut serious hits most), and
 two warning signs flanking the road at the camera. Traffic drives **eastbound** (left
 to right) toward the camera; drivers see the flashing signs ahead and slow before the
 crossing. The road is a

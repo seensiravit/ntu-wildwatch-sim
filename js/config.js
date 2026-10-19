@@ -98,7 +98,7 @@
         x: 590,
         y: 380,              // on the centreline (same y as the road)
         facingAngleDeg: 180, // look west, along the road
-        fovDeg: 84,          // wide: covers the road plus both verges
+        fovDeg: 110,         // wide: covers the road plus both verges (research/settings: 110° cut serious hits most)
         range: 250,          // reaches ~90 units up the wildlife verge at the hotspot, so animals are seen before they step out
       },
     ],
