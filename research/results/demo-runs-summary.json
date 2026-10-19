@@ -30,8 +30,8 @@
      "off": 0
     },
     "serious": {
-     "on": 0.95,
-     "tie": 0.05,
+     "on": 0.935,
+     "tie": 0.065,
      "off": 0
     },
     "near": {
@@ -40,134 +40,134 @@
      "off": 0
     },
     "hits": {
-     "on": 0.75,
-     "tie": 0.105,
-     "off": 0.145
+     "on": 0.74,
+     "tie": 0.095,
+     "off": 0.165
     },
     "dist": {
      "offSerious": {
-      "p10": 2,
+      "p10": 1,
       "median": 4,
       "p90": 6,
-      "mean": 3.72
+      "mean": 3.68
      },
      "onSerious": {
       "p10": 0,
       "median": 0,
       "p90": 2,
-      "mean": 0.705
+      "mean": 0.725
      },
      "offNear": {
       "p10": 4,
       "median": 7,
       "p90": 10,
-      "mean": 7.17
+      "mean": 7.245
      },
      "onNear": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 0.845
+      "mean": 0.915
      },
      "offHits": {
       "p10": 2,
       "median": 4,
       "p90": 7,
-      "mean": 4.505
+      "mean": 4.52
      },
      "onHits": {
       "p10": 0,
       "median": 2,
       "p90": 5,
-      "mean": 2.47
+      "mean": 2.49
      },
      "hitDiff": {
       "p10": -5,
       "median": -2,
       "p90": 1,
-      "mean": -2.035
+      "mean": -2.03
      }
     },
     "per100": {
-     "offSerious": 4.5739579490962745,
-     "onSerious": 0.8765386049981351,
-     "offNear": 8.815935079306529,
-     "onNear": 1.050603008827552,
-     "offHits": 5.5391614410426655,
-     "onHits": 3.070993410418998
+     "offSerious": 4.530624807633118,
+     "onSerious": 0.9020217729393468,
+     "offNear": 8.9196675900277,
+     "onNear": 1.1384136858475895,
+     "offHits": 5.564789165897199,
+     "onHits": 3.0979782270606533
     },
-    "onLapSec": 16.41802607640416,
-    "offLapSec": 11.30088351603948,
-    "lineWaitPerLap": 2.390380533656678,
+    "onLapSec": 16.31011501179678,
+    "offLapSec": 11.297209371731597,
+    "lineWaitPerLap": 2.4418185927375875,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.745,
+      "A": 0.75,
       "hits": 0.335,
-      "hitsWorse": 0.075,
-      "seriousNear": 0.745
+      "hitsWorse": 0.08,
+      "seriousNear": 0.75
      },
      {
       "minute": 2,
-      "A": 0.875,
-      "hits": 0.41,
-      "hitsWorse": 0.125,
-      "seriousNear": 0.89
+      "A": 0.88,
+      "hits": 0.405,
+      "hitsWorse": 0.145,
+      "seriousNear": 0.895
      },
      {
       "minute": 3,
       "A": 0.95,
-      "hits": 0.515,
-      "hitsWorse": 0.18,
+      "hits": 0.51,
+      "hitsWorse": 0.195,
       "seriousNear": 0.975
      },
      {
       "minute": 4,
-      "A": 0.975,
-      "hits": 0.57,
-      "hitsWorse": 0.18,
+      "A": 0.965,
+      "hits": 0.555,
+      "hitsWorse": 0.205,
       "seriousNear": 0.985
      },
      {
       "minute": 5,
-      "A": 0.985,
+      "A": 0.975,
       "hits": 0.625,
-      "hitsWorse": 0.165,
+      "hitsWorse": 0.185,
       "seriousNear": 0.99
      },
      {
       "minute": 6,
-      "A": 0.995,
-      "hits": 0.65,
-      "hitsWorse": 0.185,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 7,
-      "A": 0.995,
-      "hits": 0.67,
-      "hitsWorse": 0.21,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 8,
-      "A": 0.995,
-      "hits": 0.7,
+      "A": 0.99,
+      "hits": 0.635,
       "hitsWorse": 0.195,
       "seriousNear": 1
      },
      {
-      "minute": 9,
+      "minute": 7,
       "A": 0.99,
-      "hits": 0.735,
-      "hitsWorse": 0.155,
+      "hits": 0.66,
+      "hitsWorse": 0.21,
       "seriousNear": 1
+     },
+     {
+      "minute": 8,
+      "A": 0.99,
+      "hits": 0.7,
+      "hitsWorse": 0.205,
+      "seriousNear": 1
+     },
+     {
+      "minute": 9,
+      "A": 0.98,
+      "hits": 0.725,
+      "hitsWorse": 0.175,
+      "seriousNear": 0.995
      },
      {
       "minute": 10,
       "A": 1,
-      "hits": 0.75,
-      "hitsWorse": 0.145,
+      "hits": 0.74,
+      "hitsWorse": 0.165,
       "seriousNear": 1
      }
     ],
@@ -177,167 +177,6 @@
   {
    "id": "gap8",
    "label": "a group every 8 s",
-   "minutes": 10,
-   "summary": {
-    "runs": 200,
-    "A": {
-     "on": 1,
-     "tie": 0,
-     "off": 0
-    },
-    "seriousNear": {
-     "on": 1,
-     "tie": 0,
-     "off": 0
-    },
-    "serious": {
-     "on": 0.925,
-     "tie": 0.075,
-     "off": 0
-    },
-    "near": {
-     "on": 1,
-     "tie": 0,
-     "off": 0
-    },
-    "hits": {
-     "on": 0.68,
-     "tie": 0.08,
-     "off": 0.24
-    },
-    "dist": {
-     "offSerious": {
-      "p10": 2,
-      "median": 4,
-      "p90": 6,
-      "mean": 4.24
-     },
-     "onSerious": {
-      "p10": 0,
-      "median": 1,
-      "p90": 2,
-      "mean": 0.765
-     },
-     "offNear": {
-      "p10": 5,
-      "median": 9,
-      "p90": 12,
-      "mean": 8.475
-     },
-     "onNear": {
-      "p10": 0,
-      "median": 1,
-      "p90": 2,
-      "mean": 0.84
-     },
-     "offHits": {
-      "p10": 2,
-      "median": 5,
-      "p90": 9,
-      "mean": 5.355
-     },
-     "onHits": {
-      "p10": 1,
-      "median": 4,
-      "p90": 7,
-      "mean": 3.62
-     },
-     "hitDiff": {
-      "p10": -6,
-      "median": -2,
-      "p90": 2,
-      "mean": -1.735
-     }
-    },
-    "per100": {
-     "offSerious": 3.4647599591419818,
-     "onSerious": 0.6349865117244241,
-     "offNear": 6.925434116445352,
-     "onNear": 0.69724009130525,
-     "offHits": 4.375893769152196,
-     "onHits": 3.00477277443453
-    },
-    "onLapSec": 20.72639780883293,
-    "offLapSec": 11.522953107550876,
-    "lineWaitPerLap": 5.119610250598494,
-    "minuteCurve": [
-     {
-      "minute": 1,
-      "A": 0.77,
-      "hits": 0.345,
-      "hitsWorse": 0.1,
-      "seriousNear": 0.77
-     },
-     {
-      "minute": 2,
-      "A": 0.92,
-      "hits": 0.49,
-      "hitsWorse": 0.185,
-      "seriousNear": 0.925
-     },
-     {
-      "minute": 3,
-      "A": 0.96,
-      "hits": 0.525,
-      "hitsWorse": 0.235,
-      "seriousNear": 0.98
-     },
-     {
-      "minute": 4,
-      "A": 0.97,
-      "hits": 0.575,
-      "hitsWorse": 0.255,
-      "seriousNear": 0.985
-     },
-     {
-      "minute": 5,
-      "A": 0.98,
-      "hits": 0.62,
-      "hitsWorse": 0.23,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 6,
-      "A": 0.995,
-      "hits": 0.61,
-      "hitsWorse": 0.26,
-      "seriousNear": 1
-     },
-     {
-      "minute": 7,
-      "A": 0.995,
-      "hits": 0.63,
-      "hitsWorse": 0.25,
-      "seriousNear": 1
-     },
-     {
-      "minute": 8,
-      "A": 0.995,
-      "hits": 0.615,
-      "hitsWorse": 0.265,
-      "seriousNear": 1
-     },
-     {
-      "minute": 9,
-      "A": 0.995,
-      "hits": 0.63,
-      "hitsWorse": 0.255,
-      "seriousNear": 1
-     },
-     {
-      "minute": 10,
-      "A": 1,
-      "hits": 0.68,
-      "hitsWorse": 0.24,
-      "seriousNear": 1
-     }
-    ],
-    "minutesTo80": 2
-   }
-  },
-  {
-   "id": "gap6",
-   "label": "a group every 6 s",
    "minutes": 10,
    "summary": {
     "runs": 200,
@@ -352,8 +191,8 @@
      "off": 0
     },
     "serious": {
-     "on": 0.985,
-     "tie": 0.01,
+     "on": 0.935,
+     "tie": 0.06,
      "off": 0.005
     },
     "near": {
@@ -362,138 +201,299 @@
      "off": 0
     },
     "hits": {
-     "on": 0.635,
-     "tie": 0.14,
-     "off": 0.225
+     "on": 0.685,
+     "tie": 0.11,
+     "off": 0.205
     },
     "dist": {
      "offSerious": {
       "p10": 2,
-      "median": 4,
+      "median": 5,
       "p90": 7,
-      "mean": 4.37
+      "mean": 4.285
      },
      "onSerious": {
       "p10": 0,
-      "median": 0,
-      "p90": 1,
-      "mean": 0.51
+      "median": 1,
+      "p90": 2,
+      "mean": 0.75
      },
      "offNear": {
-      "p10": 5,
-      "median": 8,
+      "p10": 6,
+      "median": 9,
       "p90": 12,
-      "mean": 8.6
+      "mean": 8.715
      },
      "onNear": {
       "p10": 0,
-      "median": 0,
+      "median": 1,
       "p90": 2,
-      "mean": 0.66
+      "mean": 0.85
      },
      "offHits": {
       "p10": 2,
-      "median": 6,
+      "median": 5,
       "p90": 9,
-      "mean": 5.675
+      "mean": 5.455
      },
      "onHits": {
       "p10": 1,
       "median": 4,
       "p90": 7,
-      "mean": 3.96
+      "mean": 3.77
      },
      "hitDiff": {
       "p10": -6,
-      "median": -2,
+      "median": -1,
       "p90": 2,
-      "mean": -1.715
+      "mean": -1.685
      }
     },
     "per100": {
-     "offSerious": 2.6841103126343593,
-     "onSerious": 0.31860065594252696,
-     "offNear": 5.282230821202629,
-     "onNear": 0.41230673121974076,
-     "offHits": 3.4856581291075486,
-     "onHits": 2.4738403873184445
+     "offSerious": 3.502820240333524,
+     "onSerious": 0.6231306081754736,
+     "offNear": 7.124172320771683,
+     "onNear": 0.7062146892655368,
+     "offHits": 4.459249570832993,
+     "onHits": 3.1322698570953804
     },
-    "onLapSec": 26.534467229584788,
-    "offLapSec": 11.754244135871065,
-    "lineWaitPerLap": 9.929630076399777,
+    "onLapSec": 20.126015290512807,
+    "offLapSec": 11.52758974358573,
+    "lineWaitPerLap": 4.69909785932732,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.795,
-      "hits": 0.395,
-      "hitsWorse": 0.15,
-      "seriousNear": 0.795
+      "A": 0.78,
+      "hits": 0.355,
+      "hitsWorse": 0.095,
+      "seriousNear": 0.78
      },
      {
       "minute": 2,
-      "A": 0.92,
-      "hits": 0.45,
-      "hitsWorse": 0.25,
-      "seriousNear": 0.92
+      "A": 0.925,
+      "hits": 0.495,
+      "hitsWorse": 0.175,
+      "seriousNear": 0.925
      },
      {
       "minute": 3,
-      "A": 0.965,
-      "hits": 0.475,
-      "hitsWorse": 0.27,
-      "seriousNear": 0.975
-     },
-     {
-      "minute": 4,
       "A": 0.975,
-      "hits": 0.52,
+      "hits": 0.525,
       "hitsWorse": 0.255,
-      "seriousNear": 0.98
-     },
-     {
-      "minute": 5,
-      "A": 0.975,
-      "hits": 0.55,
-      "hitsWorse": 0.235,
       "seriousNear": 0.985
      },
      {
-      "minute": 6,
+      "minute": 4,
       "A": 0.98,
-      "hits": 0.595,
-      "hitsWorse": 0.23,
-      "seriousNear": 0.995
+      "hits": 0.58,
+      "hitsWorse": 0.26,
+      "seriousNear": 0.99
      },
      {
-      "minute": 7,
-      "A": 0.985,
-      "hits": 0.6,
-      "hitsWorse": 0.205,
-      "seriousNear": 1
-     },
-     {
-      "minute": 8,
-      "A": 0.995,
-      "hits": 0.615,
-      "hitsWorse": 0.25,
-      "seriousNear": 1
-     },
-     {
-      "minute": 9,
-      "A": 0.995,
+      "minute": 5,
+      "A": 0.99,
       "hits": 0.625,
       "hitsWorse": 0.25,
       "seriousNear": 1
      },
      {
+      "minute": 6,
+      "A": 0.99,
+      "hits": 0.615,
+      "hitsWorse": 0.27,
+      "seriousNear": 1
+     },
+     {
+      "minute": 7,
+      "A": 0.995,
+      "hits": 0.615,
+      "hitsWorse": 0.265,
+      "seriousNear": 1
+     },
+     {
+      "minute": 8,
+      "A": 0.995,
+      "hits": 0.61,
+      "hitsWorse": 0.26,
+      "seriousNear": 1
+     },
+     {
+      "minute": 9,
+      "A": 0.995,
+      "hits": 0.645,
+      "hitsWorse": 0.235,
+      "seriousNear": 1
+     },
+     {
       "minute": 10,
       "A": 0.995,
-      "hits": 0.635,
-      "hitsWorse": 0.225,
+      "hits": 0.685,
+      "hitsWorse": 0.205,
       "seriousNear": 1
      }
     ],
     "minutesTo80": 2
+   }
+  },
+  {
+   "id": "gap6",
+   "label": "a group every 6 s",
+   "minutes": 10,
+   "summary": {
+    "runs": 200,
+    "A": {
+     "on": 1,
+     "tie": 0,
+     "off": 0
+    },
+    "seriousNear": {
+     "on": 1,
+     "tie": 0,
+     "off": 0
+    },
+    "serious": {
+     "on": 0.98,
+     "tie": 0.02,
+     "off": 0
+    },
+    "near": {
+     "on": 1,
+     "tie": 0,
+     "off": 0
+    },
+    "hits": {
+     "on": 0.655,
+     "tie": 0.09,
+     "off": 0.255
+    },
+    "dist": {
+     "offSerious": {
+      "p10": 2,
+      "median": 5,
+      "p90": 7,
+      "mean": 4.79
+     },
+     "onSerious": {
+      "p10": 0,
+      "median": 0,
+      "p90": 2,
+      "mean": 0.55
+     },
+     "offNear": {
+      "p10": 6,
+      "median": 9,
+      "p90": 13,
+      "mean": 9.475
+     },
+     "onNear": {
+      "p10": 0,
+      "median": 0,
+      "p90": 2,
+      "mean": 0.73
+     },
+     "offHits": {
+      "p10": 3,
+      "median": 6,
+      "p90": 10,
+      "mean": 6.33
+     },
+     "onHits": {
+      "p10": 2,
+      "median": 4,
+      "p90": 7,
+      "mean": 4.475
+     },
+     "hitDiff": {
+      "p10": -6,
+      "median": -2,
+      "p90": 3,
+      "mean": -1.855
+     }
+    },
+    "per100": {
+     "offSerious": 2.9495982019150837,
+     "onSerious": 0.3450439146800502,
+     "offNear": 5.83453924074017,
+     "onNear": 0.45796737766624845,
+     "offHits": 3.8979032605683672,
+     "onHits": 2.8074027603513176
+    },
+    "onLapSec": 24.413998085975017,
+    "offLapSec": 11.75506055362912,
+    "lineWaitPerLap": 7.725916519436031,
+    "minuteCurve": [
+     {
+      "minute": 1,
+      "A": 0.815,
+      "hits": 0.41,
+      "hitsWorse": 0.18,
+      "seriousNear": 0.815
+     },
+     {
+      "minute": 2,
+      "A": 0.935,
+      "hits": 0.445,
+      "hitsWorse": 0.255,
+      "seriousNear": 0.945
+     },
+     {
+      "minute": 3,
+      "A": 0.96,
+      "hits": 0.51,
+      "hitsWorse": 0.305,
+      "seriousNear": 0.985
+     },
+     {
+      "minute": 4,
+      "A": 0.98,
+      "hits": 0.52,
+      "hitsWorse": 0.28,
+      "seriousNear": 0.995
+     },
+     {
+      "minute": 5,
+      "A": 0.99,
+      "hits": 0.555,
+      "hitsWorse": 0.235,
+      "seriousNear": 1
+     },
+     {
+      "minute": 6,
+      "A": 0.985,
+      "hits": 0.595,
+      "hitsWorse": 0.255,
+      "seriousNear": 1
+     },
+     {
+      "minute": 7,
+      "A": 0.985,
+      "hits": 0.62,
+      "hitsWorse": 0.24,
+      "seriousNear": 1
+     },
+     {
+      "minute": 8,
+      "A": 1,
+      "hits": 0.615,
+      "hitsWorse": 0.275,
+      "seriousNear": 1
+     },
+     {
+      "minute": 9,
+      "A": 1,
+      "hits": 0.63,
+      "hitsWorse": 0.26,
+      "seriousNear": 1
+     },
+     {
+      "minute": 10,
+      "A": 1,
+      "hits": 0.655,
+      "hitsWorse": 0.255,
+      "seriousNear": 1
+     }
+    ],
+    "minutesTo80": 1
    }
   },
   {
@@ -503,8 +503,8 @@
    "summary": {
     "runs": 200,
     "A": {
-     "on": 0.97,
-     "tie": 0.03,
+     "on": 0.975,
+     "tie": 0.025,
      "off": 0
     },
     "seriousNear": {
@@ -513,9 +513,9 @@
      "off": 0
     },
     "serious": {
-     "on": 0.91,
+     "on": 0.915,
      "tie": 0.06,
-     "off": 0.03
+     "off": 0.025
     },
     "near": {
      "on": 1,
@@ -523,134 +523,134 @@
      "off": 0
     },
     "hits": {
-     "on": 0.77,
-     "tie": 0.135,
-     "off": 0.095
+     "on": 0.765,
+     "tie": 0.145,
+     "off": 0.09
     },
     "dist": {
      "offSerious": {
       "p10": 2,
       "median": 4,
       "p90": 7,
-      "mean": 3.915
+      "mean": 4.01
      },
      "onSerious": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 0.875
+      "mean": 0.97
      },
      "offNear": {
       "p10": 4,
       "median": 7,
       "p90": 11,
-      "mean": 7.46
+      "mean": 7.455
      },
      "onNear": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 0.84
+      "mean": 0.835
      },
      "offHits": {
       "p10": 2,
       "median": 4,
       "p90": 8,
-      "mean": 4.58
+      "mean": 4.72
      },
      "onHits": {
       "p10": 0,
       "median": 2,
       "p90": 5,
-      "mean": 2.32
+      "mean": 2.43
      },
      "hitDiff": {
       "p10": -5,
       "median": -2,
       "p90": 0,
-      "mean": -2.26
+      "mean": -2.29
      }
     },
     "per100": {
-     "offSerious": 4.813130071305631,
-     "onSerious": 1.085473266344126,
-     "offNear": 9.171379395131547,
-     "onNear": 1.042054335690361,
-     "offHits": 5.6306860093434965,
-     "onHits": 2.878054831906711
+     "offSerious": 4.934473635636498,
+     "onSerious": 1.2034739454094292,
+     "offNear": 9.173691010890296,
+     "onNear": 1.0359801488833746,
+     "offHits": 5.808158493816526,
+     "onHits": 3.0148883374689825
     },
-    "onLapSec": 16.033207239276358,
-    "offLapSec": 11.293939393935412,
-    "lineWaitPerLap": 2.4037012312712407,
+    "onLapSec": 15.900962199307122,
+    "offLapSec": 11.295818730525612,
+    "lineWaitPerLap": 2.437194403534514,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.745,
-      "hits": 0.36,
-      "hitsWorse": 0.05,
-      "seriousNear": 0.75
+      "A": 0.755,
+      "hits": 0.35,
+      "hitsWorse": 0.06,
+      "seriousNear": 0.76
      },
      {
       "minute": 2,
-      "A": 0.875,
-      "hits": 0.45,
-      "hitsWorse": 0.095,
-      "seriousNear": 0.89
+      "A": 0.885,
+      "hits": 0.435,
+      "hitsWorse": 0.1,
+      "seriousNear": 0.895
      },
      {
       "minute": 3,
       "A": 0.935,
-      "hits": 0.52,
-      "hitsWorse": 0.13,
-      "seriousNear": 0.965
+      "hits": 0.5,
+      "hitsWorse": 0.145,
+      "seriousNear": 0.96
      },
      {
       "minute": 4,
-      "A": 0.95,
-      "hits": 0.575,
-      "hitsWorse": 0.17,
-      "seriousNear": 0.995
+      "A": 0.945,
+      "hits": 0.565,
+      "hitsWorse": 0.18,
+      "seriousNear": 0.985
      },
      {
       "minute": 5,
-      "A": 0.975,
+      "A": 0.97,
       "hits": 0.62,
-      "hitsWorse": 0.145,
-      "seriousNear": 0.995
+      "hitsWorse": 0.165,
+      "seriousNear": 1
      },
      {
       "minute": 6,
-      "A": 0.97,
-      "hits": 0.675,
-      "hitsWorse": 0.14,
+      "A": 0.965,
+      "hits": 0.66,
+      "hitsWorse": 0.155,
       "seriousNear": 1
      },
      {
       "minute": 7,
-      "A": 0.97,
-      "hits": 0.71,
-      "hitsWorse": 0.135,
+      "A": 0.965,
+      "hits": 0.69,
+      "hitsWorse": 0.15,
       "seriousNear": 1
      },
      {
       "minute": 8,
-      "A": 0.97,
-      "hits": 0.73,
-      "hitsWorse": 0.14,
+      "A": 0.975,
+      "hits": 0.71,
+      "hitsWorse": 0.145,
       "seriousNear": 1
      },
      {
       "minute": 9,
-      "A": 0.965,
-      "hits": 0.755,
-      "hitsWorse": 0.105,
+      "A": 0.97,
+      "hits": 0.735,
+      "hitsWorse": 0.115,
       "seriousNear": 1
      },
      {
       "minute": 10,
-      "A": 0.97,
-      "hits": 0.77,
-      "hitsWorse": 0.095,
+      "A": 0.975,
+      "hits": 0.765,
+      "hitsWorse": 0.09,
       "seriousNear": 1
      }
     ],
@@ -854,7 +854,7 @@
       "p10": 2,
       "median": 4,
       "p90": 7,
-      "mean": 4.145
+      "mean": 4.12
      },
      "onSerious": {
       "p10": 0,
@@ -866,19 +866,19 @@
       "p10": 5,
       "median": 8,
       "p90": 12,
-      "mean": 8.32
+      "mean": 8.3
      },
      "onNear": {
       "p10": 0,
-      "median": 2,
+      "median": 1,
       "p90": 3,
-      "mean": 1.745
+      "mean": 1.75
      },
      "offHits": {
       "p10": 2,
       "median": 5,
       "p90": 8,
-      "mean": 5.005
+      "mean": 4.995
      },
      "onHits": {
       "p10": 1,
@@ -890,20 +890,20 @@
       "p10": -5,
       "median": -2,
       "p90": 1,
-      "mean": -1.935
+      "mean": -1.925
      }
     },
     "per100": {
-     "offSerious": 5.116336480898599,
-     "onSerious": 1.5864093435762914,
-     "offNear": 10.269703141393569,
-     "onNear": 2.1797514208981323,
-     "offHits": 6.1778682959945685,
-     "onHits": 3.834863531322216
+     "offSerious": 5.086733748996852,
+     "onSerious": 1.5871032241939516,
+     "offNear": 10.247546144823755,
+     "onNear": 2.186953261684579,
+     "offHits": 6.167047348601765,
+     "onHits": 3.836540864783804
     },
-    "onLapSec": 14.591107488901843,
-    "offLapSec": 11.286126855596578,
-    "lineWaitPerLap": 1.1237367563161893,
+    "onLapSec": 14.565523008764403,
+    "offLapSec": 11.282152160240353,
+    "lineWaitPerLap": 1.2289078745140236,
     "minuteCurve": [
      {
       "minute": 1,
@@ -929,43 +929,43 @@
      {
       "minute": 4,
       "A": 0.94,
-      "hits": 0.575,
+      "hits": 0.57,
       "hitsWorse": 0.205,
       "seriousNear": 0.965
      },
      {
       "minute": 5,
       "A": 0.955,
-      "hits": 0.6,
+      "hits": 0.595,
       "hitsWorse": 0.195,
       "seriousNear": 0.995
      },
      {
       "minute": 6,
       "A": 0.96,
-      "hits": 0.635,
-      "hitsWorse": 0.185,
+      "hits": 0.63,
+      "hitsWorse": 0.19,
       "seriousNear": 0.995
      },
      {
       "minute": 7,
-      "A": 0.97,
-      "hits": 0.705,
+      "A": 0.965,
+      "hits": 0.7,
       "hitsWorse": 0.19,
-      "seriousNear": 1
+      "seriousNear": 0.995
      },
      {
       "minute": 8,
       "A": 0.985,
-      "hits": 0.72,
-      "hitsWorse": 0.165,
+      "hits": 0.71,
+      "hitsWorse": 0.17,
       "seriousNear": 1
      },
      {
       "minute": 9,
       "A": 0.985,
-      "hits": 0.735,
-      "hitsWorse": 0.16,
+      "hits": 0.73,
+      "hitsWorse": 0.165,
       "seriousNear": 1
      },
      {
@@ -996,8 +996,8 @@
      "off": 0
     },
     "serious": {
-     "on": 0.93,
-     "tie": 0.07,
+     "on": 0.925,
+     "tie": 0.075,
      "off": 0
     },
     "near": {
@@ -1006,134 +1006,134 @@
      "off": 0
     },
     "hits": {
-     "on": 0.75,
-     "tie": 0.09,
-     "off": 0.16
+     "on": 0.72,
+     "tie": 0.13,
+     "off": 0.15
     },
     "dist": {
      "offSerious": {
       "p10": 1,
       "median": 3,
       "p90": 5,
-      "mean": 2.985
+      "mean": 2.975
      },
      "onSerious": {
       "p10": 0,
       "median": 0,
       "p90": 2,
-      "mean": 0.56
+      "mean": 0.58
      },
      "offNear": {
       "p10": 4,
       "median": 7,
       "p90": 10,
-      "mean": 6.91
+      "mean": 6.97
      },
      "onNear": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 0.79
+      "mean": 0.86
      },
      "offHits": {
       "p10": 1,
       "median": 3,
-      "p90": 7,
-      "mean": 3.455
+      "p90": 6,
+      "mean": 3.46
      },
      "onHits": {
       "p10": 0,
       "median": 1,
       "p90": 4,
-      "mean": 1.69
+      "mean": 1.7
      },
      "hitDiff": {
       "p10": -5,
       "median": -2,
       "p90": 1,
-      "mean": -1.765
+      "mean": -1.76
      }
     },
     "per100": {
-     "offSerious": 3.7488226059654632,
-     "onSerious": 0.7188242089724665,
-     "offNear": 8.678178963893249,
-     "onNear": 1.0140555805147295,
-     "offHits": 4.339089481946624,
-     "onHits": 2.1693087735061933
+     "offSerious": 3.7426091332243048,
+     "onSerious": 0.7454054748746948,
+     "offNear": 8.768398540696943,
+     "onNear": 1.1052563937797197,
+     "offHits": 4.35274877343062,
+     "onHits": 2.184809150494795
     },
-    "onLapSec": 16.363346432884192,
-    "offLapSec": 11.264999999996046,
-    "lineWaitPerLap": 2.3915633817008453,
+    "onLapSec": 16.237430586817027,
+    "offLapSec": 11.261912901304017,
+    "lineWaitPerLap": 2.437563159737763,
     "minuteCurve": [
      {
       "minute": 1,
       "A": 0.73,
       "hits": 0.28,
-      "hitsWorse": 0.05,
+      "hitsWorse": 0.055,
       "seriousNear": 0.73
      },
      {
       "minute": 2,
-      "A": 0.88,
-      "hits": 0.375,
-      "hitsWorse": 0.1,
+      "A": 0.875,
+      "hits": 0.365,
+      "hitsWorse": 0.11,
       "seriousNear": 0.89
      },
      {
       "minute": 3,
-      "A": 0.945,
-      "hits": 0.455,
-      "hitsWorse": 0.15,
+      "A": 0.94,
+      "hits": 0.445,
+      "hitsWorse": 0.16,
       "seriousNear": 0.96
      },
      {
       "minute": 4,
-      "A": 0.97,
-      "hits": 0.535,
-      "hitsWorse": 0.17,
-      "seriousNear": 0.985
+      "A": 0.965,
+      "hits": 0.505,
+      "hitsWorse": 0.175,
+      "seriousNear": 0.99
      },
      {
       "minute": 5,
-      "A": 0.975,
-      "hits": 0.61,
-      "hitsWorse": 0.165,
+      "A": 0.97,
+      "hits": 0.58,
+      "hitsWorse": 0.17,
       "seriousNear": 0.99
      },
      {
       "minute": 6,
-      "A": 0.985,
-      "hits": 0.655,
+      "A": 0.98,
+      "hits": 0.63,
       "hitsWorse": 0.18,
       "seriousNear": 0.995
      },
      {
       "minute": 7,
-      "A": 0.99,
-      "hits": 0.695,
-      "hitsWorse": 0.195,
+      "A": 0.985,
+      "hits": 0.67,
+      "hitsWorse": 0.205,
       "seriousNear": 1
      },
      {
       "minute": 8,
-      "A": 0.995,
-      "hits": 0.74,
-      "hitsWorse": 0.18,
+      "A": 0.99,
+      "hits": 0.705,
+      "hitsWorse": 0.185,
       "seriousNear": 1
      },
      {
       "minute": 9,
-      "A": 0.99,
-      "hits": 0.76,
-      "hitsWorse": 0.18,
+      "A": 0.985,
+      "hits": 0.74,
+      "hitsWorse": 0.185,
       "seriousNear": 1
      },
      {
       "minute": 10,
       "A": 1,
-      "hits": 0.75,
-      "hitsWorse": 0.16,
+      "hits": 0.72,
+      "hitsWorse": 0.15,
       "seriousNear": 1
      }
     ],
@@ -1147,8 +1147,8 @@
    "summary": {
     "runs": 200,
     "A": {
-     "on": 0.97,
-     "tie": 0.03,
+     "on": 0.975,
+     "tie": 0.025,
      "off": 0
     },
     "seriousNear": {
@@ -1157,9 +1157,9 @@
      "off": 0
     },
     "serious": {
-     "on": 0.925,
-     "tie": 0.045,
-     "off": 0.03
+     "on": 0.94,
+     "tie": 0.035,
+     "off": 0.025
     },
     "near": {
      "on": 1,
@@ -1167,134 +1167,134 @@
      "off": 0
     },
     "hits": {
-     "on": 0.705,
-     "tie": 0.095,
-     "off": 0.2
+     "on": 0.685,
+     "tie": 0.09,
+     "off": 0.225
     },
     "dist": {
      "offSerious": {
       "p10": 2,
       "median": 4,
       "p90": 7,
-      "mean": 4.375
+      "mean": 4.525
      },
      "onSerious": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 1.03
+      "mean": 0.995
      },
      "offNear": {
-      "p10": 4,
+      "p10": 5,
       "median": 8,
       "p90": 12,
-      "mean": 8.285
+      "mean": 8.55
      },
      "onNear": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 0.72
+      "mean": 0.7
      },
      "offHits": {
-      "p10": 3,
-      "median": 5,
+      "p10": 2,
+      "median": 6,
       "p90": 9,
-      "mean": 5.525
+      "mean": 5.75
      },
      "onHits": {
       "p10": 1,
       "median": 3,
       "p90": 7,
-      "mean": 3.515
+      "mean": 3.7
      },
      "hitDiff": {
       "p10": -6,
       "median": -2,
       "p90": 2,
-      "mean": -2.01
+      "mean": -2.05
      }
     },
     "per100": {
-     "offSerious": 3.5756609864737854,
-     "onSerious": 0.8517676245606781,
-     "offNear": 6.771280290956643,
-     "onNear": 0.5954103783336779,
-     "offHits": 4.515549017204037,
-     "onHits": 2.9067603886706634
+     "offSerious": 3.7002207866546732,
+     "onSerious": 0.8237436873913403,
+     "offNear": 6.991577397988388,
+     "onNear": 0.5795181720341088,
+     "offHits": 4.701938016191021,
+     "onHits": 3.063167480751718
     },
-    "onLapSec": 20.026742909416598,
-    "offLapSec": 11.522595864883572,
-    "lineWaitPerLap": 5.11599878011629,
+    "onLapSec": 19.407627318910816,
+    "offLapSec": 11.515555944255789,
+    "lineWaitPerLap": 4.699143329788656,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.79,
-      "hits": 0.37,
-      "hitsWorse": 0.09,
-      "seriousNear": 0.8
+      "A": 0.815,
+      "hits": 0.385,
+      "hitsWorse": 0.095,
+      "seriousNear": 0.825
      },
      {
       "minute": 2,
-      "A": 0.915,
-      "hits": 0.52,
-      "hitsWorse": 0.155,
-      "seriousNear": 0.935
+      "A": 0.93,
+      "hits": 0.515,
+      "hitsWorse": 0.17,
+      "seriousNear": 0.94
      },
      {
       "minute": 3,
-      "A": 0.94,
-      "hits": 0.595,
-      "hitsWorse": 0.19,
+      "A": 0.945,
+      "hits": 0.59,
+      "hitsWorse": 0.195,
       "seriousNear": 0.965
      },
      {
       "minute": 4,
       "A": 0.97,
-      "hits": 0.625,
-      "hitsWorse": 0.21,
-      "seriousNear": 0.99
+      "hits": 0.63,
+      "hitsWorse": 0.2,
+      "seriousNear": 0.995
      },
      {
       "minute": 5,
-      "A": 0.975,
+      "A": 0.98,
       "hits": 0.66,
-      "hitsWorse": 0.185,
+      "hitsWorse": 0.19,
       "seriousNear": 1
      },
      {
       "minute": 6,
       "A": 0.975,
-      "hits": 0.68,
-      "hitsWorse": 0.18,
-      "seriousNear": 1
-     },
-     {
-      "minute": 7,
-      "A": 0.975,
-      "hits": 0.68,
-      "hitsWorse": 0.19,
-      "seriousNear": 1
-     },
-     {
-      "minute": 8,
-      "A": 0.96,
-      "hits": 0.68,
-      "hitsWorse": 0.175,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 9,
-      "A": 0.97,
-      "hits": 0.69,
+      "hits": 0.67,
       "hitsWorse": 0.185,
       "seriousNear": 1
      },
      {
-      "minute": 10,
-      "A": 0.97,
-      "hits": 0.705,
+      "minute": 7,
+      "A": 0.98,
+      "hits": 0.68,
+      "hitsWorse": 0.21,
+      "seriousNear": 1
+     },
+     {
+      "minute": 8,
+      "A": 0.965,
+      "hits": 0.68,
       "hitsWorse": 0.2,
+      "seriousNear": 1
+     },
+     {
+      "minute": 9,
+      "A": 0.965,
+      "hits": 0.695,
+      "hitsWorse": 0.215,
+      "seriousNear": 1
+     },
+     {
+      "minute": 10,
+      "A": 0.975,
+      "hits": 0.685,
+      "hitsWorse": 0.225,
       "seriousNear": 1
      }
     ],
@@ -1308,19 +1308,19 @@
    "summary": {
     "runs": 200,
     "A": {
-     "on": 0.875,
-     "tie": 0.125,
-     "off": 0
+     "on": 0.88,
+     "tie": 0.115,
+     "off": 0.005
     },
     "seriousNear": {
-     "on": 0.89,
-     "tie": 0.11,
-     "off": 0
+     "on": 0.895,
+     "tie": 0.1,
+     "off": 0.005
     },
     "serious": {
-     "on": 0.48,
-     "tie": 0.5,
-     "off": 0.02
+     "on": 0.49,
+     "tie": 0.485,
+     "off": 0.025
     },
     "near": {
      "on": 0.83,
@@ -1328,79 +1328,79 @@
      "off": 0
     },
     "hits": {
-     "on": 0.41,
-     "tie": 0.465,
-     "off": 0.125
+     "on": 0.405,
+     "tie": 0.45,
+     "off": 0.145
     },
     "dist": {
      "offSerious": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 0.835
+      "mean": 0.84
      },
      "onSerious": {
       "p10": 0,
       "median": 0,
       "p90": 1,
-      "mean": 0.145
+      "mean": 0.15
      },
      "offNear": {
       "p10": 0,
       "median": 2,
       "p90": 3,
-      "mean": 1.725
+      "mean": 1.72
      },
      "onNear": {
       "p10": 0,
       "median": 0,
       "p90": 1,
-      "mean": 0.225
+      "mean": 0.235
      },
      "offHits": {
       "p10": 0,
       "median": 1,
       "p90": 3,
-      "mean": 1.04
+      "mean": 1.045
      },
      "onHits": {
       "p10": 0,
       "median": 0,
       "p90": 2,
-      "mean": 0.51
+      "mean": 0.535
      },
      "hitDiff": {
       "p10": -2,
       "median": 0,
       "p90": 1,
-      "mean": -0.53
+      "mean": -0.51
      }
     },
     "per100": {
-     "offSerious": 5.071363498329791,
-     "onSerious": 0.8873929008567931,
-     "offNear": 10.476768903735195,
-     "onNear": 1.3769889840881273,
-     "offHits": 6.316428788338901,
-     "onHits": 3.121175030599755
+     "offSerious": 5.107935542718152,
+     "onSerious": 0.9182736455463728,
+     "offNear": 10.459106111280024,
+     "onNear": 1.4386287113559841,
+     "offHits": 6.354515050167224,
+     "onHits": 3.2751760024487298
     },
-    "onLapSec": 16.26629422718736,
-    "offLapSec": 11.358160919539719,
-    "lineWaitPerLap": 2.481683958499595,
+    "onLapSec": 16.183280507130817,
+    "offLapSec": 11.353757298806295,
+    "lineWaitPerLap": 2.545060750132062,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.745,
+      "A": 0.75,
       "hits": 0.335,
-      "hitsWorse": 0.075,
-      "seriousNear": 0.745
+      "hitsWorse": 0.08,
+      "seriousNear": 0.75
      },
      {
       "minute": 2,
-      "A": 0.875,
-      "hits": 0.41,
-      "hitsWorse": 0.125,
-      "seriousNear": 0.89
+      "A": 0.88,
+      "hits": 0.405,
+      "hitsWorse": 0.145,
+      "seriousNear": 0.895
      }
     ],
     "minutesTo80": 2
@@ -1412,35 +1412,35 @@
     "runs": 200,
     "A": {
      "on": 0.95,
-     "tie": 0.05,
-     "off": 0
+     "tie": 0.045,
+     "off": 0.005
     },
     "seriousNear": {
      "on": 0.975,
-     "tie": 0.025,
-     "off": 0
+     "tie": 0.02,
+     "off": 0.005
     },
     "serious": {
      "on": 0.61,
-     "tie": 0.365,
-     "off": 0.025
+     "tie": 0.36,
+     "off": 0.03
     },
     "near": {
-     "on": 0.915,
-     "tie": 0.08,
+     "on": 0.91,
+     "tie": 0.085,
      "off": 0.005
     },
     "hits": {
-     "on": 0.515,
-     "tie": 0.305,
-     "off": 0.18
+     "on": 0.51,
+     "tie": 0.295,
+     "off": 0.195
     },
     "dist": {
      "offSerious": {
       "p10": 0,
       "median": 1,
       "p90": 3,
-      "mean": 1.22
+      "mean": 1.215
      },
      "onSerious": {
       "p10": 0,
@@ -1452,64 +1452,64 @@
       "p10": 1,
       "median": 2,
       "p90": 4,
-      "mean": 2.405
+      "mean": 2.395
      },
      "onNear": {
       "p10": 0,
       "median": 0,
       "p90": 1,
-      "mean": 0.34
+      "mean": 0.35
      },
      "offHits": {
       "p10": 0,
       "median": 1,
       "p90": 3,
-      "mean": 1.46
+      "mean": 1.455
      },
      "onHits": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 0.83
+      "mean": 0.845
      },
      "hitDiff": {
       "p10": -2,
       "median": -1,
       "p90": 1,
-      "mean": -0.63
+      "mean": -0.61
      }
     },
     "per100": {
-     "offSerious": 5.0030756612671725,
-     "onSerious": 1.0550268928423665,
-     "offNear": 9.862620463399631,
-     "onNear": 1.406702523789822,
-     "offHits": 5.987287266762354,
-     "onHits": 3.434009102192801
+     "offSerious": 4.986661194336138,
+     "onSerious": 1.0541546093427037,
+     "offNear": 9.829673712292223,
+     "onNear": 1.4468788755684168,
+     "offHits": 5.971680689513646,
+     "onHits": 3.493178999586606
     },
-    "onLapSec": 16.286045905062586,
-    "offLapSec": 11.3395948898994,
-    "lineWaitPerLap": 2.464154060163423,
+    "onLapSec": 16.20058752376275,
+    "offLapSec": 11.334462851407556,
+    "lineWaitPerLap": 2.536728875064771,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.745,
+      "A": 0.75,
       "hits": 0.335,
-      "hitsWorse": 0.075,
-      "seriousNear": 0.745
+      "hitsWorse": 0.08,
+      "seriousNear": 0.75
      },
      {
       "minute": 2,
-      "A": 0.875,
-      "hits": 0.41,
-      "hitsWorse": 0.125,
-      "seriousNear": 0.89
+      "A": 0.88,
+      "hits": 0.405,
+      "hitsWorse": 0.145,
+      "seriousNear": 0.895
      },
      {
       "minute": 3,
       "A": 0.95,
-      "hits": 0.515,
-      "hitsWorse": 0.18,
+      "hits": 0.51,
+      "hitsWorse": 0.195,
       "seriousNear": 0.975
      }
     ],
@@ -1521,8 +1521,8 @@
    "summary": {
     "runs": 200,
     "A": {
-     "on": 0.985,
-     "tie": 0.015,
+     "on": 0.975,
+     "tie": 0.025,
      "off": 0
     },
     "seriousNear": {
@@ -1531,50 +1531,50 @@
      "off": 0
     },
     "serious": {
-     "on": 0.77,
-     "tie": 0.225,
-     "off": 0.005
+     "on": 0.775,
+     "tie": 0.205,
+     "off": 0.02
     },
     "near": {
-     "on": 0.965,
-     "tie": 0.035,
+     "on": 0.98,
+     "tie": 0.02,
      "off": 0
     },
     "hits": {
      "on": 0.625,
-     "tie": 0.21,
-     "off": 0.165
+     "tie": 0.19,
+     "off": 0.185
     },
     "dist": {
      "offSerious": {
       "p10": 0,
       "median": 2,
       "p90": 4,
-      "mean": 1.94
+      "mean": 1.915
      },
      "onSerious": {
       "p10": 0,
       "median": 0,
       "p90": 1,
-      "mean": 0.4
+      "mean": 0.41
      },
      "offNear": {
       "p10": 2,
       "median": 4,
       "p90": 6,
-      "mean": 3.72
+      "mean": 3.775
      },
      "onNear": {
       "p10": 0,
       "median": 0,
       "p90": 1,
-      "mean": 0.5
+      "mean": 0.535
      },
      "offHits": {
       "p10": 1,
       "median": 2,
       "p90": 5,
-      "mean": 2.34
+      "mean": 2.33
      },
      "onHits": {
       "p10": 0,
@@ -1586,54 +1586,54 @@
       "p10": -3,
       "median": -1,
       "p90": 1,
-      "mean": -0.98
+      "mean": -0.97
      }
     },
     "per100": {
-     "offSerious": 4.773034813630213,
-     "onSerious": 0.9946537361680965,
-     "offNear": 9.152417271497109,
-     "onNear": 1.2433171702101207,
-     "offHits": 5.757165703038504,
-     "onHits": 3.381822702971528
+     "offSerious": 4.717910815471791,
+     "onSerious": 1.0197736599925382,
+     "offNear": 9.300320275930032,
+     "onNear": 1.3306802636488,
+     "offHits": 5.740330130574033,
+     "onHits": 3.382663847780127
     },
-    "onLapSec": 16.258887533052228,
-    "offLapSec": 11.303698150926856,
-    "lineWaitPerLap": 2.34756965629443,
+    "onLapSec": 16.150923962439208,
+    "offLapSec": 11.297552378117699,
+    "lineWaitPerLap": 2.3894930829041114,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.745,
+      "A": 0.75,
       "hits": 0.335,
-      "hitsWorse": 0.075,
-      "seriousNear": 0.745
+      "hitsWorse": 0.08,
+      "seriousNear": 0.75
      },
      {
       "minute": 2,
-      "A": 0.875,
-      "hits": 0.41,
-      "hitsWorse": 0.125,
-      "seriousNear": 0.89
+      "A": 0.88,
+      "hits": 0.405,
+      "hitsWorse": 0.145,
+      "seriousNear": 0.895
      },
      {
       "minute": 3,
       "A": 0.95,
-      "hits": 0.515,
-      "hitsWorse": 0.18,
+      "hits": 0.51,
+      "hitsWorse": 0.195,
       "seriousNear": 0.975
      },
      {
       "minute": 4,
-      "A": 0.975,
-      "hits": 0.57,
-      "hitsWorse": 0.18,
+      "A": 0.965,
+      "hits": 0.555,
+      "hitsWorse": 0.205,
       "seriousNear": 0.985
      },
      {
       "minute": 5,
-      "A": 0.985,
+      "A": 0.975,
       "hits": 0.625,
-      "hitsWorse": 0.165,
+      "hitsWorse": 0.185,
       "seriousNear": 0.99
      }
     ],
@@ -1655,8 +1655,8 @@
      "off": 0
     },
     "serious": {
-     "on": 0.95,
-     "tie": 0.05,
+     "on": 0.935,
+     "tie": 0.065,
      "off": 0
     },
     "near": {
@@ -1665,134 +1665,134 @@
      "off": 0
     },
     "hits": {
-     "on": 0.75,
-     "tie": 0.105,
-     "off": 0.145
+     "on": 0.74,
+     "tie": 0.095,
+     "off": 0.165
     },
     "dist": {
      "offSerious": {
-      "p10": 2,
+      "p10": 1,
       "median": 4,
       "p90": 6,
-      "mean": 3.72
+      "mean": 3.68
      },
      "onSerious": {
       "p10": 0,
       "median": 0,
       "p90": 2,
-      "mean": 0.705
+      "mean": 0.725
      },
      "offNear": {
       "p10": 4,
       "median": 7,
       "p90": 10,
-      "mean": 7.17
+      "mean": 7.245
      },
      "onNear": {
       "p10": 0,
       "median": 1,
       "p90": 2,
-      "mean": 0.845
+      "mean": 0.915
      },
      "offHits": {
       "p10": 2,
       "median": 4,
       "p90": 7,
-      "mean": 4.505
+      "mean": 4.52
      },
      "onHits": {
       "p10": 0,
       "median": 2,
       "p90": 5,
-      "mean": 2.47
+      "mean": 2.49
      },
      "hitDiff": {
       "p10": -5,
       "median": -2,
       "p90": 1,
-      "mean": -2.035
+      "mean": -2.03
      }
     },
     "per100": {
-     "offSerious": 4.5739579490962745,
-     "onSerious": 0.8765386049981351,
-     "offNear": 8.815935079306529,
-     "onNear": 1.050603008827552,
-     "offHits": 5.5391614410426655,
-     "onHits": 3.070993410418998
+     "offSerious": 4.530624807633118,
+     "onSerious": 0.9020217729393468,
+     "offNear": 8.9196675900277,
+     "onNear": 1.1384136858475895,
+     "offHits": 5.564789165897199,
+     "onHits": 3.0979782270606533
     },
-    "onLapSec": 16.41802607640416,
-    "offLapSec": 11.30088351603948,
-    "lineWaitPerLap": 2.390380533656678,
+    "onLapSec": 16.31011501179678,
+    "offLapSec": 11.297209371731597,
+    "lineWaitPerLap": 2.4418185927375875,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.745,
+      "A": 0.75,
       "hits": 0.335,
-      "hitsWorse": 0.075,
-      "seriousNear": 0.745
+      "hitsWorse": 0.08,
+      "seriousNear": 0.75
      },
      {
       "minute": 2,
-      "A": 0.875,
-      "hits": 0.41,
-      "hitsWorse": 0.125,
-      "seriousNear": 0.89
+      "A": 0.88,
+      "hits": 0.405,
+      "hitsWorse": 0.145,
+      "seriousNear": 0.895
      },
      {
       "minute": 3,
       "A": 0.95,
-      "hits": 0.515,
-      "hitsWorse": 0.18,
+      "hits": 0.51,
+      "hitsWorse": 0.195,
       "seriousNear": 0.975
      },
      {
       "minute": 4,
-      "A": 0.975,
-      "hits": 0.57,
-      "hitsWorse": 0.18,
+      "A": 0.965,
+      "hits": 0.555,
+      "hitsWorse": 0.205,
       "seriousNear": 0.985
      },
      {
       "minute": 5,
-      "A": 0.985,
+      "A": 0.975,
       "hits": 0.625,
-      "hitsWorse": 0.165,
+      "hitsWorse": 0.185,
       "seriousNear": 0.99
      },
      {
       "minute": 6,
-      "A": 0.995,
-      "hits": 0.65,
-      "hitsWorse": 0.185,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 7,
-      "A": 0.995,
-      "hits": 0.67,
-      "hitsWorse": 0.21,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 8,
-      "A": 0.995,
-      "hits": 0.7,
+      "A": 0.99,
+      "hits": 0.635,
       "hitsWorse": 0.195,
       "seriousNear": 1
      },
      {
-      "minute": 9,
+      "minute": 7,
       "A": 0.99,
-      "hits": 0.735,
-      "hitsWorse": 0.155,
+      "hits": 0.66,
+      "hitsWorse": 0.21,
       "seriousNear": 1
+     },
+     {
+      "minute": 8,
+      "A": 0.99,
+      "hits": 0.7,
+      "hitsWorse": 0.205,
+      "seriousNear": 1
+     },
+     {
+      "minute": 9,
+      "A": 0.98,
+      "hits": 0.725,
+      "hitsWorse": 0.175,
+      "seriousNear": 0.995
      },
      {
       "minute": 10,
       "A": 1,
-      "hits": 0.75,
-      "hitsWorse": 0.145,
+      "hits": 0.74,
+      "hitsWorse": 0.165,
       "seriousNear": 1
      }
     ],
@@ -1804,8 +1804,8 @@
    "summary": {
     "runs": 200,
     "A": {
-     "on": 1,
-     "tie": 0,
+     "on": 0.995,
+     "tie": 0.005,
      "off": 0
     },
     "seriousNear": {
@@ -1814,9 +1814,9 @@
      "off": 0
     },
     "serious": {
-     "on": 0.995,
+     "on": 0.99,
      "tie": 0.005,
-     "off": 0
+     "off": 0.005
     },
     "near": {
      "on": 1,
@@ -1824,8 +1824,8 @@
      "off": 0
     },
     "hits": {
-     "on": 0.775,
-     "tie": 0.11,
+     "on": 0.805,
+     "tie": 0.08,
      "off": 0.115
     },
     "dist": {
@@ -1833,7 +1833,7 @@
       "p10": 3,
       "median": 5,
       "p90": 8,
-      "mean": 5.385
+      "mean": 5.35
      },
      "onSerious": {
       "p10": 0,
@@ -1845,147 +1845,147 @@
       "p10": 7,
       "median": 10,
       "p90": 15,
-      "mean": 10.53
+      "mean": 10.595
      },
      "onNear": {
       "p10": 0,
       "median": 1,
       "p90": 3,
-      "mean": 1.21
+      "mean": 1.27
      },
      "offHits": {
       "p10": 4,
       "median": 6,
       "p90": 10,
-      "mean": 6.49
+      "mean": 6.515
      },
      "onHits": {
       "p10": 1,
       "median": 3,
       "p90": 7,
-      "mean": 3.75
+      "mean": 3.71
      },
      "hitDiff": {
       "p10": -6,
       "median": -3,
       "p90": 1,
-      "mean": -2.74
+      "mean": -2.805
      }
     },
     "per100": {
-     "offSerious": 4.402387181164159,
-     "onSerious": 0.9048465066314093,
-     "offNear": 8.608567691301504,
-     "onNear": 0.9998760484237491,
-     "offHits": 5.305755395683454,
-     "onHits": 3.09878940627195
+     "offSerious": 4.378427039855962,
+     "onSerious": 0.9055948393499565,
+     "offNear": 8.67092233406989,
+     "onNear": 1.05032460819584,
+     "offHits": 5.331860217693755,
+     "onHits": 3.06827109953273
     },
-    "onLapSec": 16.49731878199055,
-    "offLapSec": 11.278771595012033,
-    "lineWaitPerLap": 2.444400094314249,
+    "onLapSec": 16.38063723029722,
+    "offLapSec": 11.276304499644768,
+    "lineWaitPerLap": 2.4861214249875014,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.745,
+      "A": 0.75,
       "hits": 0.335,
-      "hitsWorse": 0.075,
-      "seriousNear": 0.745
+      "hitsWorse": 0.08,
+      "seriousNear": 0.75
      },
      {
       "minute": 2,
-      "A": 0.875,
-      "hits": 0.41,
-      "hitsWorse": 0.125,
-      "seriousNear": 0.89
+      "A": 0.88,
+      "hits": 0.405,
+      "hitsWorse": 0.145,
+      "seriousNear": 0.895
      },
      {
       "minute": 3,
       "A": 0.95,
-      "hits": 0.515,
-      "hitsWorse": 0.18,
+      "hits": 0.51,
+      "hitsWorse": 0.195,
       "seriousNear": 0.975
      },
      {
       "minute": 4,
-      "A": 0.975,
-      "hits": 0.57,
-      "hitsWorse": 0.18,
+      "A": 0.965,
+      "hits": 0.555,
+      "hitsWorse": 0.205,
       "seriousNear": 0.985
      },
      {
       "minute": 5,
-      "A": 0.985,
+      "A": 0.975,
       "hits": 0.625,
-      "hitsWorse": 0.165,
+      "hitsWorse": 0.185,
       "seriousNear": 0.99
      },
      {
       "minute": 6,
-      "A": 0.995,
-      "hits": 0.65,
-      "hitsWorse": 0.185,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 7,
-      "A": 0.995,
-      "hits": 0.67,
-      "hitsWorse": 0.21,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 8,
-      "A": 0.995,
-      "hits": 0.7,
+      "A": 0.99,
+      "hits": 0.635,
       "hitsWorse": 0.195,
       "seriousNear": 1
      },
      {
-      "minute": 9,
+      "minute": 7,
       "A": 0.99,
-      "hits": 0.735,
-      "hitsWorse": 0.155,
+      "hits": 0.66,
+      "hitsWorse": 0.21,
       "seriousNear": 1
+     },
+     {
+      "minute": 8,
+      "A": 0.99,
+      "hits": 0.7,
+      "hitsWorse": 0.205,
+      "seriousNear": 1
+     },
+     {
+      "minute": 9,
+      "A": 0.98,
+      "hits": 0.725,
+      "hitsWorse": 0.175,
+      "seriousNear": 0.995
      },
      {
       "minute": 10,
       "A": 1,
-      "hits": 0.75,
-      "hitsWorse": 0.145,
+      "hits": 0.74,
+      "hitsWorse": 0.165,
       "seriousNear": 1
      },
      {
       "minute": 11,
-      "A": 1,
-      "hits": 0.745,
-      "hitsWorse": 0.145,
+      "A": 0.995,
+      "hits": 0.735,
+      "hitsWorse": 0.17,
       "seriousNear": 1
      },
      {
       "minute": 12,
-      "A": 1,
-      "hits": 0.76,
-      "hitsWorse": 0.135,
+      "A": 0.995,
+      "hits": 0.77,
+      "hitsWorse": 0.15,
       "seriousNear": 1
      },
      {
       "minute": 13,
-      "A": 1,
-      "hits": 0.785,
+      "A": 0.995,
+      "hits": 0.795,
       "hitsWorse": 0.12,
       "seriousNear": 1
      },
      {
       "minute": 14,
-      "A": 1,
-      "hits": 0.76,
+      "A": 0.995,
+      "hits": 0.78,
       "hitsWorse": 0.115,
       "seriousNear": 1
      },
      {
       "minute": 15,
-      "A": 1,
-      "hits": 0.775,
+      "A": 0.995,
+      "hits": 0.805,
       "hitsWorse": 0.115,
       "seriousNear": 1
      }
@@ -2018,204 +2018,204 @@
      "off": 0
     },
     "hits": {
-     "on": 0.8,
-     "tie": 0.08,
-     "off": 0.12
+     "on": 0.805,
+     "tie": 0.065,
+     "off": 0.13
     },
     "dist": {
      "offSerious": {
       "p10": 4,
       "median": 7,
-      "p90": 11,
-      "mean": 7.13
+      "p90": 10,
+      "mean": 7.08
      },
      "onSerious": {
       "p10": 0,
       "median": 1,
       "p90": 3,
-      "mean": 1.51
+      "mean": 1.49
      },
      "offNear": {
       "p10": 9,
       "median": 14,
-      "p90": 18,
-      "mean": 13.9
+      "p90": 19,
+      "mean": 13.985
      },
      "onNear": {
       "p10": 0,
       "median": 1,
-      "p90": 3,
-      "mean": 1.61
+      "p90": 4,
+      "mean": 1.66
      },
      "offHits": {
       "p10": 5,
-      "median": 9,
+      "median": 8,
       "p90": 12,
-      "mean": 8.695
+      "mean": 8.69
      },
      "onHits": {
-      "p10": 1,
+      "p10": 2,
       "median": 5,
       "p90": 9,
-      "mean": 5.085
+      "mean": 5.04
      },
      "hitDiff": {
-      "p10": -9,
+      "p10": -8,
       "median": -4,
       "p90": 1,
-      "mean": -3.61
+      "mean": -3.65
      }
     },
     "per100": {
-     "offSerious": 4.3875573059290485,
-     "onSerious": 0.9390547263681592,
-     "offNear": 8.553582966677949,
-     "onNear": 1.0012437810945274,
-     "offHits": 5.350604596781637,
-     "onHits": 3.162313432835821
+     "offSerious": 4.361082879053867,
+     "onSerious": 0.927684213803194,
+     "offNear": 8.614370630447503,
+     "onNear": 1.0335273791364443,
+     "offHits": 5.35279805352798,
+     "onHits": 3.137938548703421
     },
-    "onLapSec": 16.49029465789953,
-    "offLapSec": 11.275986471244316,
-    "lineWaitPerLap": 2.4226680254652244,
+    "onLapSec": 16.358473835383673,
+    "offLapSec": 11.270512820505717,
+    "lineWaitPerLap": 2.453805420257641,
     "minuteCurve": [
      {
       "minute": 1,
-      "A": 0.745,
+      "A": 0.75,
       "hits": 0.335,
-      "hitsWorse": 0.075,
-      "seriousNear": 0.745
+      "hitsWorse": 0.08,
+      "seriousNear": 0.75
      },
      {
       "minute": 2,
-      "A": 0.875,
-      "hits": 0.41,
-      "hitsWorse": 0.125,
-      "seriousNear": 0.89
+      "A": 0.88,
+      "hits": 0.405,
+      "hitsWorse": 0.145,
+      "seriousNear": 0.895
      },
      {
       "minute": 3,
       "A": 0.95,
-      "hits": 0.515,
-      "hitsWorse": 0.18,
+      "hits": 0.51,
+      "hitsWorse": 0.195,
       "seriousNear": 0.975
      },
      {
       "minute": 4,
-      "A": 0.975,
-      "hits": 0.57,
-      "hitsWorse": 0.18,
+      "A": 0.965,
+      "hits": 0.555,
+      "hitsWorse": 0.205,
       "seriousNear": 0.985
      },
      {
       "minute": 5,
-      "A": 0.985,
+      "A": 0.975,
       "hits": 0.625,
-      "hitsWorse": 0.165,
+      "hitsWorse": 0.185,
       "seriousNear": 0.99
      },
      {
       "minute": 6,
-      "A": 0.995,
-      "hits": 0.65,
-      "hitsWorse": 0.185,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 7,
-      "A": 0.995,
-      "hits": 0.67,
-      "hitsWorse": 0.21,
-      "seriousNear": 0.995
-     },
-     {
-      "minute": 8,
-      "A": 0.995,
-      "hits": 0.7,
+      "A": 0.99,
+      "hits": 0.635,
       "hitsWorse": 0.195,
       "seriousNear": 1
      },
      {
-      "minute": 9,
+      "minute": 7,
       "A": 0.99,
-      "hits": 0.735,
-      "hitsWorse": 0.155,
+      "hits": 0.66,
+      "hitsWorse": 0.21,
       "seriousNear": 1
+     },
+     {
+      "minute": 8,
+      "A": 0.99,
+      "hits": 0.7,
+      "hitsWorse": 0.205,
+      "seriousNear": 1
+     },
+     {
+      "minute": 9,
+      "A": 0.98,
+      "hits": 0.725,
+      "hitsWorse": 0.175,
+      "seriousNear": 0.995
      },
      {
       "minute": 10,
       "A": 1,
-      "hits": 0.75,
-      "hitsWorse": 0.145,
+      "hits": 0.74,
+      "hitsWorse": 0.165,
       "seriousNear": 1
      },
      {
       "minute": 11,
-      "A": 1,
-      "hits": 0.745,
-      "hitsWorse": 0.145,
+      "A": 0.995,
+      "hits": 0.735,
+      "hitsWorse": 0.17,
       "seriousNear": 1
      },
      {
       "minute": 12,
-      "A": 1,
-      "hits": 0.76,
-      "hitsWorse": 0.135,
+      "A": 0.995,
+      "hits": 0.77,
+      "hitsWorse": 0.15,
       "seriousNear": 1
      },
      {
       "minute": 13,
-      "A": 1,
-      "hits": 0.785,
+      "A": 0.995,
+      "hits": 0.795,
       "hitsWorse": 0.12,
       "seriousNear": 1
      },
      {
       "minute": 14,
-      "A": 1,
-      "hits": 0.76,
+      "A": 0.995,
+      "hits": 0.78,
       "hitsWorse": 0.115,
       "seriousNear": 1
      },
      {
       "minute": 15,
-      "A": 1,
-      "hits": 0.775,
+      "A": 0.995,
+      "hits": 0.805,
       "hitsWorse": 0.115,
       "seriousNear": 1
      },
      {
       "minute": 16,
       "A": 1,
-      "hits": 0.795,
-      "hitsWorse": 0.13,
+      "hits": 0.8,
+      "hitsWorse": 0.12,
       "seriousNear": 1
      },
      {
       "minute": 17,
       "A": 1,
-      "hits": 0.78,
-      "hitsWorse": 0.13,
+      "hits": 0.805,
+      "hitsWorse": 0.12,
       "seriousNear": 1
      },
      {
       "minute": 18,
       "A": 1,
-      "hits": 0.775,
-      "hitsWorse": 0.11,
+      "hits": 0.81,
+      "hitsWorse": 0.12,
       "seriousNear": 1
      },
      {
       "minute": 19,
       "A": 1,
-      "hits": 0.805,
-      "hitsWorse": 0.115,
+      "hits": 0.82,
+      "hitsWorse": 0.125,
       "seriousNear": 1
      },
      {
       "minute": 20,
       "A": 1,
-      "hits": 0.8,
-      "hitsWorse": 0.12,
+      "hits": 0.805,
+      "hitsWorse": 0.13,
       "seriousNear": 1
      }
     ],
@@ -2224,5 +2224,5 @@
   }
  ],
  "rows": 2600,
- "seconds": 163.565
+ "seconds": 176.537
 }

@@ -303,9 +303,16 @@ or anywhere crossings, eastbound or westbound traffic.
 - **Stage 3:** lens and driver sight-distance sensitivity.
 
 Results are saved in `research/results/` (`camera-study.csv`, `study-run.json`).
-Headline: put the camera at the crossing hotspot and aim its view at the crossing. One
-camera prevents about 45% of near-misses, two about 60%, three about 70% and four about
-72%, so three is where the benefit levels off. Add `?quick` to the URL for a 15-second
+The study ranks layouts by the share of **serious hits** (contact over 30 km/h) they
+prevent, averaged over the four scenarios, with today's lens (110°, range 250) and today's
+driver. Headline (second run, 3,788 runs): the best single camera stands on the Hall 15
+verge next to the hotspot (x 550) and looks north across the road and up the wildlife
+verge; it prevents about 77% of serious hits. Looking across the road beats looking along
+it (60% from the same spot facing west). Two cameras prevent about 85% (add x 400 on the
+wildlife verge facing south), three 87%, four 90%, so two is where the benefit levels
+off. The lens matters most: with the old 84°/150 lens one camera prevents only about
+36%. The demo keeps its centreline camera at x 590 facing west for a clearer picture;
+this study is the deployment recommendation. Add `?quick` to the URL for a 15-second
 smoke test.
 
 ### Settings study (`research/settings.html`)
