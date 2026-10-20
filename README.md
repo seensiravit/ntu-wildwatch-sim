@@ -388,6 +388,46 @@ projected onto the road, so a verge camera that sees the crossing also covers it
 also honours an optional `dir` on signals (`config.carDir`). The demo's signs have no
 `dir`, and for its camera the footprint ends about 23 units later than before.
 
+### Two-way traffic study (`research/traffic.html`)
+
+The studies above drive one car per direction, one lap at a time, so they count hits
+but say nothing about traffic flow. `research/traffic.js` runs the same two maps with a
+**stream of cars in both directions**: per direction a Poisson process (headway 2 s +
+Exponential, 20 s on average; 40 and 10 s as settings), each car with its own cruise
+speed, following the car ahead (Intelligent Driver Model, `tuning.follow`), queuing
+behind a car waiting at the line. Besides serious hits, near misses and far-lane hits
+(an animal hit in the second lane it entered), it measures what the system costs
+drivers: delay per car against free flow, stops, time at the line, time waiting to
+enter, queue length, and the share of sign-on time with no animal on the road. The
+grid varies demand, the warned driver's stopping times (`signClearSec`, `signMaxWaitSec`,
+`clearHoldSec`, the new `signHoldSec`), the sign rules (no stop line, sight distance,
+warned speed, one sign per direction), and the usual robustness levels; a second stage
+re-runs the camera placement grid two-way. Scores: serious ON hits per 100 crossings
+first, mean delay per car second, driver-seconds per serious hit prevented as the
+tie-break. `node research/run-traffic-study.js` (and `--stage placement`) runs it
+across all cores; results in `research/results/traffic-study.*` and
+`traffic-placement.*`.
+
+Findings (20,200 runs, today's driver): with cars both ways, today's settings still cut
+serious hits by **83%** (7.3 → 1.25 per 100 crossings) and near misses by 92%, at an
+average delay of **8.6 s per car** (the slowest 5% wait 29 s; worst queue 9 cars in 20
+minutes), about 97 driver-seconds per serious hit prevented. Far-lane contacts (an animal
+hit in the second lane it crossed) are most of the two-way contacts and fall by half.
+The stopping times matter for flow, not safety: giving up at the line after **10 s
+instead of 20** keeps the same safety and cuts delay to 7.5 s (slowest 5%: 22 s), which
+is the recommended change; resuming 2 or 5 s after the sign clears, holding 1 s longer
+after the animal clears, or never giving up only add delay. The one stopping-time
+change that buys safety is keeping the sign on after the last detection (2 s: 86% for
+12.4 s per car; 5 s: 88% for 19 s). A slow-only rule without the stop line keeps 82% for
+3.8 s per car, the cheapest safety. The combined best-per-factor (sign on 5 s + give up
+10 s + hold 1 s + resume 5 s) reaches 89% for 18 s per car. At a car every 10 s the cut
+holds (84%) but delay reaches 12.6 s and queues 22 cars; at 40 s, 7.0 s. Two-way camera
+placement (122 layouts, one sign per direction): two cameras on opposite verges at the
+hotspot prevent **97%** for 16 s per car; the best single camera (x 400, south verge,
+facing NE) 87% at 8.9 s, today's camera 84% at 9.2 s, and the one-way placement study's
+pick (x 550 south verge facing N) 81%. Keep today's camera for one camera; the pair if a
+second is affordable.
+
 ## DED dashboard (`wildwatch-dashboard.js`)
 
 The **DED Dashboard** tab in the header is the team's monitoring and decision-support

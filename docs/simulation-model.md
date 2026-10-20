@@ -164,8 +164,41 @@ so speed curves are smooth. After stopping for an animal or at the line, it hold
   lap is moved to hits. Each animal is scored once per lap.
 - **Turned back** counts animals that gave up at the roadside because of the car.
 
-The dashboard tiles, the DED dashboard table, the scenario results card and the three
+The dashboard tiles, the DED dashboard table, the scenario results card and the
 research pages all read these counters.
+
+### 7a. Traffic streams and car-following (research only: `research/traffic.js`, `tuning.follow`)
+
+The demo drives one car per side. The two-way traffic study instead releases a **stream
+of cars in both directions** on the same two maps, so that queues and delay can be
+measured:
+
+- **Arrivals** per direction are a Poisson process: headway = `traffic.headwayMinSec`
+  (2 s) + Exponential(`headwayMeanSec` − 2 s), 20 s on average by default (180 cars/h per
+  direction; a quiet campus road at night is nearer 40 s). Each car's cruise speed is
+  Normal(`cruiseKmh`, `traffic.cruiseSdKmh` 4) clipped to 40–60 km/h, so faster cars catch
+  slower ones. Both worlds get the same cars (same release times and speeds).
+- **Entering.** A released car enters only when no car on its route is within the gap it
+  would want at its speed (`entryClear`); otherwise it waits off-map, and that wait
+  counts as delay and as queue.
+- **Following** uses the Intelligent Driver Model (Treiber 2000): the wanted gap is
+  `standGap` (14 units ≈ 2 m) + speed × `headwaySec` (1.5 s) + a closing-speed term; the
+  car brakes at up to `comfortDecel` (24 units/s² ≈ 3.3 m/s²) in proportion to how far
+  short of that gap it is, and a car already at the leader's speed but too close lets
+  the gap open. A follower notices the car ahead braking only after `reactionSec`
+  (0.5 s), and cannot see an animal hidden behind its leader. Every other driver rule
+  (sections 5 and 6) applies unchanged; the strongest braking wins.
+- **Westbound** cars drive `config.carPathWest` (the south lane, right to left) with their
+  own warning zones; the demo's two signs have no direction and warn both. A sign with
+  a `dir` only warns that direction (the study's per-direction-sign setting).
+- **Sign hold** (`tuning.signHoldSec`, 0 in the demo): a sign can be kept flashing for a
+  few seconds after the camera last saw an animal.
+
+Per car the study records delay (travel time minus free-flow time at its own cruise
+speed), stops, time stopped, time at the stop line and time waiting to enter; per world
+the queue length each frame, the share of sign-on time with no animal on the road
+("unneeded warnings"), and **far-lane hits**: an animal hit in the second lane it
+entered, which only exists with two-way traffic.
 
 ## 8. Worked examples
 
@@ -208,3 +241,4 @@ Full links are in the README ("Animal arrivals and roadside behaviour", "Driver 
 | Earlier warning | `signSightDistance` up, camera `range` / `fovDeg` | 110° view is the one clear win over the earlier 84° (serious ON hits 0.95 vs 1.62 per 100 crossings, 800 seeds); 640 sight is a tie with 480, range 350 trades a few more serious hits for a 3 s quicker warned lap |
 | Less creeping | `clearKmh` up, `signClearSec` down | fewer low-speed contacts on the ON side |
 | Different crossing place | `spawning.hotspot`, and the camera position | one camera covers one place: crossings anywhere drop its effect to ~23% |
+| Less delay for drivers (two-way study) | `signClearSec`, `signMaxWaitSec`, `clearHoldSec`, `signHoldSec`, `stopForSign` | every second at the line is paid by every car behind; see the two-way traffic study in the README for what each costs and buys |
