@@ -96,12 +96,16 @@
   // Is this world's car a threat to an animal about to cross here? Either
   // approaching within approachRadius of its crossing point, or stopped within
   // stoppedRadius of it (ahead or behind).
+  // With several cars per world (research runs), any one of them counts.
   function carThreat(a) {
-    if (!WW.car || !WW.car.state || !WW.car.state.visible) return false;
-    const cr = WW.config.crossing;
-    const ds = WW.car.projectS(a.x, a.y) - WW.car.state.s; // > 0: crossing point is ahead of the car
-    if (WW.car.currentKmh() < cr.stoppedKmh) return Math.abs(ds) <= cr.stoppedRadius;
-    return ds >= -WW.config.ui.carLen && ds <= cr.approachRadius;
+    if (!WW.car || !WW.car.cars) return false;
+    const cr = WW.config.crossing, carLen = WW.config.ui.carLen;
+    for (const c of WW.car.cars) {
+      if (!c.state.visible) continue;
+      const ds = WW.car.projectOn(c.dir, a.x, a.y) - c.state.s; // > 0: crossing point is ahead of the car
+      if (WW.car.kmhOf(c) < cr.stoppedKmh ? Math.abs(ds) <= cr.stoppedRadius : ds >= -carLen && ds <= cr.approachRadius) return true;
+    }
+    return false;
   }
 
   function startCrossing(a, speedMul) {

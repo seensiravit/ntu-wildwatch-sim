@@ -125,10 +125,15 @@
 
       cs.animalsInCone = nowInCone;
       cs.detecting = nowInCone.length > 0;
-      // Every signal linked to this camera flashes exactly while it is detecting
-      // (no hold time). A camera can drive several signs (signal.linkedCameraId).
+      // Every signal linked to this camera flashes while it is detecting, and
+      // for tuning.signHoldSec after the last detection (0 in the demo: the sign
+      // goes off at once). A camera can drive several signs (signal.linkedCameraId).
+      const holdMs = (t.signHoldSec || 0) * 1000, nowMs = WW.clock ? WW.clock.ms : 0;
       WW.config.signals.forEach((sig) => {
-        if (sig.linkedCameraId === cam.id && sigState[sig.id]) sigState[sig.id].flashing = cs.detecting;
+        const ss = sigState[sig.id];
+        if (sig.linkedCameraId !== cam.id || !ss) return;
+        if (cs.detecting) { ss.flashing = true; ss.lastOnMs = nowMs; }
+        else ss.flashing = holdMs > 0 && ss.lastOnMs !== undefined && nowMs - ss.lastOnMs < holdMs;
       });
     });
   }

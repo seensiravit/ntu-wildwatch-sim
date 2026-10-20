@@ -221,6 +221,13 @@
       signStopMaxDecelUnitsPerSec2: 45, // stop for the sign only if it needs ≤ ≈ 6 m/s²; else go through slowly
       signClearSec: 0.5,       // drive on once the sign has been off this long
       signMaxWaitSec: 20,      // ...or after waiting this long at the line (then go through slowly)
+      signHoldSec: 0,          // a sign keeps flashing this long after its camera last saw an animal (0 = goes off at once)
+      // Car following (research runs with a stream of cars; the demo has one car
+      // per side so this never applies). Intelligent Driver Model: keep standGap
+      // (≈ 2 m) plus headwaySec of travel behind the car ahead, brake up to
+      // comfortDecel (≈ 3.3 m/s²) to hold it, and notice the car ahead braking
+      // only after reactionSec.
+      follow: { standGap: 14, headwaySec: 1.5, comfortDecel: 24, reactionSec: 0.5 },
       otherLaneDecelUnitsPerSec2: 18,   // animal in the other lane: slow at ≈ 2.5 m/s² (up to 5 if needed) ...
       otherLaneStopDecelUnitsPerSec2: 36, // ...to a speed it could still stop from at ≈ 5 m/s² if it steps across
       otherLaneMinKmh: 20,     // ...but passes it no slower than this
@@ -370,6 +377,19 @@
     // ---- Team DED dashboard extension (wildwatch-dashboard.js) ------------
     // Its campus map already has a "Tamarind area" camera, so our one camera
     // reports there — no extra map node needed.
+    // ---- Traffic stream (research/traffic.js only; the demo drives one car
+    // per side). Cars arrive per direction as a Poisson process: headway =
+    // headwayMinSec + Exponential(headwayMeanSec − headwayMinSec); each car's
+    // cruise speed is Normal(tuning.cruiseKmh, cruiseSdKmh) clipped to the range.
+    traffic: {
+      headwayMeanSec: 20,  // 180 cars/h per direction (a quiet campus road at night is ~40 s)
+      headwayMinSec: 2,
+      cruiseSdKmh: 4,
+      cruiseMinKmh: 40,
+      cruiseMaxKmh: 60,
+      dirs: ["east", "west"],
+    },
+
     dashboard: {
       // Which dashboard location each sim camera reports as. The name must match
       // one of the extension's locations (its own four, or extraLocations below).
