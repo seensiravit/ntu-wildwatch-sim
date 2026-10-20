@@ -19,11 +19,11 @@
 
   const S = {
     dt: 1 / 60,
-    minutes: QUICK ? 5 : 20,
+    minutes: QUICK ? 3 : 10,
     seeds: QUICK ? [101, 102] : range(101, 110),
     combinedSeeds: QUICK ? [101, 102] : range(101, 120),
     seriousKmh: (CFG.scenario && CFG.scenario.seriousKmh) || 30,
-    headwayMeanSec: CFG.traffic.headwayMeanSec,
+    realCrossingsPerHour: 0.3,   // a night hotspot on a forested Singapore road (Tay et al. 2024): used to convert delay per crossing into delay per car
     // Placement stage (study 4): the placement study's grid, two-way, today's lens.
     xs: [250, 400, 550, 700, 850],
     laterals: [
@@ -43,55 +43,84 @@
   // set run options: headwayMeanSec, perDirSigns (one sign per camera per
   // direction at the coverage start, instead of the demo's two signs), xDist.
   const cam = (x, y, deg) => (c) => { Object.assign(c.cameras[0], { x: x, y: y, facingAngleDeg: deg }); };
-  const SETTINGS = [
-    { id: "base", factor: "baseline", label: "today's settings, a car every 20 s per direction", apply: () => {} },
-    // Demand
-    { id: "hw40", factor: "traffic demand", label: "a car every 40 s per direction (quiet)", apply: () => {}, headwayMeanSec: 40 },
-    { id: "hw10", factor: "traffic demand", label: "a car every 10 s per direction (busy)", apply: () => {}, headwayMeanSec: 10 },
-    // Stopping time
-    { id: "clear2", factor: "resume after sign clears", system: true, label: "drive on 2 s after the sign clears", apply: (c) => { c.tuning.signClearSec = 2; } },
-    { id: "clear5", factor: "resume after sign clears", system: true, label: "drive on 5 s after the sign clears", apply: (c) => { c.tuning.signClearSec = 5; } },
-    { id: "wait10", factor: "max wait at the line", system: true, label: "give up waiting after 10 s", apply: (c) => { c.tuning.signMaxWaitSec = 10; } },
-    { id: "waitInf", factor: "max wait at the line", system: true, label: "never give up waiting", apply: (c) => { c.tuning.signMaxWaitSec = Infinity; } },
-    { id: "hold1", factor: "hold after the lane clears", system: true, label: "hold 1 s after the animal clears", apply: (c) => { c.tuning.clearHoldSec = 1; } },
-    { id: "signHold2", factor: "sign hold", system: true, label: "sign stays on 2 s after the last detection", apply: (c) => { c.tuning.signHoldSec = 2; } },
-    { id: "signHold5", factor: "sign hold", system: true, label: "sign stays on 5 s after the last detection", apply: (c) => { c.tuning.signHoldSec = 5; } },
-    // Sign and driver rule
-    { id: "nostop", factor: "warned driver", system: true, label: "slow to 20 km/h only (no stop line)", apply: (c) => { c.tuning.stopForSign = false; } },
-    { id: "sight320", factor: "sign visible from", system: true, label: "sign visible from 320", apply: (c) => { c.tuning.signSightDistance = 320; } },
-    { id: "sight640", factor: "sign visible from", system: true, label: "sign visible from 640", apply: (c) => { c.tuning.signSightDistance = 640; } },
-    { id: "warn30", factor: "warned speed", system: true, label: "warned speed 30 km/h", apply: (c) => { c.tuning.warnKmh = 30; } },
-    { id: "dirSigns", factor: "signs", system: true, label: "one sign per direction at the camera's coverage edge", apply: () => {}, perDirSigns: true },
-    // Robustness (not system-controlled)
-    { id: "react11", factor: "reaction time", label: "reaction 1.1 / 0.7 s (research means)", apply: (c) => { c.tuning.driverReactionSec = 1.1; c.tuning.alertReactionSec = 0.7; } },
-    { id: "light230", factor: "driver's headlights", label: "headlights 230 (sees 32 m)", apply: (c) => { c.tuning.headlight.range = 230; } },
-    { id: "cruise40", factor: "cruise speed", label: "cruise 40 km/h", apply: (c) => { c.tuning.cruiseKmh = 40; c.traffic.cruiseMinKmh = 30; c.traffic.cruiseMaxKmh = 50; } },
-    { id: "cruise60", factor: "cruise speed", label: "cruise 60 km/h", apply: (c) => { c.tuning.cruiseKmh = 60; c.traffic.cruiseMinKmh = 50; c.traffic.cruiseMaxKmh = 70; } },
-    { id: "uniform", factor: "crossing pattern", label: "crossings anywhere along the road", apply: () => {}, xDist: (rnd) => 60 + rnd() * 880 },
+  // Study variables (research/traffic.html, research/run-traffic-study.js):
+  //   seePolicy  what a driver does on seeing an animal: nothing | slow | stop
+  //   signRule   warned driver at the line: slow (never stops) | fixed 5 / 10 s | clear + 0.5 / 2 / 5 s after the sign goes off
+  //   signTrigger what makes the sign flash: any animal in view | only one on the road
+  // Everything else is fixed at the research values (config.research).
+  const POLICIES = [["nothing", "driver never brakes for animals"], ["slow", "driver slows for animals (today)"], ["stop", "driver stops for any animal on the road"]];
+  const RULES = [
+    ["slow", "no stop, 20 km/h past the sign", (c) => { c.tuning.signRule = "slow"; }],
+    ["fixed5", "stop 5 s at the line", (c) => { c.tuning.signRule = "fixed"; c.tuning.signFixedWaitSec = 5; }],
+    ["fixed10", "stop 10 s at the line", (c) => { c.tuning.signRule = "fixed"; c.tuning.signFixedWaitSec = 10; }],
+    ["clear", "wait until the sign is off (+0.5 s)", (c) => { c.tuning.signRule = "clear"; c.tuning.signClearSec = 0.5; }],
+    ["clear2", "wait until the sign is off + 2 s", (c) => { c.tuning.signRule = "clear"; c.tuning.signClearSec = 2; }],
+    ["clear5", "wait until the sign is off + 5 s", (c) => { c.tuning.signRule = "clear"; c.tuning.signClearSec = 5; }],
   ];
-  // Stage 4: every single-camera placement, with per-direction signs, plus the
-  // opposite-verge pair. `today` is the demo camera with per-direction signs so
-  // the grid has a like-for-like reference.
-  function placementSettings() {
-    const out = [{ id: "p-today", factor: "placement", system: true, label: "today's camera (x 590 centreline facing W)", apply: () => {}, perDirSigns: true }];
+  const TRIGGERS = [["view", "sign on while an animal is in view"], ["road", "sign on only while an animal is on the road"]];
+  const SETTINGS = [];
+  POLICIES.forEach((pol) => RULES.forEach((rule) => TRIGGERS.forEach((trig) => {
+    const isBase = pol[0] === "slow" && rule[0] === "clear" && trig[0] === "view";
+    SETTINGS.push({
+      id: isBase ? "base" : "P" + pol[0] + "_R" + rule[0] + "_T" + trig[0], policy: pol[0], rule: rule[0], trigger: trig[0],
+      factor: "policy x sign rule x trigger", system: true,
+      label: pol[1] + " · " + rule[1] + " · " + trig[1],
+      apply: (c) => { c.tuning.seePolicy = pol[0]; rule[2](c); c.tuning.signTrigger = trig[0]; },
+    });
+  })));
+  // Sensitivities on the baseline: compliance, demand, lens, crossings anywhere, headlights.
+  function sensitivitySettings() {
+    return [
+      { id: "base", factor: "baseline", system: true, label: "baseline (30% of drivers follow the sign rule)", apply: () => {} },
+      { id: "comply10", factor: "sign compliance", label: "10% of drivers follow the sign rule", apply: (c) => { c.tuning.signCompliance = 0.1; } },
+      { id: "comply60", factor: "sign compliance", label: "60% of drivers follow the sign rule", apply: (c) => { c.tuning.signCompliance = 0.6; } },
+      { id: "comply100", factor: "sign compliance", label: "every driver follows the sign rule", apply: (c) => { c.tuning.signCompliance = 1; } },
+      { id: "hw20", factor: "traffic demand", label: "a car every 20 s per direction", apply: () => {}, headwayMeanSec: 20 },
+      { id: "hw90", factor: "traffic demand", label: "a car every 90 s per direction", apply: () => {}, headwayMeanSec: 90 },
+      { id: "lens60", factor: "lens", label: "60° lens", apply: (c) => { c.cameras[0].fovDeg = 60; } },
+      { id: "lens110", factor: "lens", label: "110° lens (the demo's)", apply: (c) => { c.cameras[0].fovDeg = 110; } },
+      { id: "north75", factor: "arrival side", label: "75% of animals from the north verge", apply: (c) => { c.spawning.northShare = 0.75; } },
+      { id: "uniform", factor: "crossing pattern", label: "crossings anywhere along the road", apply: () => {}, xDist: (rnd) => 60 + rnd() * 880 },
+      { id: "gap120", factor: "arrival rate (check)", label: "a group every 120 s (rate-independence check)", apply: (c) => { c.spawning.meanGapSec = 120; } },
+      { id: "gantry", factor: "signs", label: "the demo's two gantry signs at the camera instead of one per direction", apply: () => {}, perDirSigns: false },
+    ];
+  }
+  // Placement stage: every single-camera placement for a lens, with per-direction
+  // signs, plus three two-camera layouts. "p90-today" is the demo camera with
+  // per-direction signs so the grid has a like-for-like reference.
+  function placementSettings(fovDeg) {
+    const L = "p" + (fovDeg || CFG.research.camera.fovDeg) + "-";
+    const lens = (c) => { c.cameras.forEach((cam) => { cam.fovDeg = fovDeg || CFG.research.camera.fovDeg; }); };
+    const out = [{ id: L + "today", factor: "placement", system: true, label: "today's camera (x 590 centreline facing W)", apply: lens, perDirSigns: true, lens: fovDeg }];
     S.xs.forEach((x) => S.laterals.forEach((lat) => S.facings.forEach((f) => {
-      out.push({ id: "p-" + x + "-" + lat.id + "-" + f.id, factor: "placement", system: true,
-        label: "x " + x + " · " + lat.label + " · facing " + f.id, apply: cam(x, lat.y, f.deg), perDirSigns: true,
-        x: x, lat: lat.id, face: f.id });
+      out.push({ id: L + x + "-" + lat.id + "-" + f.id, factor: "placement", system: true,
+        label: "x " + x + " · " + lat.label + " · facing " + f.id, apply: (c) => { cam(x, lat.y, f.deg)(c); lens(c); }, perDirSigns: true,
+        x: x, lat: lat.id, face: f.id, lens: fovDeg });
     })));
-    out.push({ id: "p-pair", factor: "placement", system: true, label: "pair at x 490: north verge facing S + south verge facing N", perDirSigns: true,
-      apply: (c) => {
-        Object.assign(c.cameras[0], { x: 490, y: 330, facingAngleDeg: 90 });
-        c.cameras.push(Object.assign({}, c.cameras[0], { id: "cam2", name: "Cam 2", x: 490, y: 430, facingAngleDeg: 270 }));
-      } });
+    const pair = (id, label, a, b) => out.push({ id: L + id, factor: "placement", system: true, label: label, perDirSigns: true, lens: fovDeg, pair: true,
+      apply: (c) => { Object.assign(c.cameras[0], a); c.cameras.push(Object.assign({}, c.cameras[0], { id: "cam2", name: "Cam 2" }, b)); lens(c); } });
+    pair("pair-verges", "pair at x 490: north verge facing S + south verge facing N", { x: 490, y: 330, facingAngleDeg: 90 }, { x: 490, y: 430, facingAngleDeg: 270 });
+    pair("pair-split", "pair: x 400 north verge facing S + x 550 south verge facing N", { x: 400, y: 330, facingAngleDeg: 90 }, { x: 550, y: 430, facingAngleDeg: 270 });
+    pair("pair-b2b", "pair at x 490 centreline: facing W + facing E", { x: 490, y: 380, facingAngleDeg: 180 }, { x: 490, y: 380, facingAngleDeg: 0 });
     return out;
   }
 
   // ---- Config snapshot / restore -----------------------------------------------
+  // restore() puts the demo config back; baseline() then applies config.research
+  // (the literature values) on top, which is what every setting starts from.
   const KEYS = ["cameras", "signals", "tuning", "species", "spawning", "crossing", "traffic"];
   const BASE = JSON.parse(JSON.stringify(pick(CFG, KEYS)));
   function pick(o, keys) { const out = {}; keys.forEach((k) => { out[k] = o[k]; }); return out; }
   function restore() { Object.assign(CFG, JSON.parse(JSON.stringify(BASE))); delete CFG.carDir; }
+  function merge(dst, src) { Object.keys(src).forEach((k) => { if (src[k] && typeof src[k] === "object" && !Array.isArray(src[k]) && dst[k] && typeof dst[k] === "object") merge(dst[k], src[k]); else dst[k] = src[k]; }); return dst; }
+  function applyResearch() {
+    const r = CFG.research;
+    if (!r) return;
+    if (r.species) CFG.species.forEach((sp) => { if (r.species[sp.id]) merge(sp, r.species[sp.id]); });
+    ["spawning", "crossing", "tuning", "traffic"].forEach((k) => { if (r[k]) merge(CFG[k], r[k]); });
+    if (r.camera) CFG.cameras.forEach((cam) => merge(cam, r.camera));
+  }
+  function baseline() { restore(); applyResearch(); }
 
   // ---- Hooks: speed at every contact, and which lane the animal was hit in -----
   let curWorld = null;
@@ -128,7 +157,8 @@
         const out = [];
         while (next <= now) {
           const cruise = Math.max(tr.cruiseMinKmh, Math.min(tr.cruiseMaxKmh, t.cruiseKmh + WW.spawner.gauss(rnd) * tr.cruiseSdKmh));
-          out.push({ t: next, cruiseKmh: cruise });
+          const complies = rnd() < (t.signCompliance === undefined ? 1 : t.signCompliance);
+          out.push({ t: next, cruiseKmh: cruise, complies: complies });
           next += min + WW.spawner.exponential(rnd, meanSec - min);
         }
         return out;
@@ -161,7 +191,7 @@
       cars: m.delays.length, delaySum: m.delaySum, delaySq: m.delaySq, delays: sorted,
       stops: m.stops, stoppedSec: m.stoppedSec, lineSec: m.lineSec, blockedSec: m.blockedSec,
       queueSum: m.queueSum, queueMax: m.queueMax, steps: m.steps, unneededSteps: m.unneededSteps, signOnSteps: m.signOnSteps,
-      entered: m.entered,
+      entered: m.entered, compliers: m.compliers,
     };
   }
 
@@ -175,12 +205,15 @@
     const dirs = CFG.traffic.dirs;
     worlds.forEach((w) => {
       use(w); WW.car.reset();
-      if (setting.perDirSigns) { perDirectionSigns(); WW.car.reset(); }
+      // Research installation: one sign per camera per direction at the edge of
+      // the camera's coverage (so the sign is seen signSightDistance before the
+      // stop line). perDirSigns: false keeps the demo's two gantry signs at the camera.
+      if (setting.perDirSigns !== false) { perDirectionSigns(); WW.car.reset(); }
       WW.detection.reset(); WW.stats.reset();
       w.car.state.visible = false; // the primary car is parked: the stream drives
       w.m = { hitKmh: [], farLane: 0, seriousBy: { east: 0, west: 0 }, crossings: 0, reached: new Set(), fromNorth: new Map(),
         delays: [], delaySum: 0, delaySq: 0, stops: 0, stoppedSec: 0, lineSec: 0, blockedSec: 0,
-        queueSum: 0, queueMax: 0, steps: 0, unneededSteps: 0, signOnSteps: 0, entered: 0 };
+        queueSum: 0, queueMax: 0, steps: 0, unneededSteps: 0, signOnSteps: 0, entered: 0, compliers: 0 };
       w.recs = new Map();                 // car -> flow record
       w.entry = {}; dirs.forEach((d) => { w.entry[d] = []; }); // released cars waiting to enter
     });
@@ -200,7 +233,7 @@
       t += dt; WW.clock.ms += dt * 1000;
       const onScreen = Math.max.apply(null, worlds.map((w) => w.animals.length));
       animalStream.due(t).forEach((ev) => { if (onScreen < CFG.spawning.maxConcurrent) WW.animals.spawn(Object.assign({}, ev, { state: "walking" })); });
-      streams.forEach((st) => st.s.due(t).forEach((ev) => worlds.forEach((w) => w.entry[st.dir].push({ releaseT: ev.t, cruiseKmh: ev.cruiseKmh }))));
+      streams.forEach((st) => st.s.due(t).forEach((ev) => worlds.forEach((w) => w.entry[st.dir].push({ releaseT: ev.t, cruiseKmh: ev.cruiseKmh, complies: ev.complies }))));
 
       worlds.forEach((w) => {
         use(w);
@@ -212,9 +245,9 @@
           const q = w.entry[d];
           while (q.length && WW.car.entryClear(d, q[0].cruiseKmh)) {
             const ev = q.shift();
-            const car = WW.car.addCar({ dir: d, cruiseKmh: ev.cruiseKmh });
+            const car = WW.car.addCar({ dir: d, cruiseKmh: ev.cruiseKmh, complies: ev.complies });
             WW.car.startLap(car);
-            m.entered++;
+            m.entered++; if (ev.complies) m.compliers++;
             w.recs.set(car, { dir: d, releaseT: ev.releaseT, enterT: t, cruiseKmh: ev.cruiseKmh, stops: 0, stoppedSec: 0, lineSec: 0, wasStopped: false });
           }
           m.blockedSec += q.length * dt;
@@ -264,7 +297,7 @@
   async function evaluate(setting, seeds, work) {
     const perSeed = [];
     for (const seed of seeds) {
-      restore(); setting.apply(CFG);
+      baseline(); setting.apply(CFG);
       const [off, on] = runTwoWay(seed, S.minutes, setting);
       perSeed.push({ seed, off, on });
       if (work) await work();
@@ -277,7 +310,7 @@
   function side(rows) {
     const o = {};
     ["hits", "serious", "crawl", "near", "safe", "back", "speedSum", "speedCount", "crossings", "farLane", "seriousEast", "seriousWest",
-      "cars", "delaySum", "delaySq", "stops", "stoppedSec", "lineSec", "blockedSec", "queueSum", "queueMax", "steps", "unneededSteps", "signOnSteps", "entered"]
+      "cars", "delaySum", "delaySq", "stops", "stoppedSec", "lineSec", "blockedSec", "queueSum", "queueMax", "steps", "unneededSteps", "signOnSteps", "entered", "compliers"]
       .forEach((k) => { o[k] = k === "queueMax" ? Math.max.apply(null, rows.map((r) => r[k])) : sum(rows, k); });
     const per100 = (v) => (o.crossings ? (100 * v) / o.crossings : 0);
     const perCar = (v) => (o.cars ? v / o.cars : 0);
@@ -294,6 +327,7 @@
       stopsPerCar: perCar(o.stops), stoppedSecPerCar: perCar(o.stoppedSec), lineSecPerCar: perCar(o.lineSec), blockedSecPerCar: perCar(o.blockedSec),
       queueMean: o.steps ? o.queueSum / o.steps : 0, queueMax: o.queueMax,
       unneededShare: o.signOnSteps ? o.unneededSteps / o.signOnSteps : 0, signOnShare: o.steps ? o.signOnSteps / o.steps : 0,
+      complianceShare: o.entered ? o.compliers / o.entered : 0,
     };
   }
   const cut = (a, b) => (a ? 1 - b / a : 0);
@@ -319,9 +353,15 @@
     const b = bootstrap(perSeed);
     const prevented = off.seriousPer100 - on.seriousPer100;            // per 100 crossings
     const extraDelay = (on.delayMean - off.delayMean) * on.carsPer100;  // driver-seconds per 100 crossings
+    const headway = setting.headwayMeanSec || (CFG.research && CFG.research.traffic && CFG.research.traffic.headwayMeanSec) || CFG.traffic.headwayMeanSec;
+    // Rate-independent cost: extra driver-seconds per crossing event; and what that
+    // means per car at the real crossing rate and this traffic volume.
+    const delayPerCrossing = extraDelay / 100;
+    const realDelayPerCar = delayPerCrossing * S.realCrossingsPerHour / (3600 / headway);
     return {
       id: setting.id, factor: setting.factor, label: setting.label, system: !!setting.system, seeds: perSeed.length,
-      headwayMeanSec: setting.headwayMeanSec || CFG.traffic.headwayMeanSec,
+      policy: setting.policy, rule: setting.rule, trigger: setting.trigger, lens: setting.lens, pair: !!setting.pair,
+      headwayMeanSec: headway, delayPerCrossing: delayPerCrossing, realDelayPerCar: realDelayPerCar,
       x: setting.x, lat: setting.lat, face: setting.face,
       off, on,
       seriousCut: cut(off.seriousPer100, on.seriousPer100), seriousCutCI: b.cut,
@@ -388,10 +428,10 @@
     const names = ["crossings", "cars", "hits", "serious", "crawl", "near", "safe", "far_lane", "serious_east", "serious_west",
       "serious_per100", "near_per100", "hits_per100", "far_lane_per100", "avg_kmh", "delay_mean_s", "delay_p95_s", "stops_per_car", "stopped_s_per_car", "line_s_per_car", "blocked_s_per_car", "queue_mean", "queue_max", "unneeded_share", "sign_on_share"];
     const head = ["id", "factor", "setting", "seeds", "headway_s"].concat(names.map((n) => "off_" + n), names.map((n) => "on_" + n),
-      ["serious_cut", "serious_cut_lo", "serious_cut_hi", "near_cut", "hits_cut", "far_lane_cut", "delay_diff_s", "delay_diff_lo", "delay_diff_hi", "sec_per_hit_prevented"]);
+      ["serious_cut", "serious_cut_lo", "serious_cut_hi", "near_cut", "hits_cut", "far_lane_cut", "delay_diff_s", "delay_diff_lo", "delay_diff_hi", "sec_per_hit_prevented", "delay_per_crossing_s", "real_delay_per_car_s", "compliance_share"]);
     const rows = r.grid.concat([r.combined, r.baseline].filter(Boolean)).map((g) =>
       [g.id, g.factor, g.label, g.seeds, g.headwayMeanSec].concat(sideCols(g.off), sideCols(g.on),
-        [g.seriousCut, g.seriousCutCI[0], g.seriousCutCI[1], g.nearCut, g.hitCut, g.farLaneCut, g.delayDiff, g.delayDiffCI[0], g.delayDiffCI[1], g.secPerHitPrevented]));
+        [g.seriousCut, g.seriousCutCI[0], g.seriousCutCI[1], g.nearCut, g.hitCut, g.farLaneCut, g.delayDiff, g.delayDiffCI[0], g.delayDiffCI[1], g.secPerHitPrevented, g.delayPerCrossing, g.realDelayPerCar, g.on.complianceShare]));
     const esc = (v) => (v === null || v === undefined ? "" : typeof v === "number" ? (Number.isInteger(v) ? v : v.toFixed(4)) : '"' + String(v).replace(/"/g, '""') + '"');
     return [head.join(",")].concat(rows.map((row) => row.map(esc).join(","))).join("\n");
   }
@@ -420,9 +460,9 @@
       dl.href = URL.createObjectURL(blob); dl.download = "traffic-study.csv"; dl.hidden = false;
       btn.disabled = false;
     });
-    document.getElementById("meta").textContent = SETTINGS.length + " settings × " + S.seeds.length + " seeds × " + S.minutes + " simulated minutes, two-way traffic; combined check with " + S.combinedSeeds.length + " seeds" + (QUICK ? " · QUICK MODE" : "");
+    document.getElementById("meta").textContent = SETTINGS.length + " settings (3 driver policies × 6 sign rules × 2 sign triggers) × " + S.seeds.length + " seeds × " + S.minutes + " simulated minutes, two-way traffic at the research values; combined check with " + S.combinedSeeds.length + " seeds" + (QUICK ? " · QUICK MODE" : "");
   }
 
-  window.TrafficStudy = { S, SETTINGS, placementSettings, run, evaluate, runTwoWay, summarise, pickCombined, toCSV, restore };
+  window.TrafficStudy = { S, SETTINGS, placementSettings, sensitivitySettings, run, evaluate, runTwoWay, summarise, pickCombined, toCSV, restore, baseline, applyResearch, perDirectionSigns };
   if (window.addEventListener && typeof document !== "undefined") window.addEventListener("DOMContentLoaded", init);
 })();

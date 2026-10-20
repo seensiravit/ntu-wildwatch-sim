@@ -222,6 +222,14 @@
       signClearSec: 0.5,       // drive on once the sign has been off this long
       signMaxWaitSec: 20,      // ...or after waiting this long at the line (then go through slowly)
       signHoldSec: 0,          // a sign keeps flashing this long after its camera last saw an animal (0 = goes off at once)
+      // ---- Driver policies studied in research/traffic.js (demo values here) ----
+      seePolicy: "slow",       // what a driver does on seeing an animal: "nothing" (never brakes), "slow" (today's caution rules), "stop" (stops for an animal anywhere on the road)
+      signRule: "clear",       // warned driver at the line: "slow" (never stops), "fixed" (waits signFixedWaitSec then goes), "clear" (waits until the sign has been off signClearSec, gives up after signMaxWaitSec)
+      signFixedWaitSec: 5,     // for signRule "fixed"
+      signTrigger: "view",     // what makes a sign flash: "view" (any animal in the camera's view) or "road" (only an animal on the carriageway or within signRoadMargin of the kerb)
+      signRoadMargin: 14,      // ≈ 2 m
+      signCompliance: 1,       // share of drivers who follow signRule; the rest only slow by signOnlySlowKmh while the sign flashes (field studies: 3–8 km/h)
+      signOnlySlowKmh: 7,
       // Car following (research runs with a stream of cars; the demo has one car
       // per side so this never applies). Intelligent Driver Model: keep standGap
       // (≈ 2 m) plus headwaySec of travel behind the car ahead, brake up to
@@ -255,7 +263,47 @@
       // ~34 m an alerted one does), and one on the verge only inside this beam.
       // At 50 km/h that is just short of the distance needed to stop for an animal
       // first seen at the edge of the light ("outdriving the headlights").
-      headlight: { fovDeg: 40, range: 150, dimAlpha: 0.4 },
+      headlight: { fovDeg: 40, range: 150, alertRange: null, dimAlpha: 0.4 }, // alertRange: seeing distance once warned by a sign (null = same as range; research: ~45 m vs ~30 m)
+    },
+
+    // ---- Research baseline (research/traffic.js) ------------------------
+    // The demo above is paced for a 2-minute presentation: animals move 5–8×
+    // faster than life, groups arrive every 12 s and the driver reacts in 0.5 s.
+    // The research runs instead apply these literature values on top of the
+    // demo config (deep merge; species by id). Sources: README "Fixed parameters".
+    // 1 unit ≈ 0.139 m, so 1 m/s ≈ 7.2 units/s and 1 m/s² ≈ 7.2 units/s².
+    research: {
+      species: {
+        macaque:  { speedUnitsPerSec: 7.2,  // 1.0 m/s walk (Higurashi 2019; Courtine 2005)
+                    spawn: { weight: 0.15, extraMean: 4, maxGroup: 10 },   // night crossings rare (diurnal; Brotcorne 2014); sub-groups of a ~24 troop (Riley 2015)
+                    traffic: { cross: 0.50, wait: 0.30, maxWaitSec: 10, crossSpeedMul: 1 } },
+        boar:     { speedUnitsPerSec: 7.2,  // 1.0 m/s walk; dash = trot 2.5 m/s
+                    spawn: { weight: 0.75, extraMean: 1.2, maxGroup: 8 },  // 68% of crossings (Tay 2024); mean group 2.2, 57% singles, max 8 (Koh 2018)
+                    traffic: { cross: 0.60, wait: 0.25, maxWaitSec: 6, crossSpeedMul: 2.5 } }, // least affected by vehicles (Brieger 2022)
+        pangolin: { speedUnitsPerSec: 2.9,  // 0.4 m/s (no measured value; "slow-moving", NParks)
+                    spawn: { weight: 0.10, extraMean: 0, maxGroup: 1 },    // ~3% of crossings in reality, kept visible
+                    traffic: { cross: 0.50, wait: 0.40, maxWaitSec: 12, crossSpeedMul: 1 } },
+      },
+      spawning: {
+        meanGapSec: 60,          // runs use one group a minute so crossings are independent; real night hotspot ≈ 0.3 groups/h (Tay 2024), results are reported per crossing
+        northShare: 0.5,         // balanced over a night (collared boar alternate sides; Koh 2018)
+      },
+      crossing: { approachRadius: 300 }, // a car ≈ 42 m away is a threat (boar flight distances 30–90 m; Wielgus 2024)
+      tuning: {
+        driverReactionSec: 1.5,  // surprise object at night (Green 2000; SHRP2 mean 1.51 s)
+        alertReactionSec: 1.0,   // expected hazard, warned by the sign (Green 2000)
+        jerk: { gentle: 14, firm: 43, emergency: 72, release: 72, firmAbove: 18, emergencyAbove: 36 }, // ≈ 2 / 6 / 10 m/s³
+        maxDecelUnitsPerSec2: 50.4,       // 7 m/s², an average driver's hard stop on dry asphalt
+        signStopMaxDecelUnitsPerSec2: 36, // stop for a sign only if ≤ 5 m/s² is enough
+        signDecelUnitsPerSec2: 24.5,      // 3.4 m/s² comfortable (AASHTO)
+        accelUnitsPerSec2: 11,            // 1.5 m/s² (IDM city calibration, Treiber & Kesting)
+        signMaxWaitSec: 10,               // the two-way study's recommendation
+        signCompliance: 0.3,              // a minority stop at a sign; most slow 3–8 km/h (Huijser 2009/2017; Gordon 2004) — estimate
+        follow: { standGap: 14, headwaySec: 1.0, comfortDecel: 14.4, reactionSec: 0.5 }, // IDM city set: s0 2 m, T 1.0 s, b 2.0 m/s²
+        headlight: { range: 216, alertRange: 324 }, // 30 m unalerted, 45 m alerted (Olson & Sivak 1983; Roper & Howard)
+      },
+      camera: { fovDeg: 90 },    // a 7.5 mm wide thermal lens; 110° is not a product
+      traffic: { headwayMeanSec: 45 }, // ≈ 80 cars/h per direction late evening (proxy: 2.4% of a 5–10k AADT)
     },
 
     // ---- UI / interaction affordance sizes (logical map units) ----------

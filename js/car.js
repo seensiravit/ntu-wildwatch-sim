@@ -14,6 +14,7 @@
     return {
       dir: opts.dir || "east",          // which route the car drives (see routes)
       cruiseKmh: opts.cruiseKmh || 0,   // this car's own cruise speed (0 = tuning.cruiseKmh)
+      complies: opts.complies !== false, // follows tuning.signRule at a flashing sign; else only slows by signOnlySlowKmh
       state: {
         x: 0, y: 0,
         headingDeg: 0,
@@ -183,9 +184,10 @@
   // Put a car back at the start of its route, entering the map at cruising
   // speed. Each lap scores its own encounters, so an animal still on the road
   // meets the new car afresh. Default: the primary car.
-  function startLap(c) {
+  function startLap(c, opts) {
     const prev = car;
     if (c) select(c);
+    if (opts && opts.complies !== undefined) car.complies = opts.complies;
     scored.clear();
     pending.clear();
     seen.clear();
@@ -253,8 +255,10 @@
   // n = { sec: time since noticed, laneSec: time in the car's lane (-1 if not) }.
   function perceive(dt, leader) {
     const t = WW.config.tuning, road = WW.config.road;
-    const beam = { x: state.x, y: state.y, facingAngleDeg: state.headingDeg, fovDeg: t.headlight.fovDeg, range: t.headlight.range };
-    const sight = t.headlight.range;
+    if (t.seePolicy === "nothing") { seen.clear(); return []; } // research baseline: the driver never reacts to animals
+    // A driver warned by a sign looks harder and sees further (headlight.alertRange).
+    const sight = state.s <= state.warnedUntil && t.headlight.alertRange ? t.headlight.alertRange : t.headlight.range;
+    const beam = { x: state.x, y: state.y, facingAngleDeg: state.headingDeg, fovDeg: t.headlight.fovDeg, range: sight };
     const hidden = leader ? leader.state.s - state.s : Infinity;
     const out = [], present = new Set();
     for (const a of WW.animals.list) {
@@ -313,16 +317,26 @@
       want(vSafe, Math.min(af, Math.max(t.otherLaneDecelUnitsPerSec2, needed)));
     };
 
-    if (warned) {
+    if (warned && !car.complies) {
+      // A driver who does not follow the sign rule (tuning.signCompliance): eases
+      // off by signOnlySlowKmh while the sign flashes, as field studies measure,
+      // and otherwise drives on what the headlights show.
+      const z = zoneHere();
+      if (z && WW.detection.isSignalActive(z.signalId)) want(kmhToUnits((car.cruiseKmh || t.cruiseKmh) - t.signOnlySlowKmh), t.signDecelUnitsPerSec2);
+    } else if (warned) {
       // The sign is flashing (or only just went off): an animal is in the crossing
       // area, so stop at the stop line before it and wait. If the car can't stop
       // there without braking harder than signStopMaxDecel (it saw the sign too
       // late), or has already passed the line, or has waited long enough, go
-      // through slowly at warnKmh instead.
+      // through slowly at warnKmh instead. tuning.signRule: "clear" waits until
+      // the sign has been off for signClearSec (at most signMaxWaitSec); "fixed"
+      // waits signFixedWaitSec and goes whatever the sign does; "slow" never stops.
       const z = zoneHere();
-      const busy = t.stopForSign !== false && z &&
-        (WW.detection.isSignalActive(z.signalId) || state.signOffSec < t.signClearSec) &&
-        state.lineWaitSec < t.signMaxWaitSec;
+      const flashing = z && WW.detection.isSignalActive(z.signalId);
+      let busy = false;
+      if (t.stopForSign === false || t.signRule === "slow") busy = false;
+      else if (t.signRule === "fixed") busy = z && (flashing || state.lineWaitSec > 0) && state.lineWaitSec < t.signFixedWaitSec;
+      else busy = z && (flashing || state.signOffSec < t.signClearSec) && state.lineWaitSec < t.signMaxWaitSec;
       const room = z ? z.stopS - state.s - WW.config.ui.carLen / 2 : -Infinity;
       const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
       if (busy && room > -1 && (need <= t.signStopMaxDecelUnitsPerSec2 || v < t.finishSpeedUnits)) {
@@ -357,6 +371,12 @@
         const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
         const rate = v < t.finishSpeedUnits ? need : t.stopFrontLoad * need;
         want(0, Math.min(cap, rate));
+        p.stopping = true;
+      } else if (o.where === "road" && t.seePolicy === "stop") {
+        // Policy "stop": an animal anywhere on the road is treated like one in the lane.
+        const room = roomTo(o);
+        const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
+        want(0, Math.min(cap, v < t.finishSpeedUnits ? need : t.stopFrontLoad * need));
         p.stopping = true;
       } else if (o.where === "road") {
         slowFor(o);

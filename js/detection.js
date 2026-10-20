@@ -125,14 +125,22 @@
 
       cs.animalsInCone = nowInCone;
       cs.detecting = nowInCone.length > 0;
-      // Every signal linked to this camera flashes while it is detecting, and
+      // What makes the signs flash: any animal in view (tuning.signTrigger
+      // "view", the demo), or only one on the carriageway or within
+      // signRoadMargin of the kerb ("road", studied in research/traffic.js).
+      let trigger = cs.detecting;
+      if (trigger && t.signTrigger === "road") {
+        const road = WW.config.road, reach = road.roadWidth / 2 + (t.signRoadMargin || 0);
+        trigger = nowInCone.some((h) => WW.geo.distToPolyline(h.animal.x, h.animal.y, road.centerline) <= reach);
+      }
+      // Every signal linked to this camera flashes while it is triggered, and
       // for tuning.signHoldSec after the last detection (0 in the demo: the sign
       // goes off at once). A camera can drive several signs (signal.linkedCameraId).
       const holdMs = (t.signHoldSec || 0) * 1000, nowMs = WW.clock ? WW.clock.ms : 0;
       WW.config.signals.forEach((sig) => {
         const ss = sigState[sig.id];
         if (sig.linkedCameraId !== cam.id || !ss) return;
-        if (cs.detecting) { ss.flashing = true; ss.lastOnMs = nowMs; }
+        if (trigger) { ss.flashing = true; ss.lastOnMs = nowMs; }
         else ss.flashing = holdMs > 0 && ss.lastOnMs !== undefined && nowMs - ss.lastOnMs < holdMs;
       });
     });

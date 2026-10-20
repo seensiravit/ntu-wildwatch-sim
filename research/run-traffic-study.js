@@ -23,23 +23,23 @@ function loadStudy() {
   for (const f of MODULES) vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), ctx, { filename: f });
   return { study: ctx.TrafficStudy, CFG: ctx.WW.config };
 }
-function allSettings(study) { return study.SETTINGS.concat(study.placementSettings()); }
+function allSettings(study) { return study.SETTINGS.concat(study.sensitivitySettings(), study.placementSettings(90), study.placementSettings(60)); }
 
 if (!isMainThread) {
   const { study, CFG } = loadStudy();
-  const byId = {}; allSettings(study).forEach((s) => { byId[s.id] = s; });
+  const byId = {}; allSettings(study).forEach((s) => { if (!byId[s.id]) byId[s.id] = s; });
   for (const job of workerData.jobs) {
     const parts = job.ids.map((id) => byId[id]);
     // A job applies one or more settings (the combined check applies several).
     const setting = {
       apply: (c) => parts.forEach((p) => p.apply(c)),
       headwayMeanSec: parts.map((p) => p.headwayMeanSec).find((v) => v),
-      perDirSigns: parts.some((p) => p.perDirSigns),
+      perDirSigns: !parts.some((p) => p.perDirSigns === false),
       xDist: parts.map((p) => p.xDist).find((v) => v),
     };
     const rows = [];
     for (const seed of job.seeds) {
-      study.restore(); setting.apply(CFG);
+      study.baseline(); setting.apply(CFG);
       const [off, on] = study.runTwoWay(seed, workerData.minutes, setting);
       rows.push({ seed, off, on });
     }
@@ -53,8 +53,8 @@ if (!isMainThread) {
 
 function main() {
   const arg = (name, def) => { const i = process.argv.indexOf("--" + name); return i > 0 ? process.argv[i + 1] : def; };
-  const STAGE = arg("stage", "grid");
-  const SEEDS = +arg("seeds", STAGE === "placement" ? 100 : 300), COMBINED = +arg("combined", 1000), MINUTES = +arg("minutes", 20);
+  const STAGE = arg("stage", "policy"), LENS = +arg("lens", 90);
+  const SEEDS = +arg("seeds", 300), COMBINED = +arg("combined", 1000), MINUTES = +arg("minutes", 10);
   const WORKERS = +arg("workers", Math.max(1, os.cpus().length - 2));
   const OUT = arg("out", path.join(ROOT, "research", "results"));
   const CHUNK = 5;
@@ -62,7 +62,7 @@ function main() {
 
   const { study } = loadStudy();
   const S = study.S;
-  const SETTINGS = STAGE === "placement" ? study.placementSettings() : study.SETTINGS;
+  const SETTINGS = STAGE === "placement" ? study.placementSettings(LENS) : STAGE === "sens" ? study.sensitivitySettings() : study.SETTINGS;
   S.minutes = MINUTES; S.seeds = range(101, SEEDS); S.combinedSeeds = range(101, COMBINED);
 
   function chunks(key, ids, seeds) {
@@ -98,7 +98,7 @@ function main() {
     runs += jobs.reduce((a, j) => a + j.seeds.length, 0);
     const result = { stage: STAGE, settings: S, minutes: MINUTES, grid: SETTINGS.map((s) => study.summarise(s, bySeed(grid[s.id]))), combined: null, baseline: null };
 
-    if (STAGE !== "placement") {
+    if (STAGE === "policy") {
       const combined = study.pickCombined(result.grid, SETTINGS);
       process.stderr.write("Combined check (" + S.combinedSeeds.length + " seeds): " + combined.label + "\n");
       const jobs2 = chunks("combined", combined.ids, S.combinedSeeds).concat(chunks("base", [SETTINGS[0].id], S.combinedSeeds));
@@ -111,18 +111,18 @@ function main() {
     result.runs = runs;
 
     fs.mkdirSync(OUT, { recursive: true });
-    const name = STAGE === "placement" ? "traffic-placement" : "traffic-study";
+    const name = STAGE === "placement" ? "traffic-placement-" + LENS : STAGE === "sens" ? "traffic-sens" : "traffic-policy";
     const slim = JSON.parse(JSON.stringify(result, (k, v) => (k === "perSeed" || k === "delays" ? undefined : v)));
     fs.writeFileSync(path.join(OUT, name + ".json"), JSON.stringify(slim, null, 1));
     fs.writeFileSync(path.join(OUT, name + ".csv"), study.toCSV(result) + "\n");
 
     const p = (v) => Math.round(v * 100) + "%";
     const f = (v, d) => (v === null || v === undefined ? "–" : v.toFixed(d));
-    console.log("runs", runs, "seconds", Math.round(result.seconds), "workers", WORKERS, "seeds", SEEDS, "minutes", MINUTES, "stage", STAGE);
-    console.log("\nON serious hits per 100 crossings (ascending) | cut [CI] | near cut | far-lane/100 off→on | delay s/car off→on (p95 on) | queue max | driver-s per serious hit prevented | label");
-    result.grid.slice().sort((a, b) => a.on.seriousPer100 - b.on.seriousPer100).slice(0, STAGE === "placement" ? 25 : 100).forEach((g) =>
+    console.log("runs", runs, "seconds", Math.round(result.seconds), "workers", WORKERS, "seeds", SEEDS, "minutes", MINUTES, "stage", STAGE, "lens", LENS);
+    console.log("\nON serious/100 | OFF | cut [CI] | near cut | far-lane/100 off→on | delay s/car off→on (p95 on) | driver-s per crossing | driver-s per hit prevented | q max | label");
+    result.grid.slice().sort((a, b) => a.on.seriousPer100 - b.on.seriousPer100).slice(0, STAGE === "placement" ? 30 : 100).forEach((g) =>
       console.log(f(g.on.seriousPer100, 2).padStart(5), "| off", f(g.off.seriousPer100, 2).padStart(5), "| cut", p(g.seriousCut).padStart(4), "[", p(g.seriousCutCI[0]), "…", p(g.seriousCutCI[1]), "] | near", p(g.nearCut).padStart(4),
-        "| far", f(g.off.farLanePer100, 2), "→", f(g.on.farLanePer100, 2), "| delay", f(g.off.delayMean, 1), "→", f(g.on.delayMean, 1), "(p95", f(g.on.delayP95, 1) + ")", "| q", g.on.queueMax, "| s/hit", f(g.secPerHitPrevented, 0), "|", g.label));
+        "| far", f(g.off.farLanePer100, 2), "→", f(g.on.farLanePer100, 2), "| delay", f(g.off.delayMean, 1), "→", f(g.on.delayMean, 1), "(p95", f(g.on.delayP95, 1) + ")", "| s/x", f(g.delayPerCrossing, 0), "| s/hit", f(g.secPerHitPrevented, 0), "| q", g.on.queueMax, "|", g.label));
     if (result.combined) {
       console.log("\nCombined:", result.combined.label);
       for (const g of [result.baseline, result.combined]) console.log(" ", g.id, "serious", f(g.off.seriousPer100, 2), "->", f(g.on.seriousPer100, 2), "cut", p(g.seriousCut), "near cut", p(g.nearCut), "delay", f(g.off.delayMean, 1), "->", f(g.on.delayMean, 1), "s/hit", f(g.secPerHitPrevented, 0));
