@@ -388,6 +388,45 @@ projected onto the road, so a verge camera that sees the crossing also covers it
 also honours an optional `dir` on signals (`config.carDir`). The demo's signs have no
 `dir`, and for its camera the footprint ends about 23 units later than before.
 
+## Fixed parameters for the research runs (`config.research`)
+
+The demo is paced for a two-minute presentation: animals move 5–8× faster than life,
+a group arrives every 12 s and the driver reacts in 0.5 s. The research runs
+(`research/traffic.js`) apply the literature values below on top of the demo config
+(`config.research`, deep-merged by `TrafficStudy.baseline()`); the demo itself is
+unchanged. 1 map unit ≈ 0.139 m, so 1 m/s ≈ 7.2 units/s. "Confidence" says how the value
+was obtained: measured (a study reports it), estimated (derived from related
+measurements) or guess (no data; chosen to be plausible).
+
+| Parameter | Demo | Research | Confidence | Source |
+|---|---|---|---|---|
+| Macaque walking speed | 5.6 m/s | 1.0 m/s | measured (lab) | Higurashi et al. 2019, *J. Neurophysiol.*; Courtine et al. 2005 |
+| Wild boar walking / dash | 8.3 m/s | 1.0 / 2.5 m/s (trot) | estimated | Wildlife Online (secondary); urban GPS studies |
+| Pangolin walking speed | 3.1 m/s | 0.4 m/s | guess | NParks ("slow-moving"); no measured value |
+| Night species mix | 40 / 45 / 15 % | boar 75, macaque 15, pangolin 10 % | estimated | Tay et al. 2024, *Ecosphere* (boar 68% of crossings); macaques diurnal (Brotcorne et al. 2014); pangolins ~3% but kept visible |
+| Group size | 1+Poisson(1) ≤4 / (0.6) ≤4 / 1 | macaque 1+Poisson(4) ≤10; boar 1+Poisson(1.2) ≤8; pangolin 1 | measured (boar) / estimated | Koh, Webb & Leung 2018, *Raffles Bull. Zool.* (boar mean 2.2, 57% singles, max 8); Riley et al. 2015 (troops ~24) |
+| Crossing rate at a night hotspot | a group every 12 s | ~0.3 groups/h (runs use one a minute and report per crossing) | estimated | Tay et al. 2024 (1,133 crossings in 9 months over a road section) |
+| Side of arrival | 75% north | 50 / 50 | estimated | collared boar alternate sides within days (Koh et al. 2018); no study reports a one-sided bias |
+| Cross / wait / retreat when a car is noticed | boar .50/.35/.15, macaque .25/.50/.25, pangolin .30/.60/.10 | boar .60/.25/.15, macaque .50/.30/.20, pangolin .50/.40/.10 | estimated / guess | Jacobson et al. 2016 response types; Brieger et al. 2022 (boar least affected by vehicles); Thurfjell et al. 2015 |
+| Distance at which a car is a threat | 24 m | 42 m | estimated | boar flight distance 84–93 m from people (Wielgus et al. 2024); earlier with LED lights (Pakula et al.) |
+| Cruise speed | 50 km/h | 50 km/h, cars 50 ± 4 | measured (law) | Singapore default limit 50 km/h (LTA); no NTU-specific limit found |
+| Night traffic | — | a car every 45 s per direction (~80/h) | guess (proxy) | 2.4% of daily traffic at 22:00 (VanDelden et al. 2008) on a 5–10k AADT road |
+| Reaction time, surprise | 0.5 s | 1.5 s | measured | Green 2000, *Transp. Human Factors*; SHRP2 naturalistic mean 1.51 s |
+| Reaction time, warned by a sign | 0.35 s | 1.0 s | measured | Green 2000 (expected 0.7 s, common 1.25 s) |
+| Comfortable braking | 3.3 m/s² | 3.4 m/s² | measured | AASHTO Green Book |
+| Hard braking | 8 m/s² cap, 6.25 for a sign stop | 7 m/s² cap, 5 for a sign stop | measured (dry) | SAE 2023-01-0616 (ABS cars 8–10 m/s²); average driver below that |
+| Brake build-up (jerk) | 2.5 / 6 / 12 m/s³ | 2 / 6 / 10 m/s³ | estimated | comfort ≤ 2 m/s³ (arXiv 2001.00135); emergency ramps 5–10 |
+| Pull-away acceleration | 2.5 m/s² | 1.5 m/s² | measured (calibration) | IDM city set, Treiber & Kesting |
+| Headlight seeing distance, dark animal | 21 m | 30 m unalerted, 45 m once warned | estimated | Olson & Sivak 1983 (46 m for dark clothing, alerted); Roper & Howard (unalerted ≈ half); Wood et al. 2005 |
+| Car-following | 2 m, 1.5 s, 3.3 m/s² | 2 m, 1.0 s, 2.0 m/s² | measured (calibration) | Treiber, Hennecke & Helbing 2000; Treiber & Kesting city set |
+| Drivers who follow the sign rule | 100% | 30%; the rest slow by 7 km/h | estimated | sign alone −3 to −8 km/h at night, −13 to −20% with the animal visible (Huijser et al. 2009, 2017; Gordon et al. 2004; Gagnon et al. 2019); share who stop not reported |
+| Camera lens | 110° | 90° (a 7.5 mm thermal lens); 60° tested | measured (products) | thermal lenses: 7.5 mm ≈ 90°, 13 mm ≈ 45°, 19 mm ≈ 32° horizontal |
+| Sign placement | two gantry signs at the camera | one sign per direction at the edge of the camera's coverage | design | so the sign is seen `signSightDistance` before the stop line |
+
+Not modelled, and worth knowing: pangolins freeze mid-road (a Jacobson "pauser"); here a
+pangolin only pauses at the roadside. Macaque night crossings are rare in reality and
+would cluster at dusk and dawn. The hotspot's position and width are not measured.
+
 ### Two-way traffic study (`research/traffic.html`)
 
 The studies above drive one car per direction, one lap at a time, so they count hits
@@ -408,25 +447,42 @@ tie-break. `node research/run-traffic-study.js` (and `--stage placement`) runs i
 across all cores; results in `research/results/traffic-study.*` and
 `traffic-placement.*`.
 
-Findings (20,200 runs, today's driver): with cars both ways, today's settings still cut
-serious hits by **83%** (7.3 → 1.25 per 100 crossings) and near misses by 92%, at an
-average delay of **8.6 s per car** (the slowest 5% wait 29 s; worst queue 9 cars in 20
-minutes), about 97 driver-seconds per serious hit prevented. Far-lane contacts (an animal
-hit in the second lane it crossed) are most of the two-way contacts and fall by half.
-The stopping times matter for flow, not safety: giving up at the line after **10 s
-instead of 20** keeps the same safety and cuts delay to 7.5 s (slowest 5%: 22 s), which
-is the recommended change; resuming 2 or 5 s after the sign clears, holding 1 s longer
-after the animal clears, or never giving up only add delay. The one stopping-time
-change that buys safety is keeping the sign on after the last detection (2 s: 86% for
-12.4 s per car; 5 s: 88% for 19 s). A slow-only rule without the stop line keeps 82% for
-3.8 s per car, the cheapest safety. The combined best-per-factor (sign on 5 s + give up
-10 s + hold 1 s + resume 5 s) reaches 89% for 18 s per car. At a car every 10 s the cut
-holds (84%) but delay reaches 12.6 s and queues 22 cars; at 40 s, 7.0 s. Two-way camera
-placement (122 layouts, one sign per direction): two cameras on opposite verges at the
-hotspot prevent **97%** for 16 s per car; the best single camera (x 400, south verge,
-facing NE) 87% at 8.9 s, today's camera 84% at 9.2 s, and the one-way placement study's
-pick (x 550 south verge facing N) 81%. Keep today's camera for one camera; the pair if a
-second is affordable.
+Findings of the first pass (20,200 runs at the demo's parameters, kept in the git
+history of `research/results/traffic-study.*`): with cars both ways the system cut
+serious hits 83% for 8.6 s of delay per car, giving up at the line after 10 s kept the
+safety and cut delay, and the placement ranking was asymmetric because 75% of animals
+came from the north.
+
+**Installation study (research parameters).** The second pass fixes every parameter at
+the research values above (`config.research`) and varies only three things: the camera
+placement, the driver's own policy on seeing an animal (never brakes / slows / stops for
+anything on the road), and what the sign asks of the 30% who follow it (no stop; stop 5
+or 10 s; wait until the sign is off, plus 0.5, 2 or 5 s), crossed with what makes the
+sign flash (any animal in view, or only one on the road). 36 settings × 300 seeds × 10
+simulated minutes, 12 sensitivities, and the placement grid for a 90° and a 60° lens
+(124 layouts × 300 seeds each); 89,600 runs. Groups arrive once a minute so crossings
+are independent, and costs are reported per crossing event. Results in
+`research/results/traffic-policy.*`, `traffic-sens.*`, `traffic-placement-90.*` and
+`-60.*`; `node research/run-traffic-study.js --stage policy | sens | placement --lens 90`.
+
+Findings: the **sign trigger** is the decision that matters: flashing for any animal in
+view cuts serious hits **91%** (26.2 → 2.4 per 100 crossings), flashing only once the
+animal is on the road 83%. The **sign rule hardly matters** (2.38–2.46 per 100 across all
+six rules, inside noise) because the benefit comes from every warned driver looking
+further and reacting a second sooner, not from the minority who stop; full compliance
+would give 2.29 for double the delay, and 10% compliance 2.49. The **driver's own
+policy**: slowing and stopping for animals are equal; a driver who never brakes leaves
+the system cutting 29%. Cost: about 4 driver-seconds of extra delay per crossing event,
+16 per serious hit prevented; at the real rate of 0.3 crossings an hour that is
+hundredths of a second per car. Lens: 110° 94%, 90° 91%, 60° 84%. Per-direction signs at
+the coverage edge beat the demo's gantry signs at the camera (91% vs 88%). **Placement**
+with balanced arrivals is symmetric: a camera just outside the hotspot looking along
+the road toward it, or on the centreline, sees both verges and both lanes; with the 90°
+lens the best single camera (x 400 south verge facing NE, 91%) ties today's centreline
+camera (91%), and a pair on opposite verges reaches 93% for 1.5× the delay; with the 60°
+lens today's centreline camera is the clear best (84%). Recommendation: today's camera
+position with a 90° lens, one sign per direction at its coverage edge, flashing for any
+animal in view, asking drivers to slow; a stop line is optional.
 
 ## DED dashboard (`wildwatch-dashboard.js`)
 

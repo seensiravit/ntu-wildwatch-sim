@@ -231,7 +231,22 @@ stop with room to spare: a safe pass.
 
 Full links are in the README ("Animal arrivals and roadside behaviour", "Driver model").
 
-## 10. Tuning guide
+## 10. Research baseline (`config.research`)
+
+The values in sections 2–7 are the demo's, paced for a two-minute presentation: animal
+speeds 5–8× life, a group every 12 s, a 0.5 s driver reaction. The research runs
+(`research/traffic.js`) start from `config.research`, deep-merged over the demo config,
+which holds the literature values: walking speeds 1.0 / 1.0 / 0.4 m/s, boar-dominated
+night mix with measured group sizes, balanced arrival sides, a car threat at 42 m,
+reaction 1.5 s (1.0 s when warned), 3.4 / 7 m/s² braking, 1.5 m/s² pull-away, 30 / 45 m
+seeing distances, IDM city following, a 90° lens, a car every 45 s per direction and
+30% sign compliance. The README's "Fixed parameters" table gives each value's source
+and confidence. Two study variables live in `tuning` as well: `seePolicy` (nothing /
+slow / stop on seeing an animal), `signRule` with `signFixedWaitSec` and `signClearSec`
+(what a warned, complying driver does at the line), `signTrigger` (view / road) and
+`signCompliance`.
+
+## 11. Tuning guide
 
 | Wish | Change | Effect seen in the studies |
 |---|---|---|
