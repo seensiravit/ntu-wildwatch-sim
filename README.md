@@ -16,7 +16,7 @@ full design.
 |---|---|
 | **See the demo** (the one for presentations) | `index.html`, double-click it. Press **S** for the scripted 3-act scenario. |
 | See the system as it would be **installed**, with research values and cars both ways | `installation.html` |
-| **Present** the project in 2½ minutes | [docs/presentation-script.md](docs/presentation-script.md), and [docs/scenario.md](docs/scenario.md) for what each act shows |
+| **Present** the project | [docs/scenario.md](docs/scenario.md): the 3-act scenario, what each act shows, and presenter notes |
 | Know **what to recommend** (where the cameras go, what the sign does, what it costs drivers) | [research/reports/installation-study.html](research/reports/installation-study.html), the one report to cite; its "Conclusion for each setting" table is the summary |
 | Understand **how the simulation works**, in plain language | [docs/simulation-settings.html](docs/simulation-settings.html) (same page as in `research/reports/`) |
 | Look up **a rule or a number** and where it comes from | [docs/simulation-model.md](docs/simulation-model.md), and the "Fixed parameters" table below for the research values and their sources |
@@ -274,8 +274,6 @@ Sources:
 - [docs/simulation-model.md](docs/simulation-model.md): every rule and number behind the
   demo: how animals arrive, what they do at the roadside, what the driver sees, how the
   car decides to slow, stop and move on (in priority order), scoring, sources, tuning.
-- [docs/presentation-script.md](docs/presentation-script.md): a 2½-minute spoken script
-  for presenting the demo, with timings and where each number comes from.
 - [docs/sequence-diagrams.md](docs/sequence-diagrams.md): sequence diagrams (Mermaid,
   rendered on GitHub) of one frame of the demo, an animal becoming a warning, the
   driver reacting to an animal, one research run, and the installation demo's start.
