@@ -25,6 +25,7 @@ full design.
 | Read the **earlier studies** and why their answers changed | [research/reports/](research/reports/): camera placement, settings, two-way traffic; each says at the top what superseded it |
 | **Re-run a study** | the `research/*.html` pages (few seeds, in the browser) or `node research/run-*.js` (all cores); results land in `research/results/` |
 | Know what the project **does not** do | the "Scope" section at the end, and "What this study cannot tell you" in each report |
+| Find your way around the **files and folders** | [docs/folder-structure.md](docs/folder-structure.md): every file and what it is |
 
 ## Run it
 
@@ -277,6 +278,8 @@ Sources:
 - [docs/sequence-diagrams.md](docs/sequence-diagrams.md): sequence diagrams (Mermaid,
   rendered on GitHub) of one frame of the demo, an animal becoming a warning, the
   driver reacting to an animal, one research run, and the installation demo's start.
+- [docs/folder-structure.md](docs/folder-structure.md): every file and folder in the
+  repository and what it is for.
 - [docs/uml-diagrams.md](docs/uml-diagrams.md): UML (Mermaid): the modules and their
   dependencies, the data model (worlds, cars, animals, routes, signals), and the state
   machines of an animal, a car, a sign and the scenario.
