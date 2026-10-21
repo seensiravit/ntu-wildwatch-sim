@@ -272,7 +272,7 @@
     ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.setLineDash([16, 14]); ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(c.width, cy); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = "#e9edf1"; ctx.font = "600 14px " + cssVar("--font-mono"); ctx.textAlign = "left";
-    ctx.fillText("eastbound lane (y 359)  →", P(180, 0)[0], P(0, 359)[1] + 5);
+    ctx.fillText("eastbound lane (y 359)  →", P(640, 0)[0], P(0, 359)[1] + 5);
     ctx.textAlign = "right"; ctx.fillText("←  westbound lane (y 401)", P(970, 0)[0], P(0, 401)[1] + 5);
     // demo camera cone (590,380) facing W, 110°, 250
     var cam = { x: 590, y: 380, deg: 180, fov: 110, range: 250 };
