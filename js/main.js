@@ -293,22 +293,30 @@
     // sim (drawing continues) once it is done, until S (replay) or Esc / Reset.
     const sc = WW.scenario.state;
     if (!paused && sc.phase !== "done") {
-      if (!sc.active) updateAttract(dt); // idle/spawn timing runs on real time
+      // The installation demo runs fast-forwarded (config.installation.timeScale).
+      const scale = INSTALLATION ? WW.config.installation.timeScale : 1;
+      if (!sc.active) updateAttract(dt * scale); // idle/spawn timing runs on (scaled) real time
       // Slow the whole scene while the user is placing/aiming an animal.
       const placing = dragActive || WORLDS.some((w) => w.animals.some((a) => a.state === "placed"));
-      const sdt = dt * (placing ? WW.config.tuning.placingTimeScale : 1);
+      const sdt = dt * scale * (placing ? WW.config.tuning.placingTimeScale : 1);
       WW.clock.ms += sdt * 1000;
-      if (INSTALLATION) trafficRelease(sdt);
       // Order matters, per world: move the animals (they react to that side's
       // car), detect, then the car reacts.
-      WORLDS.forEach((w) => {
+      const step = (h) => WORLDS.forEach((w) => {
         WW.useWorld(w);
-        WW.animals.update(sdt);
+        WW.animals.update(h);
         WW.detection.update();
-        WW.car.update(sdt);
+        WW.car.update(h);
       });
-      if (INSTALLATION) trafficRetire();
-      else { const hold = sc.active ? WW.scenario.update(sdt) : false; syncLaps(sdt, hold); }
+      if (INSTALLATION) {
+        // Sub-step so the car dynamics stay stable at high speed.
+        const n = Math.max(1, Math.ceil(sdt / WW.config.installation.maxStepSec));
+        for (let i = 0; i < n; i++) { trafficRelease(sdt / n); step(sdt / n); trafficRetire(); }
+      } else {
+        step(sdt);
+        const hold = sc.active ? WW.scenario.update(sdt) : false;
+        syncLaps(sdt, hold);
+      }
     }
     if (sc.phase === "done") showScenarioCard();
 

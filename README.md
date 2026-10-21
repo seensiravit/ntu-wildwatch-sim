@@ -26,8 +26,10 @@ installation from the installation study** on the **research values** (1 m/s ani
 coverage, flashing for any animal in view, asking drivers to slow; 30% of drivers obey
 it, the rest slow by 7 km/h) with a **stream of cars in both directions** (a car every
 20 s per direction, each with its own speed, following and queuing). Animals arrive
-every 30 s at knob level 4 so there is something to watch; both sides get the same
-animals and the same cars. The scoreboard footer adds cars through and their average
+every 30 s at knob level 4 so there is something to watch, and the whole scene runs at
+**2× speed** (`config.installation.timeScale`, sub-stepped) because a 1 m/s animal is
+only a few screen pixels a second in real time; both sides get the same animals and the
+same cars. The scoreboard footer adds cars through and their average
 delay against free flow. `index.html` is unchanged: it keeps the presentation pacing
 and the one-car-per-side scenario. The page is selected by `<body data-mode="installation">`,
 which makes `js/main.js` apply `config.research` and `config.installation`.

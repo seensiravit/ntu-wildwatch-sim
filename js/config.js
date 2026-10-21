@@ -318,7 +318,11 @@
       tuning: { signRule: "slow" },  // the sign asks drivers to slow; no stop line
       knobBaseSec: 120,
       signKerbOffset: 20,            // sign this far beyond the kerb (units)
-      hint: "Installation demo: research parameters, cars both ways, 30% of drivers obey the sign. Drag an animal to try it.",
+      // Real-time animals (1 m/s ≈ 4 screen pixels a second) look stuck, so the
+      // whole scene runs fast-forwarded: cars, animals, signs and clocks alike.
+      timeScale: 2,
+      maxStepSec: 1 / 60,            // physics sub-step at high speed
+      hint: "Installation demo at 2× speed: research parameters, cars both ways, 30% of drivers obey the sign. Drag an animal to try it.",
       panelSub: {
         off: "Today: no cameras, no warning — 1 m/s animals, 1.5 s reactions, cars both ways",
         on: "Recommended installation: 90° camera, a sign per direction, flashing for any animal in view",
