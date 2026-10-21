@@ -18,6 +18,20 @@ offline. No install, no build step, no internet, no dependencies.
 > If you clone from GitHub, keep the folder structure intact (`index.html` next to
 > the `css/` and `js/` folders). Opening the file directly (`file://`) is supported.
 
+### Installation demo (`installation.html`)
+
+A second page, same code, different settings: `installation.html` runs the **recommended
+installation from the installation study** on the **research values** (1 m/s animals,
+1.5 s reactions, 90° lens, a sign for each direction at the edge of the camera's
+coverage, flashing for any animal in view, asking drivers to slow; 30% of drivers obey
+it, the rest slow by 7 km/h) with a **stream of cars in both directions** (a car every
+20 s per direction, each with its own speed, following and queuing). Animals arrive
+every 30 s at knob level 4 so there is something to watch; both sides get the same
+animals and the same cars. The scoreboard footer adds cars through and their average
+delay against free flow. `index.html` is unchanged: it keeps the presentation pacing
+and the one-car-per-side scenario. The page is selected by `<body data-mode="installation">`,
+which makes `js/main.js` apply `config.research` and `config.installation`.
+
 ## Deploy (optional — Render static site)
 
 The demo is a plain static site, so it hosts anywhere with no build. To put it online

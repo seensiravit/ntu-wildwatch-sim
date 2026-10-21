@@ -112,14 +112,7 @@
   const BASE = JSON.parse(JSON.stringify(pick(CFG, KEYS)));
   function pick(o, keys) { const out = {}; keys.forEach((k) => { out[k] = o[k]; }); return out; }
   function restore() { Object.assign(CFG, JSON.parse(JSON.stringify(BASE))); delete CFG.carDir; }
-  function merge(dst, src) { Object.keys(src).forEach((k) => { if (src[k] && typeof src[k] === "object" && !Array.isArray(src[k]) && dst[k] && typeof dst[k] === "object") merge(dst[k], src[k]); else dst[k] = src[k]; }); return dst; }
-  function applyResearch() {
-    const r = CFG.research;
-    if (!r) return;
-    if (r.species) CFG.species.forEach((sp) => { if (r.species[sp.id]) merge(sp, r.species[sp.id]); });
-    ["spawning", "crossing", "tuning", "traffic"].forEach((k) => { if (r[k]) merge(CFG[k], r[k]); });
-    if (r.camera) CFG.cameras.forEach((cam) => merge(cam, r.camera));
-  }
+  function applyResearch() { WW.applyResearch(CFG); }
   function baseline() { restore(); applyResearch(); }
 
   // ---- Hooks: speed at every contact, and which lane the animal was hit in -----
@@ -148,37 +141,11 @@
 
   // ---- Car stream: one per direction ---------------------------------------------
   // headway = headwayMinSec + Exponential(mean − min); cruise ~ Normal(cruiseKmh, sd) clipped.
-  function carStream(rnd, meanSec) {
-    const tr = CFG.traffic, t = CFG.tuning;
-    const min = Math.min(tr.headwayMinSec, meanSec);
-    let next = WW.spawner.exponential(rnd, meanSec); // first car: no car "before" the run
-    return {
-      due(now) {
-        const out = [];
-        while (next <= now) {
-          const cruise = Math.max(tr.cruiseMinKmh, Math.min(tr.cruiseMaxKmh, t.cruiseKmh + WW.spawner.gauss(rnd) * tr.cruiseSdKmh));
-          const complies = rnd() < (t.signCompliance === undefined ? 1 : t.signCompliance);
-          out.push({ t: next, cruiseKmh: cruise, complies: complies });
-          next += min + WW.spawner.exponential(rnd, meanSec - min);
-        }
-        return out;
-      },
-    };
-  }
+  function carStream(rnd, meanSec) { return WW.spawner.createCarStream({ rnd: rnd, meanSec: meanSec }); }
 
   // One sign per camera per direction, at the upstream edge of the camera's
   // coverage along that direction's lane (as the placement study did).
-  function perDirectionSigns() {
-    const signs = [];
-    CFG.traffic.dirs.forEach((dir) => {
-      CFG.cameras.forEach((cam) => {
-        const cov = WW.car.coverageOf(dir, cam);
-        const p = WW.car.posOn(dir, Math.max(0, cov.start));
-        signs.push({ id: "s-" + dir + "-" + cam.id, name: "Sign " + dir + " " + cam.id, x: p.x, y: p.y, linkedCameraId: cam.id, dir: dir, message: "" });
-      });
-    });
-    CFG.signals = signs;
-  }
+  function perDirectionSigns() { CFG.signals = WW.car.directionSigns({ kerbOffset: 0, message: "" }); }
 
   // ---- One two-way run ---------------------------------------------------------------
   function snapshot(w) {

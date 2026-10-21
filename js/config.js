@@ -306,6 +306,25 @@
       traffic: { headwayMeanSec: 45 }, // ≈ 80 cars/h per direction late evening (proxy: 2.4% of a 5–10k AADT)
     },
 
+    // ---- Installation demo (installation.html) ---------------------------
+    // The recommended installation from the installation study, on the
+    // research values, with a stream of cars both ways. Pacing so that
+    // something happens on screen: a group every 30 s (knob level 4 = 120 /
+    // level) and a car every 20 s per direction. One sign per direction at the
+    // edge of the camera's coverage, on the kerb beside that lane.
+    installation: {
+      spawning: { meanGapSec: 30 },
+      traffic: { headwayMeanSec: 20 },
+      tuning: { signRule: "slow" },  // the sign asks drivers to slow; no stop line
+      knobBaseSec: 120,
+      signKerbOffset: 20,            // sign this far beyond the kerb (units)
+      hint: "Installation demo: research parameters, cars both ways, 30% of drivers obey the sign. Drag an animal to try it.",
+      panelSub: {
+        off: "Today: no cameras, no warning — 1 m/s animals, 1.5 s reactions, cars both ways",
+        on: "Recommended installation: 90° camera, a sign per direction, flashing for any animal in view",
+      },
+    },
+
     // ---- UI / interaction affordance sizes (logical map units) ----------
     ui: {
       arrowLen: 46,        // direction arrow length beyond the body edge
@@ -364,6 +383,7 @@
     // After this much idle time the demo plays itself, with animals arriving as
     // described in `spawning`.
     attract: {
+      knobBaseSec: 48,     // "Animal activity" knob: mean gap between groups = knobBaseSec / level (level 4 = 12 s)
       idleStartMs: 6000,
       firstGroupSec: 1,    // the first group appears this soon after the demo starts
     },
@@ -463,4 +483,28 @@
     autoWatchLog: false, // we always call WildWatch.record(), so skip log scraping
     persist: false, // each demo starts from zero; a saved history would show stale counts on load
   });
+})();
+
+// Apply the research values (config.research) on top of the demo config: species
+// by id, then the spawning / crossing / tuning / traffic blocks, then the camera
+// lens. Used by research/traffic.js and by installation.html; the demo never calls it.
+(function () {
+  const WW = window.WW;
+  function merge(dst, src) {
+    Object.keys(src).forEach((k) => {
+      if (src[k] && typeof src[k] === "object" && !Array.isArray(src[k]) && dst[k] && typeof dst[k] === "object") merge(dst[k], src[k]);
+      else dst[k] = src[k];
+    });
+    return dst;
+  }
+  WW.mergeConfig = merge;
+  WW.applyResearch = function (cfg) {
+    cfg = cfg || WW.config;
+    const r = cfg.research;
+    if (!r) return cfg;
+    if (r.species) cfg.species.forEach((sp) => { if (r.species[sp.id]) merge(sp, r.species[sp.id]); });
+    ["spawning", "crossing", "tuning", "traffic"].forEach((k) => { if (r[k]) merge(cfg[k], r[k]); });
+    if (r.camera) cfg.cameras.forEach((cam) => merge(cam, r.camera));
+    return cfg;
+  };
 })();

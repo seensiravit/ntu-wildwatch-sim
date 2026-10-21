@@ -131,9 +131,11 @@
     setText(p.nums.minor, s.hits - s.seriousHits);
     setText(p.nums.nearMiss, s.nearMiss);
     setText(p.nums.safe, s.safe);
+    const flow = WW.flow && WW.flow[p.systemOn ? "on" : "off"];
     setText(p.foot, "Avg " + (avg === null ? "–" : avg) + " km/h at the animal · " +
       (p.systemOn ? s.detections + " detected by camera" : "no camera") +
-      " · " + s.turnedBack + " turned back");
+      " · " + s.turnedBack + " turned back" +
+      (flow ? " · " + flow.cars + " cars through, avg delay " + (flow.cars ? (flow.delaySum / flow.cars).toFixed(1) : "–") + " s" : ""));
 
     if (!p.systemOn) {
       setText(p.summary, s.hits + s.nearMiss + s.safe
@@ -162,6 +164,7 @@
     const flash = det.flashOn();
     cfg.signals.forEach((sig) => {
       const ref = p.sigs[sig.id];
+      if (!ref) return; // a sign added after the panel was built
       const active = det.isSignalActive(sig.id);
       setText(ref.pill, active ? "Flashing" : "Off");
       ref.pill.classList.toggle("pill-active", active && flash);

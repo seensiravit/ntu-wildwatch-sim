@@ -15,7 +15,8 @@ A visual, simulated demo for a CC0006 group project at NTU: an "Active Monitorin
 ## File structure (per SPEC §2)
 
 ```
-index.html
+index.html          // the presentation demo (one car per side, demo pacing)
+installation.html   // the installation demo: research values + recommended installation, cars both ways (same js/, body data-mode)
 css/style.css
 js/config.js      // map, cameras, signals, species, tuning constants
 js/geometry.js    // path, cone, point-in-polygon helpers

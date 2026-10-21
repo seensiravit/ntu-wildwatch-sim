@@ -592,6 +592,28 @@
   function kmhOf(c) { return c.state.speedUnitsPerSec * WW.config.tuning.unitsPerSecToKmh; }
   function currentKmh() { return kmhOf(car); }
 
+  // One sign per camera per direction, at the upstream edge of the camera's
+  // coverage along that direction's lane, set kerbOffset beyond the kerb on the
+  // driver's near side (research/traffic.js and installation.html; the demo keeps
+  // its two gantry signs). Returns new signal objects; the caller assigns them to
+  // config.signals and calls reset() so the warning zones are rebuilt.
+  function directionSigns(opts) {
+    opts = opts || {};
+    const off = WW.config.road.laneWidth / 2 + (opts.kerbOffset || 0);
+    const signs = [];
+    Object.keys(routes).forEach((dir) => {
+      const r = routes[dir];
+      WW.config.cameras.forEach((cam) => {
+        const cov = coverageOn(r, cam);
+        const p = posOn(r, Math.max(0, cov.start));
+        const h = WW.geo.degToRad(p.headingDeg);
+        signs.push({ id: "sign-" + dir + "-" + cam.id, name: "Sign " + dir + " · " + cam.name, x: p.x + Math.sin(h) * off, y: p.y - Math.cos(h) * off,
+          linkedCameraId: cam.id, dir: dir, message: opts.message || "WILDLIFE AHEAD – SLOW DOWN" });
+      });
+    });
+    return signs;
+  }
+
   WW.car = {
     get state() { return state; },
     get cars() { return cars; },
@@ -604,5 +626,7 @@
     routeOf: (dir) => routes[dir] || null,
     posOn: (dir, s) => posOn(routes[dir] || route, s),
     coverageOf: (dir, cam) => coverageOn(routes[dir] || route, cam),
+    directionSigns,
+    get dirs() { return Object.keys(routes); },
   };
 })();

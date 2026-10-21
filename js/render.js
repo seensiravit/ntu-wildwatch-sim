@@ -66,9 +66,15 @@
     ctx.textAlign = "left";
   }
 
-  function headlightCam() {
-    const c = WW.car.state, h = WW.config.tuning.headlight;
+  function headlightCam(c) {
+    c = c || WW.car.state;
+    const h = WW.config.tuning.headlight;
     return { x: c.x, y: c.y, facingAngleDeg: c.headingDeg, fovDeg: h.fovDeg, range: h.range };
+  }
+  // Is the point lit by any visible car's headlights? (One car per world in the
+  // demo; a stream of cars in installation.html.)
+  function litByAnyCar(x, y) {
+    return WW.car.cars.some((car) => car.state.visible && WW.geo.pointInCone(x, y, headlightCam(car.state)));
   }
 
   // Faint link from each signal to the camera that drives it: makes the
@@ -96,12 +102,14 @@
   // a sign is flashing: this is where a warned driver stops and waits.
   function drawStopLines(ctx, cfg, P, sx) {
     if (!WW.system.enabled) return;
+    if (cfg.tuning.stopForSign === false || cfg.tuning.signRule === "slow") return; // the sign only asks drivers to slow
     const half = cfg.road.laneWidth / 2;
+    WW.car.dirs.forEach((dir) => {
     const drawn = new Set();
-    WW.car.warnZones.forEach((z) => {
+    WW.car.routeOf(dir).warnZones.forEach((z) => {
       if (!WW.detection.isSignalActive(z.signalId) || drawn.has(z.stopS)) return;
       drawn.add(z.stopS);
-      const p = WW.car.posAt(z.stopS);
+      const p = WW.car.posOn(dir, z.stopS);
       const rad = WW.geo.degToRad(p.headingDeg);
       const nx = -Math.sin(rad) * half, ny = Math.cos(rad) * half;
       const a = P({ x: p.x + nx, y: p.y + ny }), b = P({ x: p.x - nx, y: p.y - ny });
@@ -112,10 +120,15 @@
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
       ctx.restore();
     });
+    });
   }
 
+  // Every visible car in the world (the demo has one per side).
   function drawCar(ctx, cfg, P, sx) {
-    const c = WW.car.state;
+    WW.car.cars.forEach((car) => drawOneCar(ctx, cfg, P, sx, car));
+  }
+  function drawOneCar(ctx, cfg, P, sx, car) {
+    const c = car.state;
     if (!c.visible) return;
     const h = cfg.tuning.headlight;
     const rad = WW.geo.degToRad(c.headingDeg);
@@ -161,7 +174,7 @@
     ctx.fillStyle = "#eef3fa";
     ctx.font = "600 " + Math.round(12 * sx) + "px system-ui, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(Math.round(WW.car.currentKmh()) + " km/h", cp.x, cp.y - Wd - 5 * sx);
+    ctx.fillText(Math.round(WW.car.kmhOf(car)) + " km/h", cp.x, cp.y - Wd - 5 * sx);
   }
 
   // Road follows the centerline polyline (config.road.centerline).
@@ -373,7 +386,6 @@
   }
 
   function drawAnimals(ctx, cfg, P, sx) {
-    const hl = headlightCam();
     const dim = cfg.tuning.headlight.dimAlpha;
     WW.animals.list.forEach((a) => {
       const s = P(a);
@@ -397,7 +409,7 @@
       ctx.save();
       if (placed) ctx.globalAlpha = 0.5;
       else {
-        const lit = WW.car.state.visible && WW.geo.pointInCone(a.x, a.y, hl);
+        const lit = litByAnyCar(a.x, a.y);
         ctx.globalAlpha = lit ? 1 : dim;
       }
 

@@ -134,5 +134,28 @@
     };
   }
 
-  WW.spawner = { mulberry32, gauss, poisson, exponential, createStream, roadYAt };
+  // A stream of cars for one direction (research/traffic.js, installation.html):
+  // headway = traffic.headwayMinSec + Exponential(meanSec - min), cruise speed ~
+  // Normal(tuning.cruiseKmh, traffic.cruiseSdKmh) clipped, and whether the driver
+  // follows the sign rule (tuning.signCompliance). due(now) -> [{t, cruiseKmh, complies}].
+  function createCarStream(opts) {
+    const rnd = opts.rnd, tr = WW.config.traffic, t = WW.config.tuning;
+    const meanSec = opts.meanSec || tr.headwayMeanSec;
+    const min = Math.min(tr.headwayMinSec, meanSec);
+    let next = (opts.firstAtSec !== undefined ? opts.firstAtSec : 0) + exponential(rnd, meanSec);
+    return {
+      due(now) {
+        const out = [];
+        while (next <= now) {
+          const cruise = clamp(t.cruiseKmh + gauss(rnd) * tr.cruiseSdKmh, tr.cruiseMinKmh, tr.cruiseMaxKmh);
+          const complies = rnd() < (t.signCompliance === undefined ? 1 : t.signCompliance);
+          out.push({ t: next, cruiseKmh: cruise, complies: complies });
+          next += min + exponential(rnd, meanSec - min);
+        }
+        return out;
+      },
+    };
+  }
+
+  WW.spawner = { mulberry32, gauss, poisson, exponential, createStream, createCarStream, roadYAt };
 })();

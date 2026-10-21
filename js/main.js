@@ -46,7 +46,14 @@
   let arrivals = null;      // WW.spawner stream feeding the auto-demo
   let dragActive = false;   // a tray chip is being dragged over a map
 
+  // installation.html sets <body data-mode="installation">: the research values,
+  // the recommended installation (config.installation) and a stream of cars both
+  // ways instead of one lap at a time. index.html is the ordinary demo.
+  const INSTALLATION = document.body.dataset.mode === "installation";
+  let carStreams = null, trafficSec = 0;
+
   function init() {
+    if (INSTALLATION) applyInstallation();
     WORLDS.forEach((w) => {
       w.canvas = document.getElementById("map-" + w.id);
       w.ctx = w.canvas.getContext("2d");
@@ -119,7 +126,7 @@
       const k = e.key.toLowerCase();
       if (e.code === "Space" || k === " ") { e.preventDefault(); document.getElementById("btn-pause").click(); }
       else if (k === "r") { document.getElementById("btn-reset").click(); }
-      else if (k === "s") { startScenario(); }
+      else if (k === "s" && !INSTALLATION) { startScenario(); }
       else if (k === "escape" && WW.scenario.state.active) { leaveScenario(); }
     });
   }
@@ -200,8 +207,69 @@
       WW.car.reset();
       WW.detection.reset();
       WW.stats.reset();
+      if (INSTALLATION) {
+        w.car.state.visible = false; // the primary car is parked: the stream drives
+        w.flow = { cars: 0, delaySum: 0 };
+        w.recs = new Map();
+        w.entry = {}; WW.car.dirs.forEach((d) => { w.entry[d] = []; });
+      }
     });
     lapWaitSec = 0;
+    if (INSTALLATION) {
+      WW.flow = { off: WW.worlds.off.flow, on: WW.worlds.on.flow };
+      const rnd = WW.spawner.mulberry32(Date.now() % 2147483647);
+      carStreams = WW.car.dirs.map((d) => ({ dir: d, s: WW.spawner.createCarStream({ rnd: rnd, firstAtSec: 1 }) }));
+      trafficSec = 0;
+    }
+  }
+
+  // ---- Installation demo: research values, recommended installation, car streams ----
+  function applyInstallation() {
+    WW.applyResearch(WW.config);
+    const inst = WW.config.installation;
+    ["spawning", "traffic", "tuning"].forEach((k) => { if (inst[k]) WW.mergeConfig(WW.config[k], inst[k]); });
+    // One sign per direction at the camera's coverage edge (needs the routes, so
+    // build them once here; the dashboard then builds its sign pills from these).
+    WW.useWorld(WORLDS[0]);
+    WW.car.reset();
+    WW.config.signals = WW.car.directionSigns({ kerbOffset: inst.signKerbOffset });
+    const sc = document.getElementById("btn-scenario");
+    if (sc) sc.hidden = true;
+    const subs = document.querySelectorAll(".panel-head .panel-sub");
+    if (subs[0] && inst.panelSub) subs[0].textContent = inst.panelSub.off;
+    if (subs[1] && inst.panelSub) subs[1].textContent = inst.panelSub.on;
+  }
+  // Release cars from the per-direction streams into both worlds (twins: same
+  // time, speed and compliance), admit those whose entry is clear.
+  function trafficRelease(dt) {
+    trafficSec += dt;
+    carStreams.forEach((st) => st.s.due(trafficSec).forEach((ev) => WORLDS.forEach((w) => w.entry[st.dir].push(ev))));
+    WORLDS.forEach((w) => {
+      WW.useWorld(w);
+      WW.car.dirs.forEach((d) => {
+        const q = w.entry[d];
+        while (q.length && WW.car.entryClear(d, q[0].cruiseKmh)) {
+          const ev = q.shift();
+          const car = WW.car.addCar({ dir: d, cruiseKmh: ev.cruiseKmh, complies: ev.complies });
+          WW.car.startLap(car);
+          w.recs.set(car, { releaseT: ev.t, cruiseKmh: ev.cruiseKmh, dir: d });
+        }
+      });
+    });
+  }
+  // Retire cars that left the map and record their delay against free flow.
+  function trafficRetire() {
+    const unitsPerKmh = 1 / WW.config.tuning.unitsPerSecToKmh;
+    WORLDS.forEach((w) => {
+      WW.useWorld(w);
+      for (const car of WW.car.cars.slice()) {
+        const rec = w.recs.get(car);
+        if (!rec || car.state.visible) continue;
+        const free = WW.car.routeOf(rec.dir).total / (rec.cruiseKmh * unitsPerKmh);
+        w.flow.cars++; w.flow.delaySum += Math.max(0, trafficSec - rec.releaseT - free);
+        w.recs.delete(car); WW.car.removeCar(car);
+      }
+    });
   }
 
   // Both cars start each lap together, so they meet the same animals: the
@@ -230,6 +298,7 @@
       const placing = dragActive || WORLDS.some((w) => w.animals.some((a) => a.state === "placed"));
       const sdt = dt * (placing ? WW.config.tuning.placingTimeScale : 1);
       WW.clock.ms += sdt * 1000;
+      if (INSTALLATION) trafficRelease(sdt);
       // Order matters, per world: move the animals (they react to that side's
       // car), detect, then the car reacts.
       WORLDS.forEach((w) => {
@@ -238,8 +307,8 @@
         WW.detection.update();
         WW.car.update(sdt);
       });
-      const hold = sc.active ? WW.scenario.update(sdt) : false;
-      syncLaps(sdt, hold);
+      if (INSTALLATION) trafficRetire();
+      else { const hold = sc.active ? WW.scenario.update(sdt) : false; syncLaps(sdt, hold); }
     }
     if (sc.phase === "done") showScenarioCard();
 
@@ -282,7 +351,7 @@
     const sc = WW.scenario.state;
     const text = placing ? "Drag the arrow to aim, then click the animal to let it go"
       : sc.active && sc.phase !== "done" ? sc.title + " — " + sc.caption
-      : attractActive ? "Drag an animal onto either road to try it yourself" : null;
+      : attractActive ? (INSTALLATION ? WW.config.installation.hint : "Drag an animal onto either road to try it yourself") : null;
     if (text === hintShown || !hintEl) return;
     hintShown = text;
     hintEl.hidden = !text;
@@ -323,7 +392,8 @@
     // page load or the first interaction after the auto-demo doesn't erase it.)
     btnReset.addEventListener("click", () => { stopAttract(); WW.scenario.stop(); hideScenarioCard(); resetAll(); idleMs = 0; clearDashboard(); });
 
-    document.getElementById("btn-scenario").addEventListener("click", startScenario);
+    const btnScenario = document.getElementById("btn-scenario");
+    if (btnScenario && !INSTALLATION) btnScenario.addEventListener("click", startScenario);
 
     const btnLegend = document.getElementById("btn-legend");
     btnLegend.addEventListener("click", () => {
@@ -332,12 +402,14 @@
     });
 
     // Animal-activity knob: level 1 (quiet) .. 10 (busy) -> mean gap between
-    // arriving groups, 48 s / level (level 4 = one group every 12 s).
-    // Changing it does NOT cancel the demo, so you can tune it live.
+    // arriving groups, knobBaseSec / level (demo: 48 s, so level 4 = one group
+    // every 12 s; installation demo: 120 s). Changing it does NOT cancel the
+    // demo, so you can tune it live.
     const rate = document.getElementById("rate");
     if (rate) {
-      const gapForLevel = (lvl) => 48 / lvl;
-      rate.value = String(Math.max(1, Math.min(10, Math.round(48 / WW.config.spawning.meanGapSec))));
+      const base = INSTALLATION ? WW.config.installation.knobBaseSec : WW.config.attract.knobBaseSec;
+      const gapForLevel = (lvl) => base / lvl;
+      rate.value = String(Math.max(1, Math.min(10, Math.round(base / WW.config.spawning.meanGapSec))));
       WW.config.spawning.meanGapSec = gapForLevel(Number(rate.value));
       rate.addEventListener("input", () => {
         WW.config.spawning.meanGapSec = gapForLevel(Number(rate.value));
