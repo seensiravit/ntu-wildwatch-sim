@@ -21,11 +21,12 @@ offline. No install, no build step, no internet, no dependencies.
 ### Installation demo (`installation.html`)
 
 A second page, same code, different settings: `installation.html` runs the
-installation study's **two-camera layout** on the **research values** (1 m/s animals,
-1.5 s reactions; two 90° cameras on opposite verges at the hotspot, each looking across
-the road, the study's 93% option; one sign for each direction at the edge of their
-coverage, driven by both cameras, flashing for any animal in view, asking drivers to
-slow; 30% of drivers obey it, the rest slow by 7 km/h) with a **stream of cars in both directions** (a car every
+installation study's **recommended two-camera layout** on the **research values** (1 m/s
+animals, 1.5 s reactions; two 90° cameras in crossfire, one on the Hall 15 verge at x 400
+facing north-east and one on the wildlife verge at x 550 facing south-west, the study's
+98% option with 82% of the crossing corridor in view; one sign for each direction at the
+edge of their combined coverage, driven by both cameras, flashing for any animal in
+view, asking drivers to slow; 30% of drivers obey it, the rest slow by 7 km/h) with a **stream of cars in both directions** (a car every
 20 s per direction, each with its own speed, following and queuing). Animals arrive
 every 30 s at knob level 4 so there is something to watch, and the whole scene runs at
 **2× speed** (`config.installation.timeScale`, sub-stepped) because a 1 m/s animal is
@@ -476,30 +477,39 @@ placement, the driver's own policy on seeing an animal (never brakes / slows / s
 anything on the road), and what the sign asks of the 30% who follow it (no stop; stop 5
 or 10 s; wait until the sign is off, plus 0.5, 2 or 5 s), crossed with what makes the
 sign flash (any animal in view, or only one on the road). 36 settings × 300 seeds × 10
-simulated minutes, 12 sensitivities, and the placement grid for a 90° and a 60° lens
-(124 layouts × 300 seeds each); 89,600 runs. Groups arrive once a minute so crossings
-are independent, and costs are reported per crossing event. Results in
-`research/results/traffic-policy.*`, `traffic-sens.*`, `traffic-placement-90.*` and
-`-60.*`; `node research/run-traffic-study.js --stage policy | sens | placement --lens 90`.
+simulated minutes, 12 sensitivities, and the placement stages for the 90° lens: every
+single camera (121), the best first camera plus each second (124 pairs), the best pair
+plus each third (119 triples), plus the single-camera grid for a 60° lens; 161,900
+runs. Groups arrive once a minute so crossings are independent, and costs are reported
+per crossing event. Placement layouts are scored on safety and on **area coverage**
+(the share of the crossing corridor, hotspot ± 2 sd with both verges and the road, that
+the cameras can see), ranked by safety with coverage breaking ties within 2 points.
+Results in `research/results/traffic-policy.*`, `traffic-sens.*`, `traffic-placement-90/60.*`,
+`traffic-pairs-90.*`, `traffic-triples-90.*`; `node research/run-traffic-study.js --stage
+policy | sens | placement | pairs | triples [--lens 90] [--first auto] [--second auto]`.
 
 Findings: the **sign trigger** is the decision that matters: flashing for any animal in
-view cuts serious hits **91%** (26.2 → 2.4 per 100 crossings), flashing only once the
-animal is on the road 83%. The **sign rule hardly matters** (2.38–2.46 per 100 across all
+view cuts serious hits **90%** (26.24 → 2.53 per 100 crossings), flashing only once the
+animal is on the road 82%. The **sign rule hardly matters** (2.49–2.54 per 100 across all
 six rules, inside noise) because the benefit comes from every warned driver looking
 further and reacting a second sooner, not from the minority who stop; full compliance
-would give 2.29 for double the delay, and 10% compliance 2.49. The **driver's own
-policy**: slowing and stopping for animals are equal; a driver who never brakes leaves
-the system cutting 29%. Cost: about 4 driver-seconds of extra delay per crossing event,
-16 per serious hit prevented; at the real rate of 0.3 crossings an hour that is
-hundredths of a second per car. Lens: 110° 94%, 90° 91%, 60° 84%. Per-direction signs at
-the coverage edge beat the demo's gantry signs at the camera (91% vs 88%). **Placement**
-with balanced arrivals is symmetric: a camera just outside the hotspot looking along
-the road toward it, or on the centreline, sees both verges and both lanes; with the 90°
-lens the best single camera (x 400 south verge facing NE, 91%) ties today's centreline
-camera (91%), and a pair on opposite verges reaches 93% for 1.5× the delay; with the 60°
-lens today's centreline camera is the clear best (84%). Recommendation: today's camera
-position with a 90° lens, one sign per direction at its coverage edge, flashing for any
-animal in view, asking drivers to slow; a stop line is optional.
+would give 2.3 for twice the delay, and 10% compliance 2.59. The **driver's own
+policy**: slowing and stopping for animals are equal (2.53 vs 2.42); a driver who never
+brakes leaves the system cutting 27%. Cost: about 3.9 driver-seconds of extra delay per
+crossing event, 17 per serious hit prevented; at the real rate of 0.3 groups an hour that
+is under a hundredth of a second per car. Lens: 110° 93%, 90° 90%, 60° 84%.
+Per-direction signs at the coverage edge beat the demo's gantry signs (90% vs 88%).
+**Placement** with balanced arrivals: one 90° camera tops out at 91% (x 400 · south verge · facing NE)
+with today's centreline camera at 90% and 56% of the corridor in view; **two cameras in
+crossfire**, one on each verge just outside the hotspot looking diagonally across the
+road toward it (x 400 · south verge · facing NE + x 550 · north verge · facing SW), prevent **98%** and see 82% of the corridor
+(99% of animals seen before they step out) for the same delay per crossing; the first
+pass's pair on opposite verges facing straight across saw the verges (85%) but little
+road and prevented 93%; a third camera reaches 99% and up to 93% of the corridor. With
+the 60° lens only the centreline camera looking along the road works (84%).
+Recommendation: two 90° cameras in crossfire, one sign per direction at the edge of their
+combined coverage driven by both cameras, flashing for any animal in view, asking
+drivers to slow; a stop line is optional. `installation.html` shows this layout.
 
 ## DED dashboard (`wildwatch-dashboard.js`)
 

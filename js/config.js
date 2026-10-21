@@ -313,11 +313,13 @@
     // level) and a car every 20 s per direction. One sign per direction at the
     // edge of the camera's coverage, on the kerb beside that lane.
     installation: {
-      // The study's two-camera layout: opposite verges at the hotspot, each
-      // looking across the road (93% of serious hits prevented vs 91% for one).
+      // The placement study's two-camera layout (safety first, then area
+      // coverage): one on each verge just outside the hotspot, each looking
+      // diagonally across the road toward it. 98% of serious hits prevented,
+      // 82% of the crossing corridor in view, vs 91% / 56% for one camera.
       cameras: [
-        { id: "camN", name: "Cam N", x: 490, y: 330, facingAngleDeg: 90,  fovDeg: 90, range: 250 }, // wildlife verge
-        { id: "camS", name: "Cam S", x: 490, y: 430, facingAngleDeg: 270, fovDeg: 90, range: 250 }, // Hall 15 side
+        { id: "camS", name: "Cam S", x: 400, y: 430, facingAngleDeg: 315, fovDeg: 90, range: 250 }, // Hall 15 side, facing NE
+        { id: "camN", name: "Cam N", x: 550, y: 330, facingAngleDeg: 135, fovDeg: 90, range: 250 }, // wildlife verge, facing SW
       ],
       spawning: { meanGapSec: 30 },
       traffic: { headwayMeanSec: 20 },
