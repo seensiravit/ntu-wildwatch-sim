@@ -76,7 +76,7 @@ would do.
 | File | What it is |
 |---|---|
 | `index.html` + `study.js` | **Camera placement study** (one car at a time, demo settings): position × mounting spot × facing for one camera, then one to four cameras, scored on serious hits prevented. `CameraStudy` global. |
-| `settings.html` + `settings.js` | **Settings study** (one car, demo settings): one factor at a time around today's configuration; the two-world twin run (`runTwin`) that the other studies reuse. `SettingsStudy` global. |
+| `settings.html` + `settings.js` | **Settings study** (one car, demo settings): one factor at a time around the showcase-day configuration; the two-world twin run (`runTwin`) that the other studies reuse. `SettingsStudy` global. |
 | `run-settings-study.js` | Node driver for the settings study (800 seeds per setting). |
 | `demo-runs.html` + `demo-runs.js` | **Short-run reliability study**: hundreds of short runs to see how often a short demo shows the system ahead. `DemoRuns` global. |
 | `run-demo-runs.js` | Node driver for it. |
@@ -90,7 +90,7 @@ CSV for spreadsheets, JSON for the report pages. Re-running a driver overwrites 
 | Files | From |
 |---|---|
 | `camera-study.csv`, `study-run.json` | the camera placement study (second run, serious hits) |
-| `settings-study.csv/.json` | the settings study (800 seeds, today's driver) |
+| `settings-study.csv/.json` | the settings study (800 seeds, showcase-day driver) |
 | `demo-runs.csv`, `demo-runs-summary.json` | the short-run reliability study (every run recorded) |
 | `traffic-study.csv/.json`, `traffic-placement.csv/.json` | the **first** two-way pass at the demo's settings (kept for history; superseded) |
 | `traffic-policy.csv/.json` | the installation study: driver policy × sign rule × trigger, with the combined check |

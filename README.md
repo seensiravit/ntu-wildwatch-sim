@@ -10,6 +10,10 @@ and **System ON** on the right, so you can see whether the system actually helps
 real AI or computer vision** — every detection is simulated. See `SPEC.md` for the
 full design.
 
+"**Showcase-day settings**" below means the demo configuration as shown at the course
+showcase: the camera, signs, driver and animal values in `js/config.js` on that day.
+The studies compare other settings against it.
+
 ## Where to look
 
 | If you want to… | Open |
@@ -151,13 +155,13 @@ the car arrives at the animal still doing about 20 km/h. This is the "outdriving
 headlights" problem the camera and signs exist to fix. A warned driver, already at
 20 km/h or waiting at the stop line, needs only about 5 m.
 
-**What this means for the demo.** Over 1,500 fast-forwarded 20-minute demos of today's
+**What this means for the demo.** Over 1,500 fast-forwarded 20-minute demos of showcase-day
 settings (the settings study's baseline, 244,000 crossings per side; counts per 100
 animals that reached the road, hits split by the car's speed at contact):
 
 | | Hits OFF → ON | …of which over 30 km/h | …under 5 km/h | Near misses | Safe passes | Avg speed at the animal |
 |---|---|---|---|---|---|---|
-| today's settings (camera 110°, range 250; headlights 150; signs at the camera; driver stops at the line) | 5.3 → 3.2 (−39%) | 4.3 → 0.95 (−78%) | 0.2 → 0.4 | 8.6 → 1.0 (−88%) | 1.9 → 21.5 | 41 → 10 km/h |
+| showcase-day settings (camera 110°, range 250; headlights 150; signs at the camera; driver stops at the line) | 5.3 → 3.2 (−39%) | 4.3 → 0.95 (−78%) | 0.2 → 0.4 | 8.6 → 1.0 (−88%) | 1.9 → 21.5 | 41 → 10 km/h |
 | same with the earlier 84° camera view (800 seeds) | 5.9 → 4.0 (−34%) | 4.8 → 1.6 (−66%) | 0.3 → 0.5 | 9.3 → 1.9 (−80%) | 2.0 → 19.0 | 41 → 14 km/h |
 
 Without the system the driver outdrives the headlights: most contacts happen above
@@ -364,7 +368,7 @@ or anywhere crossings, eastbound or westbound traffic.
 
 Results are saved in `research/results/` (`camera-study.csv`, `study-run.json`).
 The study ranks layouts by the share of **serious hits** (contact over 30 km/h) they
-prevent, averaged over the four scenarios, with today's lens (110°, range 250) and today's
+prevent, averaged over the four scenarios, with the showcase-day lens (110°, range 250) and showcase-day
 driver. Headline (second run, 3,788 runs): the best single camera stands on the Hall 15
 verge next to the hotspot (x 550) and looks north across the road and up the wildlife
 verge; it prevents about 77% of serious hits. Looking across the road beats looking along
@@ -384,7 +388,7 @@ smoke test.
 work best, and which settings make the difference between OFF and ON clearest? It runs
 the split-screen demo itself (both sides, same animals, laps started together, exactly
 like `js/main.js`) for 20 simulated minutes per seed, 10 seeds per setting in the
-browser (800 with the Node driver below), changing one factor at a time from today's
+browser (800 with the Node driver below), changing one factor at a time from showcase-day
 settings: camera range, field of view and placement; how
 far the sign is visible; whether the warned driver stops at the line, and where; the
 warned speed; the driver's headlight range, reaction time and cruise speed; animal
@@ -398,7 +402,7 @@ same study across all cores with 800 seeds per setting and 1,500 for the combine
 (19,800 runs, about 45 minutes on 22 cores); it gives the same numbers as the page, seed
 for seed, and wrote the results that are checked in.
 
-Findings (19,800 runs, today's driver): today's settings are the best system
+Findings (19,800 runs, showcase-day driver): showcase-day settings are the best system
 configuration in the grid, cutting serious hits by 78% (interval 77–79%) and near misses
 by 88%; the ON side has 0.95 serious hits per 100 crossings. No system setting beats it:
 a sign visible from 640 is a tie (0.94), a 350 range or no stop line gives a similar cut
@@ -422,12 +426,12 @@ Hits are rare, so a single demo-length run can show the ON side with *more* hits
 OFF. `research/demo-runs.html` runs the split-screen demo many times (200 seeds × 10 min
 per setting, 2,600 runs, every run recorded in `research/results/demo-runs.csv`) and
 scores each run two ways: by the real benefit (ON has no more serious hits and no more
-near misses, and fewer of at least one) and by today's "Animals hit" tile. Run it in
+near misses, and fewer of at least one) and by showcase-day "Animals hit" tile. Run it in
 Node across all cores with `node research/run-demo-runs.js` (~2 min) or in the browser
 (`?quick` for a smoke run).
 
 Findings (re-run after the driver was made to resume sooner and drive off briskly): on
-serious hits + near misses the system is ahead in **100% of 10-minute runs** at today's
+serious hits + near misses the system is ahead in **100% of 10-minute runs** at showcase-day
 settings (88% after 2 min, 98% after 5), and near misses alone also 100%. On the hits
 tile as it was ("Animals hit", all contacts together) only **74%** of runs showed ON
 lower, 10% equal and **17% higher**, because the ON car stops at the line or creeps
@@ -536,7 +540,7 @@ crossing event, 17 per serious hit prevented; at the real rate of 0.3 groups an 
 is under a hundredth of a second per car. Lens: 110° 93%, 90° 90%, 60° 84%.
 Per-direction signs at the coverage edge beat the demo's gantry signs (90% vs 88%).
 **Placement** with balanced arrivals: one 90° camera tops out at 91% (x 400 · south verge · facing NE)
-with today's centreline camera at 90% and 56% of the corridor in view; **two cameras in
+with the showcase-day centreline camera at 90% and 56% of the corridor in view; **two cameras in
 crossfire**, one on each verge just outside the hotspot looking diagonally across the
 road toward it (x 400 · south verge · facing NE + x 550 · north verge · facing SW), prevent **98%** and see 82% of the corridor
 (99% of animals seen before they step out) for the same delay per crossing; the first

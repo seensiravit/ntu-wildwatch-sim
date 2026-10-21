@@ -21,7 +21,7 @@ function loadStudy() {
   vm.createContext(ctx);
   for (const f of MODULES) vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), ctx, { filename: f });
   return { study: ctx.SettingsStudy, CFG: ctx.WW.config };
-}
+} 
 
 if (!isMainThread) {
   const { study, CFG } = loadStudy();

@@ -4,11 +4,11 @@
  * Over long runs the system clearly helps, but a booth demo lasts minutes and
  * hits are rare, so a single short run can show the ON side with MORE hits
  * than OFF (low-speed bumps into a car stopped at the line count the same as a
- * 50 km/h hit on today's scoreboard). This study runs many 10-minute demos per
+ * 50 km/h hit on the showcase-day scoreboard). This study runs many 10-minute demos per
  * setting, records every run, and reports how often a run shows ON ahead:
  *   A. by the real benefit: fewer serious hits (> 30 km/h) and fewer near misses;
- *   B. by today's scoreboard: fewer total hits.
- * Also a run-length sweep at today's setting. Built on research/settings.js
+ *   B. by the showcase-day scoreboard: fewer total hits.
+ * Also a run-length sweep at the showcase-day setting. Built on research/settings.js
  * (runTwin, restore). Runs in the browser (single-threaded, with ?quick) and in
  * Node across all cores via research/run-demo-runs.js. */
 (function () {
@@ -20,7 +20,7 @@
   const S = {
     seeds: QUICK ? 10 : 200,     // runs per setting (seeds 1001..)
     minutes: QUICK ? 3 : 10,     // demo length
-    lengths: QUICK ? [2, 3] : [2, 3, 5, 10, 15, 20], // run-length sweep at today's setting
+    lengths: QUICK ? [2, 3] : [2, 3, 5, 10, 15, 20], // run-length sweep at the showcase-day setting
     seriousKmh: SS.S.seriousKmh,
   };
 
@@ -29,7 +29,7 @@
     sp.traffic.wait = Math.min(sp.traffic.wait, 1 - sp.traffic.cross);
   });
   const SETTINGS = [
-    { id: "today", label: "today's settings", apply: () => {} },
+    { id: "today", label: "showcase-day settings", apply: () => {} },
     { id: "gap8", label: "a group every 8 s", apply: (c) => { c.spawning.meanGapSec = 8; } },
     { id: "gap6", label: "a group every 6 s", apply: (c) => { c.spawning.meanGapSec = 6; } },
     { id: "warn30", label: "warned speed 30 km/h", apply: (c) => { c.tuning.warnKmh = 30; } },
@@ -176,10 +176,10 @@
     out.innerHTML =
       "<h2>By setting (" + S.minutes + "-minute runs, " + S.seeds + " each)</h2>" +
       '<div class="tbox"><table><thead>' + HEAD + "</thead><tbody>" + r.bySetting.map((b) => rowHtml(b.label, b.summary)).join("") + "</tbody></table></div>" +
-      "<h2>By run length (today's settings)</h2>" +
+      "<h2>By run length (showcase-day settings)</h2>" +
       '<div class="tbox"><table><thead>' + HEAD + "</thead><tbody>" + r.byLength.map((b) => rowHtml(b.minutes + " min", b.summary)).join("") + "</tbody></table></div>" +
       '<h2>How the verdict builds up over the run</h2><canvas id="curve" width="1100" height="340"></canvas>' +
-      '<p class="muted small">A = ON has no more serious hits and no more near misses than OFF, and fewer of at least one. "Hits tile" = total hits as the scoreboard shows today. ' +
+      '<p class="muted small">A = ON has no more serious hits and no more near misses than OFF, and fewer of at least one. "Hits tile" = total hits as the scoreboard shows showcase day. ' +
       "Serious = contact above " + S.seriousKmh + " km/h. " + r.rows + " runs in " + Math.round(r.seconds) + " s.</p>";
     drawCurve(r);
   }
@@ -205,7 +205,7 @@
     const btn = document.getElementById("run"), bar = document.querySelector("#progress span");
     const label = document.getElementById("progress-label"), status = document.getElementById("status"), csv = document.getElementById("csv");
     document.getElementById("settings").textContent =
-      SETTINGS.length + " settings × " + S.seeds + " runs × " + S.minutes + " min, plus run lengths " + S.lengths.join(" / ") + " min at today's settings" + (QUICK ? " · QUICK MODE" : "");
+      SETTINGS.length + " settings × " + S.seeds + " runs × " + S.minutes + " min, plus run lengths " + S.lengths.join(" / ") + " min at the showcase-day settings" + (QUICK ? " · QUICK MODE" : "");
     const ui = {
       progress: (f, text) => { bar.style.width = (f * 100).toFixed(1) + "%"; label.textContent = text; },
       status: (text) => { status.textContent = text; },
