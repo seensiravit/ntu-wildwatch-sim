@@ -105,8 +105,12 @@
           conf = randInt(t.confidenceMin, t.confidenceMax);
           cs.episodes.set(a.id, conf);
           addLog(cam, a, conf);                            // ENTER event
-          if (WW.stats) WW.stats.onDetection();
-          reportToDashboard(cam, a, conf);                 // -> WildWatch extension
+          // Count the animal (and report it) once, even if several cameras see it.
+          const dup = WW.config.cameras.some((c2) => c2 !== cam && camState[c2.id] && camState[c2.id].episodes.has(a.id));
+          if (!dup) {
+            if (WW.stats) WW.stats.onDetection();
+            reportToDashboard(cam, a, conf);               // -> WildWatch extension
+          }
         }
 
         const d = WW.geo.dist(cam.x, cam.y, a.x, a.y);

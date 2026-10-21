@@ -127,7 +127,9 @@
     // map, and no scripted animal is still walking on either side.
     const animalsLeft = worlds.some((w) => w.animals.length > 0);
     if (released === act.animals.length && carsOffMap() && !animalsLeft) nextAct();
-    return false;
+    // Once both cars have left, hold them off the map until the act ends: no
+    // unscripted extra lap while a slow animal is still walking off.
+    return carsOffMap();
   }
 
   // Snapshot both sides' stats into the results card.

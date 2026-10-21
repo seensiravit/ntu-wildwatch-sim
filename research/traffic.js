@@ -96,7 +96,7 @@
   // The single-camera grid as camera specs: { key, x, y, deg, label }. "today" is
   // the demo camera. Keys are lens-independent so pairs/triples can be composed.
   function singleSpecs() {
-    const out = [{ key: "today", x: CFG.cameras[0].x, y: CFG.cameras[0].y, deg: CFG.cameras[0].facingAngleDeg, label: "x 590 · centreline gantry · facing W (today)" }];
+    const out = [{ key: "today", x: BASE.cameras[0].x, y: BASE.cameras[0].y, deg: BASE.cameras[0].facingAngleDeg, label: "x " + BASE.cameras[0].x + " · centreline gantry · facing W (today)" }];
     S.xs.forEach((x) => S.laterals.forEach((lat) => S.facings.forEach((f) => {
       out.push({ key: x + "-" + lat.id + "-" + f.id, x: x, y: lat.y, deg: f.deg, label: "x " + x + " · " + lat.label + " · facing " + f.id, xPos: x, lat: lat.id, face: f.id });
     })));
@@ -108,7 +108,7 @@
   function layoutSetting(id, specs, fovDeg, extra) {
     const fov = fovDeg || CFG.research.camera.fovDeg;
     return Object.assign({
-      id: id, factor: "placement", system: true, perDirSigns: true, lens: fov, cams: specs.length,
+      id: id, factor: "placement", system: true, perDirSigns: true, lens: fov, cams: specs.length, specs: specs,
       label: specs.map((s) => s.label).join(" + "),
       apply: (c) => {
         const base = c.cameras[0];
@@ -129,7 +129,7 @@
     const first = specByKey(firstKey);
     const out = singleSpecs().filter((s) => s.key !== firstKey).map((s) => layoutSetting(L + firstKey + "+" + s.key, [first, s], fovDeg, { pair: true, key: s.key, x: s.xPos === undefined ? null : s.xPos, lat: s.lat, face: s.face }));
     const mirror = { key: "mirror", x: first.x, y: 2 * CFG.road.centerline[0].y - first.y, deg: (360 - first.deg) % 360, label: "mirror of the first camera across the road" };
-    out.push(layoutSetting(L + firstKey + "+mirror", [first, mirror], fovDeg, { pair: true, key: "mirror" }));
+    if (mirror.y !== first.y) out.push(layoutSetting(L + firstKey + "+mirror", [first, mirror], fovDeg, { pair: true, key: "mirror" })); // a centreline camera mirrors onto itself
     out.push(layoutSetting(L + "hand-verges", [{ key: "490-north-S", x: 490, y: 330, deg: 90, label: "x 490 · north verge · facing S" }, { key: "490-south-N", x: 490, y: 430, deg: 270, label: "x 490 · south verge · facing N" }], fovDeg, { pair: true, key: "hand-verges" }));
     out.push(layoutSetting(L + "hand-split", [{ key: "400-north-S", x: 400, y: 330, deg: 90, label: "x 400 · north verge · facing S" }, { key: "550-south-N", x: 550, y: 430, deg: 270, label: "x 550 · south verge · facing N" }], fovDeg, { pair: true, key: "hand-split" }));
     out.push(layoutSetting(L + "hand-b2b", [{ key: "490-centre-W", x: 490, y: 380, deg: 180, label: "x 490 · centreline · facing W" }, { key: "490-centre-E", x: 490, y: 380, deg: 0, label: "x 490 · centreline · facing E" }], fovDeg, { pair: true, key: "hand-b2b" }));
@@ -138,9 +138,12 @@
   // Stage: triples = a fixed pair plus each other single.
   function tripleSettings(fovDeg, firstKey, secondKey) {
     const L = "p" + (fovDeg || CFG.research.camera.fovDeg) + "-triple-";
-    const first = specByKey(firstKey), second = specByKey(secondKey);
-    return singleSpecs().filter((s) => s.key !== firstKey && s.key !== secondKey).map((s) =>
-      layoutSetting(L + firstKey + "+" + secondKey + "+" + s.key, [first, second, s], fovDeg, { triple: true, key: s.key, x: s.xPos === undefined ? null : s.xPos, lat: s.lat, face: s.face }));
+    // The pair may be a hand-made or mirror pair, so take its cameras from the pair setting.
+    const pair = pairSettings(fovDeg, firstKey).find((p) => p.key === secondKey);
+    const base = pair ? pair.specs : [specByKey(firstKey), specByKey(secondKey)];
+    const used = base.map((s) => s.key);
+    return singleSpecs().filter((s) => used.indexOf(s.key) < 0).map((s) =>
+      layoutSetting(L + firstKey + "+" + secondKey + "+" + s.key, base.concat([s]), fovDeg, { triple: true, key: s.key, x: s.xPos === undefined ? null : s.xPos, lat: s.lat, face: s.face }));
   }
 
   // ---- Config snapshot / restore -----------------------------------------------
@@ -162,7 +165,7 @@
     curWorld.m.hitKmh.push(kmh);
     // The animal at (x, y) and the car being updated: a hit in the lane the
     // animal entered second is a "far-lane" hit (it had crossed the first lane).
-    const a = WW.animals.list.find((an) => an.x === x && an.y === y);
+    const a = WW.animals.list.find((an) => an.state === "walking" && an.x === x && an.y === y);
     const fromNorth = a && curWorld.m.fromNorth.get(a.id);
     const car = WW.car.current;
     if (a && fromNorth !== undefined && car && ((car.dir === "east") !== fromNorth)) curWorld.m.farLane++;
@@ -229,6 +232,7 @@
 
   function runTwoWay(seed, minutes, setting) {
     setting = setting || {};
+    curWorld = null;
     const worlds = [{ id: "off", systemOn: false }, { id: "on", systemOn: true }];
     WW.system = { get enabled() { return curWorld ? curWorld.systemOn : true; } };
     WW.clock = { ms: 0 };
@@ -237,9 +241,10 @@
     const dirs = CFG.traffic.dirs;
     worlds.forEach((w) => {
       use(w); WW.car.reset();
-      // Research installation: one sign per camera per direction at the edge of
-      // the camera's coverage (so the sign is seen signSightDistance before the
-      // stop line). perDirSigns: false keeps the demo's two gantry signs at the camera.
+      // Research installation: one sign per direction at the edge of the cameras'
+      // combined coverage, driven by every camera (so the sign is seen
+      // signSightDistance before the stop line). perDirSigns: false keeps the
+      // demo's two gantry signs at the camera.
       if (setting.perDirSigns !== false) { perDirectionSigns(); WW.car.reset(); }
       WW.detection.reset(); WW.stats.reset();
       w.car.state.visible = false; // the primary car is parked: the stream drives
@@ -325,6 +330,19 @@
         }
       });
     }
+    // Cars still on the road or waiting to enter when the run ends count with the
+    // delay they have accumulated so far (otherwise the ON side, which holds cars
+    // longer, would be under-counted).
+    worlds.forEach((w) => {
+      const m = w.m;
+      w.recs.forEach((rec) => {
+        const free = roadLen[rec.dir] / (rec.cruiseKmh * unitsPerKmh);
+        const delay = Math.max(0, t - rec.releaseT - free);
+        m.delays.push(delay); m.delaySum += delay; m.delaySq += delay * delay;
+        m.stops += rec.stops; m.stoppedSec += rec.stoppedSec; m.lineSec += rec.lineSec;
+      });
+      dirs.forEach((d) => w.entry[d].forEach((ev) => { const delay = Math.max(0, t - ev.releaseT); m.delays.push(delay); m.delaySum += delay; m.delaySq += delay * delay; }));
+    });
     curWorld = null;
     return worlds.map(snapshot);
   }
@@ -394,7 +412,7 @@
     // Rate-independent cost: extra driver-seconds per crossing event; and what that
     // means per car at the real crossing rate and this traffic volume.
     const delayPerCrossing = extraDelay / 100;
-    const realDelayPerCar = delayPerCrossing * S.realCrossingsPerHour / (3600 / headway);
+    const realDelayPerCar = delayPerCrossing * S.realCrossingsPerHour / (CFG.traffic.dirs.length * 3600 / headway); // all directions' cars per hour
     return {
       id: setting.id, factor: setting.factor, label: setting.label, system: !!setting.system, seeds: perSeed.length,
       policy: setting.policy, rule: setting.rule, trigger: setting.trigger, lens: setting.lens, pair: !!setting.pair, triple: !!setting.triple, cams: setting.cams, key: setting.key,
@@ -433,7 +451,8 @@
     ui.status("Combined check (" + S.combinedSeeds.length + " seeds): " + combined.label);
     result.combined = await evaluate(combined, S.combinedSeeds, work);
     ui.status("Baseline on the same " + S.combinedSeeds.length + " seeds");
-    result.baseline = await evaluate(settings[0], S.combinedSeeds, work);
+    const baseSetting = settings.find((s) => s.id === "base") || settings[0];
+    result.baseline = await evaluate(baseSetting, S.combinedSeeds, work);
     result.seconds = (Date.now() - t0) / 1000;
     result.runs = done;
     ui.progress(1, done + " runs · " + Math.round(result.seconds) + " s");
@@ -455,7 +474,9 @@
       id: "combined", factor: "combined", system: true,
       label: picks.length ? "best per factor: " + picks.map((p) => p.label).join(" + ") : "baseline (no factor beat it)",
       apply: (c) => picks.forEach((p) => p.apply(c)),
-      perDirSigns: picks.some((p) => p.perDirSigns), ids: picks.map((p) => p.id),
+      perDirSigns: !picks.some((p) => p.perDirSigns === false),
+      headwayMeanSec: picks.map((p) => p.headwayMeanSec).find((v) => v), xDist: picks.map((p) => p.xDist).find((v) => v),
+      ids: picks.map((p) => p.id),
     };
   }
 

@@ -61,9 +61,8 @@ at x 340, and the warned driver's **stop line** is at x 320. The OFF car passes 
 
 All bold (`boldness` 0.05) so they cross rather than wait.
 
-- **OFF:** the car meets them one after another: **near misses at 50 and 35 km/h, then a
-  low-speed hit (~21 km/h)** on the third, and a safe pass on the fourth once it has
-  stopped.
+- **OFF:** the car meets them one after another: **a near miss at 50 km/h, then a
+  low-speed hit (~21 km/h)**, and a safe pass once it has stopped.
 - **ON:** the car **waits at the line** until the whole troop has crossed and the sign has
   been off for half a second, then goes through at 20–35 km/h. No encounters.
 - Lesson: one warning covers a whole group; the unwarned driver has to react to each
@@ -92,10 +91,10 @@ All bold (`boldness` 0.05) so they cross rather than wait.
 | Average speed at the animal | mean car speed over the side's encounters |
 
 The verdict line reads the numbers out, e.g. *"Without WildWatch: 1 serious hit (at
-50 km/h) and 4 near misses. With it: 0 serious hits and 0 near misses. The same animals
+50 km/h) and 3 near misses. With it: 0 serious hits and 0 near misses. The same animals
 crossed both roads."*
 
-With the current script the card shows **OFF: 1 serious hit, 1 low-speed contact, 4 near
+With the current script the card shows **OFF: 1 serious hit, 1 low-speed contact, 3 near
 misses, 1 safe pass, ~35 km/h; ON: 0 / 0 / 0 / 0**. The scenario is deterministic: the same
 numbers every time.
 

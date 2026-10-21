@@ -96,8 +96,6 @@
       ctx.stroke();
       ctx.restore();
       });
-      return;
-      ctx.restore();
     });
   }
 
@@ -107,7 +105,8 @@
     if (!WW.system.enabled) return;
     if (cfg.tuning.stopForSign === false || cfg.tuning.signRule === "slow") return; // the sign only asks drivers to slow
     const half = cfg.road.laneWidth / 2;
-    WW.car.dirs.forEach((dir) => {
+    // Only the directions this world's cars drive (the demo: east only).
+    Array.from(new Set(WW.car.cars.map((c) => c.dir))).forEach((dir) => {
     const drawn = new Set();
     WW.car.routeOf(dir).warnZones.forEach((z) => {
       if (!WW.detection.isSignalActive(z.signalId) || drawn.has(z.stopS)) return;

@@ -12,7 +12,7 @@
   function fresh(opts) {
     opts = opts || {};
     return {
-      dir: opts.dir || "east",          // which route the car drives (see routes)
+      dir: opts.dir || primaryDir(),    // which route the car drives (see routes)
       cruiseKmh: opts.cruiseKmh || 0,   // this car's own cruise speed (0 = tuning.cruiseKmh)
       complies: opts.complies !== false, // follows tuning.signRule at a flashing sign; else only slows by signOnlySlowKmh
       state: {
@@ -104,6 +104,7 @@
 
   // Point + heading at path distance s (clamped to the path).
   function posOn(r, s) {
+    if (!r.segs.length) return { x: 0, y: 0, headingDeg: 0 };
     s = Math.max(0, Math.min(r.total, s));
     let acc = 0;
     for (const seg of r.segs) {
@@ -217,8 +218,15 @@
   // queue? (No car within the gap it would want at that speed.)
   function entryClear(dir, cruiseKmh) {
     const t = WW.config.tuning, f = t.follow || {};
-    const need = WW.config.ui.carLen + (f.standGap || 0) + kmhToUnits(cruiseKmh || t.cruiseKmh) * (f.headwaySec || 0);
-    return !cars.some((c) => c.state.visible && c.dir === dir && c.state.s < need);
+    const v = kmhToUnits(cruiseKmh || t.cruiseKmh);
+    const need = WW.config.ui.carLen + (f.standGap || 0) + v * (f.headwaySec || 0);
+    const b = f.comfortDecel || t.maxDecelUnitsPerSec2;
+    // ...plus the distance needed to slow down to a slower car ahead at a comfortable rate.
+    return !cars.some((c) => {
+      if (!c.state.visible || c.dir !== dir) return false;
+      const vc = c.state.speedUnitsPerSec;
+      return c.state.s < need + Math.max(0, v * v - vc * vc) / (2 * b);
+    });
   }
 
   // Is walking animal `a` in the lane within `len` ahead of the car?
@@ -343,9 +351,12 @@
       const room = z ? z.stopS - state.s - WW.config.ui.carLen / 2 : -Infinity;
       const need = room > 0.5 ? (v * v) / (2 * room) : Infinity;
       if (busy && room > -1 && (need <= t.signStopMaxDecelUnitsPerSec2 || v < t.finishSpeedUnits)) {
-        // A planned stop at a known line: brake steadily at what is needed (no front-loading).
-        want(0, Math.min(cap, v < t.finishSpeedUnits ? Math.max(need, t.signDecelUnitsPerSec2) : need));
-        p.stopping = true;
+        // A planned stop at a known line: brake steadily at what is needed (no
+        // front-loading). A car that came to rest short of the line (it stopped
+        // for an animal, or behind a car that has since moved) creeps up to it.
+        const creep = v < 0.5 && room > t.stopGap;
+        want(creep ? t.finishSpeedUnits : 0, Math.min(cap, v < t.finishSpeedUnits ? Math.max(need, t.signDecelUnitsPerSec2) : need));
+        p.stopping = !creep;
         p.atLine = true;
       } else if (z && WW.detection.isSignalActive(z.signalId)) {
         // Through a busy area (sign still flashing, couldn't stop): crawl.
@@ -366,7 +377,7 @@
       if (o.where === "lane") {
         // Registering that it is in the lane takes alertReactionSec from when it
         // entered; until then, keep slowing for it as for an animal on the road.
-        if (n.laneSec < t.alertReactionSec) { slowFor(o); return; }
+        if (n.laneSec < t.alertReactionSec && !(t.seePolicy === "stop" && o.fromKerb <= 0)) { slowFor(o); return; }
         // Stop stopGap short of it: v² = 2·a·d, braking front-loaded (1.3x what
         // is needed, easing off as it goes), exactly as needed at crawling speed
         // to land on the stop point, never beyond the emergency limit.
@@ -393,15 +404,20 @@
     // a·(g*/g)² as the gap closes. The follower sees the leader's brake lights
     // only after follow.reactionSec, so until then it assumes the leader is still
     // at the speed it had before braking. Parameters in tuning.follow.
-    if (leader) {
+    if (leader && t.follow) {
       const f = t.follow, L = leader.state, carLen = WW.config.ui.carLen;
       const g = Math.max(0.1, L.s - state.s - carLen);
       const reacted = !(L.braking && L.brakeSec >= 0 && L.brakeSec < f.reactionSec);
       const vL = reacted ? L.speedUnitsPerSec : Math.max(L.speedUnitsPerSec, L.vBeforeBrake);
       const a0 = t.accelUnitsPerSec2, b = f.comfortDecel;
-      const gStar = f.standGap + v * f.headwaySec + (v * (v - vL)) / (2 * Math.sqrt(a0 * b));
+      // Desired gap; the dynamic part is never negative (a faster leader does not ask for braking).
+      const gStar = f.standGap + Math.max(0, v * f.headwaySec + (v * (v - vL)) / (2 * Math.sqrt(a0 * b)));
       const term = gStar / g;
-      const aIdm = a0 * (1 - Math.pow(v / Math.max(1, p.targetV), 4) - term * term);
+      // Free-road term against the car's own cruise speed, not this frame's
+      // (possibly lowered) target, or any car ahead would turn every slowdown
+      // into an emergency stop.
+      const v0 = kmhToUnits(car.cruiseKmh || t.cruiseKmh);
+      const aIdm = a0 * (1 - Math.pow(v / v0, 4) - term * term);
       if (g <= f.standGap + 1) {
         // On the leader's bumper: stop (or stay stopped).
         want(0, Math.min(cap, v > 0.5 ? Math.max(b, (v * v) / (2 * Math.max(0.5, g - f.standGap * 0.5))) : b));
@@ -412,8 +428,6 @@
         // leader's speed still lets the gap open to g*.
         want(Math.min(p.targetV, vL * Math.min(1, g / gStar)), Math.min(cap, -aIdm));
         if (vL < 0.5) { p.stopping = true; p.queued = true; }
-      } else if (vL < p.targetV && v > vL) {
-        p.targetV = Math.max(vL, p.targetV * 0.999); // never faster than the car ahead for long
       }
       if (vL < 0.5 && g < f.standGap * 4) p.queued = true; // creeping up behind a stopped car still counts as queued
     }
@@ -543,7 +557,7 @@
     // and go through (otherwise the clock restarted every frame and the car never
     // left).
     const line = zoneHere();
-    if (want.atLine && v < 0.5) state.lineWaitSec += dt;
+    if (want.atLine && !want.queued && v < 0.5) state.lineWaitSec += dt;
     else if (!line || state.s > line.stopS + 1) state.lineWaitSec = 0;
     state.queued = !!want.queued;
 

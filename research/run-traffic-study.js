@@ -1,12 +1,14 @@
 /* run-traffic-study.js — runs the two-way traffic study (research/traffic.js)
- * in Node across all CPU cores and writes research/results/traffic-study.json /
- * .csv (stage "grid") or traffic-placement.json / .csv (stage "placement").
+ * in Node across all CPU cores and writes research/results/traffic-<stage>.json / .csv.
  *
- *   node research/run-traffic-study.js [--stage grid|placement] [--seeds N] [--combined M]
- *                                      [--minutes K] [--workers W] [--out DIR]
+ *   node research/run-traffic-study.js --stage policy|sens|placement|pairs|triples
+ *        [--lens 90|60] [--first <key>|auto] [--second <key>|auto]
+ *        [--seeds N] [--combined M] [--minutes K] [--workers W] [--out DIR]
  *
- * Defaults: grid stage, 300 seeds per setting, 1,000 for the combined check and
- * its baseline (placement: 100 seeds, no combined check), 20 simulated minutes.
+ * Defaults: policy stage, 300 seeds per setting, 1,000 for the policy stage's
+ * combined check and its baseline, 10 simulated minutes, lens 90. "auto" picks
+ * the camera to build on from the previous stage's results (best by serious
+ * hits, then corridor coverage within 2 points).
  * Each worker loads the real sim modules into its own vm context and runs a
  * slice of (setting, seeds) jobs; the main thread summarises with the page's own
  * summarise(), so a seed gives the same numbers in the browser and here. */
@@ -61,6 +63,7 @@ if (!isMainThread) {
 function main() {
   const arg = (name, def) => { const i = process.argv.indexOf("--" + name); return i > 0 ? process.argv[i + 1] : def; };
   const STAGE = arg("stage", "policy"), LENS = +arg("lens", 90);
+  if (["policy", "sens", "placement", "pairs", "triples"].indexOf(STAGE) < 0) { console.error("unknown --stage " + STAGE + " (policy | sens | placement | pairs | triples)"); process.exit(2); }
   const SEEDS = +arg("seeds", 300), COMBINED = +arg("combined", 1000), MINUTES = +arg("minutes", 10);
   const WORKERS = +arg("workers", Math.max(1, os.cpus().length - 2));
   const OUT = arg("out", path.join(ROOT, "research", "results"));
@@ -68,14 +71,14 @@ function main() {
   // and among layouts within `tol` of the best cut, the highest corridor coverage.
   function bestOf(grid, tol) {
     const top = grid.slice().sort((a, b) => a.on.seriousPer100 - b.on.seriousPer100)[0];
-    const near = grid.filter((g) => g.seriousCut >= top.seriousCut - (tol || 0.02));
-    return near.sort((a, b) => (b.coverage ? b.coverage.corridor : 0) - (a.coverage ? a.coverage.corridor : 0))[0];
+    const near = grid.filter((g) => g.seriousCut >= top.seriousCut - (tol === undefined ? 0.02 : tol));
+    return near.sort((a, b) => ((b.coverage ? b.coverage.corridor : 0) - (a.coverage ? a.coverage.corridor : 0)) || (a.on.seriousPer100 - b.on.seriousPer100))[0];
   }
   function autoKey(file, which) {
     const r = JSON.parse(fs.readFileSync(path.join(OUT, file), "utf8"));
     const best = bestOf(r.grid);
     process.stderr.write("picked from " + file + ": " + best.label + " (" + Math.round(best.seriousCut * 100) + "%, corridor " + Math.round(best.coverage.corridor * 100) + "%)\n");
-    return which === "second" ? best.key : best.key;
+    return best.key;
   }
   let FIRST = arg("first", null), SECOND = arg("second", null);
   if (STAGE === "pairs" && (!FIRST || FIRST === "auto")) FIRST = autoKey("traffic-placement-" + LENS + ".json", "first");
@@ -127,11 +130,12 @@ function main() {
     if (STAGE === "policy") {
       const combined = study.pickCombined(result.grid, SETTINGS);
       process.stderr.write("Combined check (" + S.combinedSeeds.length + " seeds): " + combined.label + "\n");
-      const jobs2 = chunks("combined", combined.ids, S.combinedSeeds).concat(chunks("base", [SETTINGS[0].id], S.combinedSeeds));
+      const baseSetting = SETTINGS.find((s) => s.id === "base") || SETTINGS[0];
+      const jobs2 = chunks("combined", combined.ids, S.combinedSeeds).concat(chunks("base", [baseSetting.id], S.combinedSeeds));
       const rows2 = await runJobs(jobs2, "combined + baseline");
       runs += jobs2.reduce((a, j) => a + j.seeds.length, 0);
       result.combined = study.summarise(combined, bySeed(rows2.combined));
-      result.baseline = study.summarise(SETTINGS[0], bySeed(rows2.base));
+      result.baseline = study.summarise(baseSetting, bySeed(rows2.base));
     }
     result.seconds = (Date.now() - t0) / 1000;
     result.runs = runs;

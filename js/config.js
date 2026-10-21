@@ -316,19 +316,21 @@
       // The study's two-camera layout: opposite verges at the hotspot, each
       // looking across the road (93% of serious hits prevented vs 91% for one).
       cameras: [
-        { id: "camN", name: "Cam N · wildlife verge", x: 490, y: 330, facingAngleDeg: 90,  fovDeg: 90, range: 250 },
-        { id: "camS", name: "Cam S · Hall 15 side",   x: 490, y: 430, facingAngleDeg: 270, fovDeg: 90, range: 250 },
+        { id: "camN", name: "Cam N", x: 490, y: 330, facingAngleDeg: 90,  fovDeg: 90, range: 250 }, // wildlife verge
+        { id: "camS", name: "Cam S", x: 490, y: 430, facingAngleDeg: 270, fovDeg: 90, range: 250 }, // Hall 15 side
       ],
       spawning: { meanGapSec: 30 },
       traffic: { headwayMeanSec: 20 },
       tuning: { signRule: "slow" },  // the sign asks drivers to slow; no stop line
       knobBaseSec: 120,
-      signKerbOffset: 20,            // sign this far beyond the kerb (units)
+      signKerbOffset: 45,            // sign this far beyond the kerb (units): its post is drawn towards the road
+      warmupSec: 30,                 // simulated seconds of car-only traffic after a reset, so the road is not empty
       // Real-time animals (1 m/s ≈ 4 screen pixels a second) look stuck, so the
       // whole scene runs fast-forwarded: cars, animals, signs and clocks alike.
       timeScale: 2,
       maxStepSec: 1 / 60,            // physics sub-step at high speed
-      hint: "Installation demo at 2× speed: research parameters, cars both ways, 30% of drivers obey the sign. Drag an animal to try it.",
+      hint: "Installation demo at {scale}× speed: research parameters, cars both ways, {comply}% of drivers obey the sign. Drag an animal to try it.",
+      badge: "Installation demo · research values · {scale}× speed",
       panelSub: {
         off: "Today: no cameras, no warning — 1 m/s animals, 1.5 s reactions, cars both ways",
         on: "Installation: two 90° cameras on opposite verges, a sign per direction, flashing for any animal in view",
@@ -394,6 +396,7 @@
     // described in `spawning`.
     attract: {
       knobBaseSec: 48,     // "Animal activity" knob: mean gap between groups = knobBaseSec / level (level 4 = 12 s)
+      placedTimeoutMs: 30000, // an animal left placed (slow motion) for this long is cleared so the auto-demo can resume
       idleStartMs: 6000,
       firstGroupSec: 1,    // the first group appears this soon after the demo starts
     },

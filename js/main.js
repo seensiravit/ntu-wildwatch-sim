@@ -123,6 +123,7 @@
       if (e.target && e.target.tagName === "INPUT") return; // don't hijack the slider
       // Leave keys alone inside the extension's UI (e.g. Space selects a map node).
       if (e.target && e.target.closest && e.target.closest("#ww-root, #ww-tabs-slot")) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return; // browser shortcuts (Ctrl+S, ...) stay theirs
       const k = e.key.toLowerCase();
       if (e.code === "Space" || k === " ") { e.preventDefault(); document.getElementById("btn-pause").click(); }
       else if (k === "r") { document.getElementById("btn-reset").click(); }
@@ -220,6 +221,15 @@
       const rnd = WW.spawner.mulberry32(Date.now() % 2147483647);
       carStreams = WW.car.dirs.map((d) => ({ dir: d, s: WW.spawner.createCarStream({ rnd: rnd, firstAtSec: 1 }) }));
       trafficSec = 0;
+      // Warm the streams up with no animals, so the road already carries traffic
+      // when the visitor's first animal arrives; the counters start from zero.
+      const h = WW.config.installation.maxStepSec, warm = WW.config.installation.warmupSec || 0;
+      for (let s = 0; s < warm; s += h) {
+        trafficRelease(h);
+        WORLDS.forEach((w) => { WW.useWorld(w); WW.car.update(h); });
+        trafficRetire();
+      }
+      WORLDS.forEach((w) => { w.flow.cars = 0; w.flow.delaySum = 0; });
     }
   }
 
@@ -229,6 +239,11 @@
     const inst = WW.config.installation;
     ["spawning", "traffic", "tuning"].forEach((k) => { if (inst[k]) WW.mergeConfig(WW.config[k], inst[k]); });
     if (inst.cameras) WW.config.cameras = JSON.parse(JSON.stringify(inst.cameras));
+    // Texts built from the values they describe.
+    const fill = (s) => s.replace("{scale}", String(inst.timeScale)).replace("{comply}", String(Math.round(WW.config.tuning.signCompliance * 100)));
+    inst.hint = fill(inst.hint);
+    const badge = document.getElementById("inst-badge");
+    if (badge && inst.badge) badge.textContent = fill(inst.badge);
     // One sign per direction at the cameras' coverage edge, driven by every camera
     // (needs the routes, so build them once here; the dashboard then builds its
     // sign pills from these).
@@ -297,7 +312,7 @@
     if (!paused && sc.phase !== "done") {
       // The installation demo runs fast-forwarded (config.installation.timeScale).
       const scale = INSTALLATION ? WW.config.installation.timeScale : 1;
-      if (!sc.active) updateAttract(dt * scale); // idle/spawn timing runs on (scaled) real time
+      if (!sc.active) updateAttract(dt, scale); // idle timing on real time, arrivals on scaled time
       // Slow the whole scene while the user is placing/aiming an animal.
       const placing = dragActive || WORLDS.some((w) => w.animals.some((a) => a.state === "placed"));
       const sdt = dt * scale * (placing ? WW.config.tuning.placingTimeScale : 1);
@@ -338,9 +353,9 @@
   // passer-by sees the detect -> warn -> slow chain without touching anything.
   // Animals arrive from WW.spawner: groups as a Poisson process around the
   // crossing hotspot (config.spawning). Each arrival appears on both sides.
-  function updateAttract(dt) {
+  function updateAttract(dt, scale) {
     if (attractActive) {
-      attractSec += dt;
+      attractSec += dt * (scale || 1);
       const onScreen = Math.max.apply(null, WORLDS.map((w) => w.animals.length));
       arrivals.due(attractSec).forEach((ev) => {
         if (onScreen >= WW.config.spawning.maxConcurrent) return; // safety cap
@@ -350,6 +365,9 @@
       idleMs += dt * 1000;
       const empty = WORLDS.every((w) => w.animals.length === 0);
       if (idleMs >= WW.config.attract.idleStartMs && empty) startAttract();
+      // An animal left "placed" keeps the scene in slow motion and the auto-demo
+      // off; after a long idle spell clear it so the kiosk recovers on its own.
+      else if (idleMs >= WW.config.attract.placedTimeoutMs && !dragActive && WORLDS.every((w) => w.animals.every((a) => a.state === "placed"))) resetAll();
     }
   }
 

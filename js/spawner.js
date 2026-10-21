@@ -142,7 +142,7 @@
     const rnd = opts.rnd, tr = WW.config.traffic, t = WW.config.tuning;
     const meanSec = opts.meanSec || tr.headwayMeanSec;
     const min = Math.min(tr.headwayMinSec, meanSec);
-    let next = (opts.firstAtSec !== undefined ? opts.firstAtSec : 0) + exponential(rnd, meanSec);
+    let next = opts.firstAtSec !== undefined ? opts.firstAtSec : exponential(rnd, meanSec); // firstAtSec = the first car's time (as the animal stream)
     return {
       due(now) {
         const out = [];

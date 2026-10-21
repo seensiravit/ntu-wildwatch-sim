@@ -180,8 +180,10 @@
   }
 
   function updateLog(p, entries) {
-    if (entries.length === p.lastLogLen) return; // only rebuild on change
+    // Only rebuild on change: the list is capped, so also watch the newest entry.
+    if (entries.length === p.lastLogLen && entries[0] === p.lastLogHead) return;
     p.lastLogLen = entries.length;
+    p.lastLogHead = entries[0];
     p.log.innerHTML = "";
     if (!entries.length) p.log.appendChild(el("li", "log-empty", "No detections yet."));
     entries.forEach((e) => {
@@ -209,7 +211,7 @@
 
     // Subtle noise (frozen when paused via the sim-clock seed)
     const bucket = Math.floor(((WW.clock && WW.clock.ms) || 0) / 120);
-    const rnd = WW.spawner.mulberry32(bucket * 131 + cam.x);
+    const rnd = WW.spawner.mulberry32(bucket * 131 + cam.x + cam.y * 7);
     ctx.globalAlpha = 0.12;
     for (let i = 0; i < 140; i++) {
       const x = rnd() * W, y = rnd() * H, s = 1 + rnd() * 2;
@@ -282,9 +284,10 @@
     style.textContent = DED_CSS;
     document.head.appendChild(style);
 
-    const cam = WW.config.cameras[0];
-    const loc = (WW.config.dashboard.cameraLocations || {})[cam.id];
-    const where = loc ? loc.name + " · " + loc.cam : cam.name;
+    const where = WW.config.cameras.map((cam) => {
+      const loc = (WW.config.dashboard.cameraLocations || {})[cam.id];
+      return loc ? loc.name + " · " + loc.cam : cam.name;
+    }).join(", ");
     const card = el("div", "ww-card",
       "<h2>Live simulation: with vs without WildWatch</h2>" +
       '<p class="ww-cap">Same animals on the same road (' + where + "). The Simulation tab runs it twice: " +
