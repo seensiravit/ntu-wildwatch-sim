@@ -262,6 +262,9 @@ Sources:
 - [docs/sequence-diagrams.md](docs/sequence-diagrams.md): sequence diagrams (Mermaid,
   rendered on GitHub) of one frame of the demo, an animal becoming a warning, the
   driver reacting to an animal, one research run, and the installation demo's start.
+- [docs/uml-diagrams.md](docs/uml-diagrams.md): UML (Mermaid): the modules and their
+  dependencies, the data model (worlds, cars, animals, routes, signals), and the state
+  machines of an animal, a car, a sign and the scenario.
 
 ## Editing the scene (`js/config.js`)
 
