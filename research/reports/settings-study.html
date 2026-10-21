@@ -61,93 +61,106 @@
   .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
   .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
   code { font: 13px var(--font-mono); background: color-mix(in oklab, var(--muted) 14%, transparent); padding: 1px 5px; border-radius: 4px; }
+  dl.terms { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 14px; }
+  dl.terms dt { font-weight: 600; } dl.terms dd { margin: 0; }
 </style>
 
 </head>
 <body>
 <main>
   <header>
-    <div class="eyebrow">NTU WildWatch · simulation study · second run</div>
+    <div class="eyebrow">NTU WildWatch · settings study · one car at a time · second run</div>
     <h1>Settings Study</h1>
-    <p class="prose">Under which settings does the camera-and-sign system work best, and which settings make the difference between System OFF and System ON clearest in the demo? We ran the split-screen simulation for 21 settings, changing one factor at a time from today's configuration, with the same animals on both sides.</p>
-    <p class="meta">19,800 twin runs · 21 settings × 800 seeds × 20 simulated minutes · combined check with 1,500 seeds · today's driver and 110° camera · results reproduce exactly (seeded)</p>
+    <p class="prose">Which of the demo's settings matter? We took today's configuration and changed one thing at a time: the camera's range, lens and position, how far away the sign can be seen, whether the warned driver stops at a line, the warned speed, and then things the system does not control, like the driver's headlights, reaction time and speed, and how many animals come and how bold they are. For each, the simulation ran with the same animals on both sides of the screen: one side without the system, one with it.</p>
+    <p class="meta">19,800 simulation runs · 21 settings × 800 seeds × 20 simulated minutes · combined check with 1,500 seeds · the demo's driver and 110° lens · the same seeds give the same results every time</p>
+    <p class="prose muted small">This study uses the presentation demo's own pacing (fast animals, a quick driver, one car at a time). It explains why <code>index.html</code> is set the way it is. For a real installation, see the Installation Study, which uses research values and cars both ways.</p>
   </header>
 
   <section>
-    <div class="eyebrow">The answer</div>
+    <div class="eyebrow">What this study found</div>
     <div class="answer">
       <div class="plate">
         <span class="k">Today's settings</span>
-        <span class="v">The best system configuration tried</span>
-        <p>With today's configuration the system cuts serious hits (over 30 km/h) by 78% (interval 77–79%) and near misses by 88%, leaving 0.95 serious hits per 100 crossings. None of the 20 variations has fewer serious hits on the ON side.</p>
+        <span class="v">The best of everything we tried</span>
+        <p>With today's configuration the system prevents 78% of serious hits (interval 77 to 79%) and 88% of near misses, leaving 0.95 serious hits per 100 crossings. None of the 20 variations has fewer serious hits with the system on.</p>
       </div>
       <div class="plate">
         <span class="k">Nothing to change</span>
         <span class="v">The 110° lens was the win; the rest are ties or trade-offs</span>
-        <p>The first run recommended the 110° view, which is now in place: against the previous 84° lens it is 0.95 vs 1.62 serious hits per 100 crossings. A sign visible from 640 is a tie (0.94). A 350 range or dropping the stop line halves the warned car's lap cost (+2.3 s instead of +5.1 s) but costs a few more serious hits and more low-speed contacts. The combined check confirmed it: 79% vs 78% on the same 1,500 seeds.</p>
+        <p>The first run of this study recommended the 110° lens, which is now in the demo: against the previous 84° lens it is 0.95 versus 1.62 serious hits per 100 crossings. A sign visible from 640 is a tie (0.94). A longer camera range (350) or no stop line halves how long the warned car takes per lap (+2.3 s instead of +5.1 s) but costs a few more serious hits and more low-speed contacts. Running the best levels together confirmed it: 79% versus 78% on the same 1,500 seeds.</p>
       </div>
       <div class="plate">
         <span class="k">What weakens the demo</span>
-        <span class="v">Crossings anywhere, quiet traffic</span>
-        <p>If animals cross anywhere along the road instead of at the hotspot, one camera cuts serious hits by only 21%. A quiet road (a group every 24 s) still shows 72% but with fewer events to watch. A busy road (every 6 s) shows 87% but the warned car waits 13 s more per lap. Keep the hotspot and the default activity.</p>
+        <span class="v">Animals crossing anywhere, or a quiet road</span>
+        <p>If animals cross anywhere along the road instead of at the hotspot, one camera prevents only 21% of serious hits. A quiet road (a group every 24 s) still shows 72% but with fewer events to watch. A busy road (every 6 s) shows 87% but the warned car waits 13 s more per lap. Keep the hotspot and the default activity.</p>
       </div>
+    </div>
+    <div class="figure">
+      <h3>Words used in this report</h3>
+      <dl class="terms">
+        <dt>Serious hit</dt><dd>a car touches an animal while going faster than 30 km/h. Counted per 100 animals that walked onto the road.</dd>
+        <dt>Cut</dt><dd>how many serious hits (or near misses) the system prevents, as a share of what happens without it.</dd>
+        <dt>Near miss</dt><dd>the car passes an animal at more than 35 km/h without touching it.</dd>
+        <dt>ON lap +s</dt><dd>how many seconds longer the warned car takes per lap than the unwarned one: the driver's cost.</dd>
+        <dt>Interval</dt><dd>the range the true value is likely to be in, worked out by re-sampling the seeds.</dd>
+      </dl>
     </div>
   </section>
 
   <section>
     <h2>How the study worked</h2>
     <ul class="tight prose">
-      <li>Each run is the demo itself, headless: two worlds share the same arriving animals, the OFF car has no camera or signs, the ON car has today's camera and signs, and both cars start every lap together. 20 simulated minutes per run.</li>
-      <li>Each setting changes one factor from today's configuration. 800 seeds per setting (the same 800 for all), so differences between settings come from the setting, not from luck; the intervals are about ±1 point. The best level of each system-controlled factor was then tried together, with 1,500 seeds. Run with <code>node research/run-settings-study.js</code> across 22 cores in 43 minutes.</li>
-      <li><b>Serious hit</b> = the car touched an animal while going faster than 30 km/h. <b>Near miss</b> = faster than 35 km/h at its closest approach, no contact. Counts are per 100 animals that reached the road, so busy and quiet settings compare fairly.</li>
-      <li>Two scores: the ON side's serious hits per 100 crossings (<b>best system</b>), and the OFF → ON reduction in serious hits (<b>clearest contrast</b>). The interval on each reduction is a bootstrap over seeds.</li>
+      <li>Each run is the demo itself with the drawing switched off: two copies of the road share the same arriving animals; one car has no camera or signs, the other has today's camera and signs, and both cars start every lap together. 20 simulated minutes per run.</li>
+      <li>Each setting changes one thing from today's configuration. 800 random seeds per setting (the same 800 for all), so differences between settings come from the setting, not from luck; the intervals are about ±1 point. The best level of each system-controlled setting was then tried together, with 1,500 seeds. Run with <code>node research/run-settings-study.js</code> on 22 cores in about 43 minutes.</li>
+      <li>Hits are split by the car's speed at contact ("serious" means over 30 km/h) and counted per 100 animals that reached the road, so busy and quiet settings compare fairly.</li>
+      <li>Two scores: serious hits with the system on (<b>safest system</b>), and how much the system cuts serious hits (<b>clearest contrast</b> between the two sides of the demo).</li>
     </ul>
   </section>
 
   <section>
-    <h2>Goal 2: which settings show the difference most clearly</h2>
+    <h2>Which settings show the difference most clearly</h2>
     <div class="figure">
-      <svg id="chart" viewBox="0 0 900 640" role="img" aria-label="Serious-hit reduction from OFF to ON for each setting, with 95% intervals"></svg>
+      <svg id="chart" viewBox="0 0 900 640" role="img" aria-label="Serious-hit cut from OFF to ON for each setting, with intervals"></svg>
       <div class="legend">
-        <span><i style="background:var(--good)"></i>Reduction in serious hits, OFF → ON</span>
-        <span><i style="background:var(--muted)"></i>95% interval (bootstrap over seeds)</span>
+        <span><i style="background:var(--good)"></i>serious hits prevented by the system</span>
+        <span><i style="background:var(--muted)"></i>interval</span>
         <span style="color:var(--amber)">● today's settings</span>
       </div>
-      <div class="cap">Driver and animal factors are shown too, even though the system designer doesn't control them: they say how robust the result is. Most settings cut serious hits by 60–87%; only "crossings anywhere" breaks the system.</div>
+      <div class="cap">Driver and animal settings are shown too, even though the system designer does not control them: they say how robust the result is. Most settings prevent 60 to 87% of serious hits; only "crossings anywhere" breaks the system.</div>
     </div>
   </section>
 
   <section>
-    <h2>Goal 1: which settings make the system safest</h2>
+    <h2>Which settings make the system safest</h2>
     <div class="figure">
       <div class="scroll"><table id="t1"></table></div>
-      <div class="cap">Sorted by serious hits on the ON side per 100 crossings. "ON lap +s" is how much longer the warned car takes per lap than the unwarned one: the driver's cost. Today's settings are highlighted.</div>
+      <div class="cap">Sorted by serious hits with the system on, per 100 crossings. Today's settings are highlighted.</div>
     </div>
   </section>
 
   <section>
-    <h2>Reading the factors</h2>
+    <h2>Reading the settings</h2>
     <div class="two">
       <div class="figure">
         <h3>Camera</h3>
         <ul class="tight small">
-          <li><b>View angle matters more than range.</b> Today's 110° beats the previous 84° (0.95 vs 1.62 serious ON hits per 100) and 60° is far worse (2.59). A longer range (350) is a near tie (0.99) with a quicker warned lap (+2.4 s instead of +5.1 s), because the car is warned earlier and waits less; 150 is too short (2.51).</li>
-          <li><b>Today's position is the best of the three tried.</b> The centreline camera at x 590 facing west beats the gantry at x 400 facing east (1.11) and the south-verge camera at x 550 facing north (1.38). The placement study ranked that verge camera first when averaging both directions of travel; here, with eastbound traffic and three in four animals arriving from the wildlife verge, it loses because it cannot see animals coming from the Hall 15 side until they are on the road (with all animals from the north it beats today's camera, 83% vs 74%; with all from the south it falls to 57% against 86%).</li>
+          <li><b>The lens matters more than the range.</b> Today's 110° beats the previous 84° (0.95 versus 1.62 serious hits per 100) and 60° is far worse (2.59). A longer range (350) is a near tie (0.99) with a quicker warned lap (+2.4 s instead of +5.1 s), because the car is warned earlier and waits less; 150 is too short (2.51).</li>
+          <li><b>Today's position is the best of the three tried.</b> The centreline camera at x 590 facing west beats the gantry at x 400 facing east (1.11) and the south-verge camera at x 550 facing north (1.38). The placement study ranked that verge camera first when averaging both directions of travel; here, with eastbound traffic and three in four animals from the wildlife verge, it loses because it cannot see animals coming from the Hall 15 side until they are on the road.</li>
         </ul>
       </div>
       <div class="figure">
         <h3>Signs and the warned driver</h3>
         <ul class="tight small">
-          <li><b>Sign visibility:</b> 320 units is too short (2.13; near misses cut only 37%). 480 (today) and 640 are equal (0.95 vs 0.94); 640 only adds a little waiting.</li>
-          <li><b>The stop line costs 3 s a lap and buys a little:</b> without it the ON side has 1.10 serious hits per 100 instead of 0.95 and the total-hit cut drops from 40% to 32%, while the warned lap is 3 s quicker. Moving the line 80 units back gives 1.13 and the same quick lap, so it is no better than no line at all.</li>
+          <li><b>How far away the sign can be seen:</b> 320 units is too short (2.13; near misses cut only 37%). 480 (today) and 640 are equal (0.95 versus 0.94); 640 only adds a little waiting.</li>
+          <li><b>The stop line costs 3 s a lap and buys a little:</b> without it the system side has 1.10 serious hits per 100 instead of 0.95 and the total-hit cut drops from 40% to 32%, while the warned lap is 3 s quicker. Moving the line 80 units back gives 1.13 with the same quick lap, so it is no better than no line at all.</li>
           <li><b>Warned speed 30 instead of 20</b> is slightly worse on safety (1.15, cut 74%) for a slightly quicker lap (+4.7 s instead of +5.1 s).</li>
         </ul>
       </div>
       <div class="figure">
         <h3>Driver (not controlled by the system)</h3>
         <ul class="tight small">
-          <li><b>Research-mean reaction times</b> (1.1 s / 0.7 s instead of the demo's quick 0.5 / 0.35) still leave a 72% cut in serious hits: the benefit doesn't depend on the quick-driver assumption.</li>
-          <li><b>Headlights that reach 32 m</b> instead of 21 m make the OFF driver much safer (1.86 serious per 100 instead of 4.29), so the contrast shrinks to 58%. The demo's 21 m is the unalerted-driver figure.</li>
+          <li><b>Research reaction times</b> (1.1 s / 0.7 s instead of the demo's quick 0.5 / 0.35) still leave a 72% cut in serious hits: the benefit does not depend on the quick-driver assumption.</li>
+          <li><b>Headlights that reach 32 m</b> instead of 21 m make the unwarned driver much safer (1.86 serious per 100 instead of 4.29), so the contrast shrinks to 58%. The demo's 21 m is the figure for a driver who is not expecting anything.</li>
           <li><b>Cruise speed:</b> at 40 km/h the unwarned driver can mostly stop in time, so the system has less to add (68%). At 60 km/h both sides get worse; the cut is 74% but near misses are cut only 58%.</li>
         </ul>
       </div>
@@ -155,42 +168,43 @@
         <h3>Animals</h3>
         <ul class="tight small">
           <li><b>Busy traffic</b> (a group every 6 s) gives the biggest contrast, 87%, but the warned car waits so often that its laps take 13 s longer, which makes the demo drag. <b>Quiet traffic</b> (every 24 s) still shows 72%.</li>
-          <li><b>Boldness</b> moves both sides together; the contrast stays at 76–81%.</li>
-          <li><b>Crossings anywhere</b> along the road cut the system's effect to 21%: one camera covers one place. This is the case for deploying at a known hotspot (and for the camera-placement study).</li>
+          <li><b>Boldness</b> moves both sides together; the contrast stays at 76 to 81%.</li>
+          <li><b>Crossings anywhere</b> along the road cut the system's effect to 21%: one camera covers one place. This is the case for installing at a known hotspot.</li>
         </ul>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>Combined check (1,500 seeds)</h2>
+    <h2>Running the best levels together (1,500 seeds)</h2>
     <div class="figure">
       <div class="scroll"><table id="t2"></table></div>
-      <div class="cap">Taking the best level of each system-controlled factor from the grid (fewest serious ON hits per 100, the baseline level counting too) and running them together on 1,500 seeds. Only the 640 sign distance beat the baseline in the grid, by 0.01; together they are 79% against 78%, inside noise.</div>
+      <div class="cap">Taking the best level of each system-controlled setting (fewest serious hits with the system on, the baseline level counting too) and running them together on 1,500 seeds. Only the 640 sign distance beat the baseline in the grid, by 0.01; together they are 79% against 78%, inside noise.</div>
     </div>
   </section>
 
   <section>
-    <h2>Recommendation</h2>
-    <p class="prose">Keep today's settings. The 110° view recommended by the first run is in place and is the one setting that mattered. If the demo ever feels slow, a 350 camera range or no stop line halves the warned car's lap cost for a small safety price. Keep the animals crossing at the hotspot and the activity at its default; both are what let a single camera show its value. For the research story, note that the benefit survives the honest driver assumptions (research reaction times, brighter headlights), at a reduced but still large size.</p>
+    <h2>Recommendation (for the demo)</h2>
+    <p class="prose">Keep today's settings. The 110° lens recommended by the first run is in place and is the one setting that mattered. If the demo ever feels slow, a 350 camera range or no stop line halves the warned car's lap cost for a small safety price. Keep the animals crossing at the hotspot and the activity at its default; both are what let a single camera show its value. For the research story, note that the benefit survives the honest driver assumptions (research reaction times, brighter headlights), at a reduced but still large size.</p>
     <div class="figure">
-      <h3>Parameter table: today's settings</h3>
+      <h3>Today's settings, in one table</h3>
       <div class="scroll"><table id="t3"></table></div>
     </div>
   </section>
 
   <section class="prose">
-    <h2>Limits of this study</h2>
+    <h2>What this study cannot tell you</h2>
     <ul class="tight">
-      <li>One factor at a time around today's settings. Interactions were checked only in the combined run.</li>
-      <li>One car per direction, no traffic queueing; and OFF results shift slightly between settings because both cars start each lap together, so the OFF car waits when the ON car is slow.</li>
-      <li>Hits are rare, which is why 800 seeds were needed: each setting has 1,300–6,000 serious OFF hits, giving ±1-point intervals. Differences of a point or two are still not worth acting on.</li>
-      <li>Detection is perfect inside the camera's view. Animal speeds and reactions are modelled, not measured, as described in the project README.</li>
+      <li>It uses the presentation demo's settings, not research values: animals 5 to 8 times faster than life, a driver who reacts in 0.5 s, and a 110° lens that is not a real product. It says how the demo behaves, not how an installation would.</li>
+      <li>One setting at a time around today's settings. Interactions were checked only in the combined run.</li>
+      <li>One car per direction, no queuing; and the no-system side shifts slightly between settings because both cars start each lap together, so it waits when the warned car is slow.</li>
+      <li>Hits are rare, which is why 800 seeds were needed: each setting has 1,300 to 6,000 serious hits without the system, giving ±1-point intervals. Differences of a point or two are still not worth acting on.</li>
+      <li>The camera never misses an animal in its view. Animal speeds and reactions are modelled, not measured.</li>
     </ul>
   </section>
 
   <section class="prose">
-    <h2>Reproduce it</h2>
+    <h2>How to run it again</h2>
     <p>Run <code>node research/run-settings-study.js</code> in the project (about 45 minutes on 22 cores), or open <code>research/settings.html</code> and press <b>Run study</b> for the 10-seed version (about 6 minutes, offline; <code>?quick</code> for a 30-second smoke run). The numbers here are in <code>research/results/settings-study.csv</code>.</p>
   </section>
 </main>
@@ -277,7 +291,7 @@
   // Goal 1 table
   (function () {
     var rows = GRID.slice().sort(function (a, b) { return a[4] - b[4]; });
-    var h = '<thead><tr><th>Setting</th><th class="n">OFF serious /100</th><th class="n">ON serious /100</th><th class="n">Serious-hit cut</th><th class="n">Near-miss cut</th><th class="n">All-hits cut</th><th class="n">ON lap +s</th></tr></thead><tbody>';
+    var h = '<thead><tr><th>Setting</th><th class="n">Serious hits /100, no system</th><th class="n">Serious hits /100, system on</th><th class="n">Serious hits cut</th><th class="n">Near misses cut</th><th class="n">All hits cut</th><th class="n">Warned lap +s</th></tr></thead><tbody>';
     rows.forEach(function (r) {
       h += '<tr' + (r[0] === "base" ? ' class="hl"' : r[0] === "fov110" ? ' class="rec"' : "") + '><td><b>' + r[1] + '</b><div class="muted small">' + r[2] + '</div></td>' +
         '<td class="n">' + r[3].toFixed(2) + '</td><td class="n"><b>' + r[4].toFixed(2) + '</b></td><td class="n">' + r[5] + '% <span class="muted">[' + r[6] + '–' + r[7] + ']</span></td>' +
@@ -288,7 +302,7 @@
 
   // Combined table
   (function () {
-    var h = '<thead><tr><th>Setting (1,500 seeds)</th><th class="n">OFF serious /100</th><th class="n">ON serious /100</th><th class="n">Serious-hit cut</th><th class="n">Near-miss cut</th><th class="n">All-hits cut</th><th class="n">ON lap +s</th></tr></thead><tbody>';
+    var h = '<thead><tr><th>Setting (1,500 seeds)</th><th class="n">Serious hits /100, no system</th><th class="n">Serious hits /100, system on</th><th class="n">Serious hits cut</th><th class="n">Near misses cut</th><th class="n">All hits cut</th><th class="n">Warned lap +s</th></tr></thead><tbody>';
     COMBINED.forEach(function (r, i) {
       h += '<tr' + (i === 0 ? ' class="hl"' : "") + '><td><b>' + r[0] + '</b></td><td class="n">' + r[1].toFixed(2) + '</td><td class="n"><b>' + r[2].toFixed(2) + '</b></td>' +
         '<td class="n">' + r[3] + '%' + (r[4] === null ? "" : ' <span class="muted">[' + r[4] + '–' + r[5] + ']</span>') + '</td><td class="n">' + r[6] + '%</td><td class="n">' + r[7] + '%</td><td class="n">+' + r[8].toFixed(1) + '</td></tr>';

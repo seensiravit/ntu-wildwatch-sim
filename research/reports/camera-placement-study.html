@@ -61,48 +61,60 @@
   .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
   .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
   code { font: 13px var(--font-mono); background: color-mix(in oklab, var(--muted) 14%, transparent); padding: 1px 5px; border-radius: 4px; }
+  dl.terms { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 14px; }
+  dl.terms dt { font-weight: 600; } dl.terms dd { margin: 0; }
 </style>
 
 </head>
 <body>
 <main>
   <header>
-    <div class="eyebrow">NTU WildWatch · Prong 1 deployment study · second run</div>
+    <div class="eyebrow">NTU WildWatch · camera placement · one car at a time · second run</div>
     <h1>Camera Placement Study</h1>
-    <p class="prose">Where should the cameras go on Nanyang Crescent opposite Hall 15, which way should they point, and how many are worth installing? We ran the WildWatch simulator for every candidate layout against the same animal crossings and counted how many <b>serious hits</b> (the car touching an animal at over 30 km/h) each layout prevents compared with no system.</p>
-    <p class="meta">3,788 simulated runs · 120 single-camera setups · 1 to 4 cameras · 4 scenarios · today's lens (110° / 250) · results reproduce exactly (seeded)</p>
-    <p class="prose muted small">This is the second run. The first used a simpler driver and the old 84°/150 camera. The driver now reacts after a reaction time, brakes realistically, stops at a stop line when a sign flashes, and only sees 21 m by headlight; animals cross in groups and react to the car. The headline changed from "near misses" to serious hits, which is how the demo now scores. The conclusions shifted: see "What changed since the first run".</p>
+    <p class="prose">Where should the cameras go on Nanyang Crescent opposite Hall 15, which way should they point, and how many are worth installing? We ran the simulator for every candidate layout against the same animal crossings and counted how many <b>serious hits</b> (a car touching an animal at more than 30 km/h) each layout prevents compared with having no system at all.</p>
+    <p class="meta">3,788 simulation runs · 120 single-camera layouts · 1 to 4 cameras · 4 scenarios · the demo's lens (110°, 35 m) · the same seeds give the same results every time</p>
+    <p class="prose muted small">This is an early study, done with the presentation demo's own settings: one car at a time, fast animals and a quick driver. The later <b>Installation Study</b> re-did the placement question with values from research, cars both ways, and area coverage, and reached a different answer (two cameras in crossfire). Keep this one for the history and the method; use that one for the recommendation.</p>
   </header>
 
   <section>
-    <div class="eyebrow">The answer</div>
+    <div class="eyebrow">What this study found</div>
     <div class="answer">
       <div class="plate">
         <span class="k">Position</span>
-        <span class="v">Next to the hotspot, on the Hall 15 verge</span>
-        <p>The best single camera stands on the south verge at x 550 and looks north across the road and up the wildlife verge. It prevents 77% of serious hits. Any camera within 150 units of the hotspot (x 400–700) that looks across the road prevents 60–77%; at x 850 the best is 21%.</p>
+        <span class="v">Next to the hotspot, on the Hall 15 side</span>
+        <p>The best single camera stands on the south verge at x 550 and looks north, across the road and up the wildlife verge. It prevents 77% of serious hits. Any camera within about 20 m of the hotspot (x 400 to 700) that looks across the road prevents 60 to 77%. At x 850 the best is 21%.</p>
       </div>
       <div class="plate">
-        <span class="k">Angle</span>
+        <span class="k">Direction</span>
         <span class="v">Look across the road, not along it</span>
-        <p>Facing north from the south verge (or south from the north verge) puts the whole crossing in view before the animal reaches the lane. Looking along the road from the same spot drops to 21–45%.</p>
+        <p>Facing north from the south verge (or south from the north verge) puts the whole crossing in view before the animal reaches the lane. Looking along the road from the same spot drops to 21 to 45%.</p>
       </div>
       <div class="plate">
-        <span class="k">Number</span>
-        <span class="v">Two cameras</span>
-        <p>One camera prevents 77% of serious hits, two 85%, three 87%, four 90%. The second camera adds 8 points for 6 s more per lap; the third and fourth add 2–3 points each. Two is where the benefit levels off.</p>
+        <span class="k">How many</span>
+        <span class="v">Two</span>
+        <p>One camera prevents 77% of serious hits, two 85%, three 87%, four 90%. The second camera adds 8 points for about 6 s more per trip; the third and fourth add 2 to 3 points each.</p>
       </div>
     </div>
-    <p class="prose muted small">Today's demo camera (x 590, on the centreline, facing west, 110°/250) was not in the grid; the nearest grid cell (x 550 centreline facing west) scores 60%. The lens matters more than any other factor: with the old 84°/150 lens the best single camera prevents only 36–40%, and with 60° or 40° lenses 32–40%. Sign visibility (480 vs 320 units) barely matters.</p>
+    <div class="figure">
+      <h3>Words used in this report</h3>
+      <dl class="terms">
+        <dt>Serious hit</dt><dd>a car touches an animal while going faster than 30 km/h.</dd>
+        <dt>Prevented</dt><dd>how many serious hits the layout stops, as a share of what happens with no system.</dd>
+        <dt>Near miss</dt><dd>the car passes an animal at more than 35 km/h without touching it.</dd>
+        <dt>Hotspot</dt><dd>the place where most animals cross (around x 490, spread about ±60 units).</dd>
+        <dt>Added s / trip</dt><dd>how many seconds longer a warned driver takes to cross the stretch, on average.</dd>
+      </dl>
+    </div>
+    <p class="prose muted small">The demo's own camera (x 590 on the centreline, looking west) was not in this grid; the nearest grid cell (x 550 centreline looking west) scores 60%. The lens matters more than anything else: with the earlier 84° lens the best single camera prevents only 36 to 40%. How far away the driver can see the sign (480 or 320 units) barely matters.</p>
   </section>
 
   <section>
     <h2>How the study worked</h2>
     <ul class="tight prose">
-      <li>We used the demo's own simulation code (animals, car, cameras, warning signs), stepped without drawing, so the results match what the demo shows.</li>
-      <li>Every layout faced the same seeded animal crossings: 200 per run, arriving in groups as in the demo, three in four from the wildlife verge. Each layout was compared with the same crossings and no system.</li>
-      <li>Each camera drives warning signs placed where its view begins along the driver's lane. The warned driver stops at a stop line before the camera's coverage while the sign flashes, as in the demo.</li>
-      <li>A <b>serious hit</b> is the car touching an animal at more than 30 km/h. The headline is the percentage of serious hits prevented, averaged over four scenarios:</li>
+      <li>We used the demo's own simulation code, with the drawing switched off, so the results match what the demo shows.</li>
+      <li>Every layout faced the same 200 animal crossings per run, arriving in groups as in the demo, three in four from the wildlife verge. Each layout was compared with the same crossings and no system.</li>
+      <li>Each camera drives a warning sign placed where its view of the driver's lane begins. The warned driver stops at a line before the camera's view while the sign flashes, as in the demo.</li>
+      <li>The headline is the share of serious hits prevented, averaged over four scenarios:</li>
     </ul>
     <div class="chips">
       <span class="chip">Hotspot crossings · eastbound</span>
@@ -110,100 +122,100 @@
       <span class="chip">Crossings anywhere · eastbound</span>
       <span class="chip">Crossings anywhere · westbound</span>
     </div>
-    <p class="prose muted small">Hotspot crossings cluster around x 490 (the Tamarind green verge, spread ±60). "Anywhere" spreads them evenly from x 60 to 940. Near-miss and "all dangerous encounters" reductions are reported alongside. Differences under about 5 points are within run-to-run noise.</p>
+    <p class="prose muted small">"Hotspot" crossings cluster around x 490. "Anywhere" spreads them evenly along the road. Near misses and all dangerous encounters are reported alongside. Differences under about 5 points are noise.</p>
   </section>
 
   <section>
-    <h2>Position and angle: one camera</h2>
-    <p class="prose">Every single camera was tried at five positions along the road, in three mounting spots (a centreline gantry, the north verge, the south verge) and facing eight compass directions. The grid shows the best mounting spot for each position and direction.</p>
+    <h2>Position and direction: one camera</h2>
+    <p class="prose">We tried one camera at five positions along the road, in three mounting spots (a gantry over the centreline, the north verge, the south verge), facing eight compass directions. The grid shows the best mounting spot for each position and direction.</p>
     <div class="figure">
       <div class="scroll"><table class="heat" id="heat"></table></div>
-      <div class="cap">Serious hits prevented (%) by one camera, averaged over the four scenarios. Rows are positions along the road; the hotspot is centred at x 490. N = facing north (toward the wildlife verge). Darker green means more prevented.</div>
+      <div class="cap">Serious hits prevented (%) by one camera, averaged over the four scenarios. Rows are positions along the road; the hotspot is at x 490. N means facing the wildlife verge. Darker green is better.</div>
     </div>
     <div class="two">
       <div class="figure">
         <h3>What the grid shows</h3>
         <ul class="tight small">
-          <li>The three positions around the hotspot (x 400, 550, 700) do well in any direction that covers the road; x 250 only works facing east (toward the hotspot) and x 850 doesn't work at all.</li>
-          <li><b>Across beats along.</b> From x 550, facing N gives 77% and facing S 65%; facing W along the road gives 60% and facing E 21%. A camera looking across sees the animal on the verge before it steps out; one looking along the road sees it only once it is near the lane.</li>
-          <li>The diagonals (NE from x 400, NW from x 700) are nearly as good as straight across, so exact aim is not critical.</li>
+          <li>The three positions around the hotspot (x 400, 550, 700) do well in any direction that covers the road. x 250 only works facing east, toward the hotspot, and x 850 does not work at all.</li>
+          <li><b>Across beats along.</b> From x 550, facing north gives 77% and facing south 65%; facing west along the road gives 60% and facing east 21%. A camera looking across sees the animal on the grass before it steps out; one looking along the road sees it only when it is near the lane.</li>
+          <li>Diagonal directions (NE from x 400, NW from x 700) are nearly as good as straight across, so the exact aim is not critical.</li>
         </ul>
       </div>
       <div class="figure">
-        <h3>Mounting spot matters a little</h3>
+        <h3>The mounting spot matters a little</h3>
         <div class="scroll"><table id="lat"></table></div>
-        <div class="cap">Best result per mounting spot. The south (Hall 15) verge is best at the hotspot: from there the camera looks across the road <em>and</em> up the wildlife verge where three in four animals come from.</div>
+        <div class="cap">Best result per mounting spot. At the hotspot the Hall 15 side is best: from there the camera looks across the road <em>and</em> up the wildlife verge, where three in four animals come from.</div>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>Number of cameras</h2>
-    <p class="prose">Starting from the best single camera, we repeatedly added whichever camera improved the result most, up to four. We also tested three layouts designed by hand. The finalists were re-run with 10 seeds.</p>
+    <h2>How many cameras</h2>
+    <p class="prose">Starting from the best single camera, we kept adding whichever camera helped most, up to four. We also tested three layouts designed by hand. The finalists were re-run with 10 seeds.</p>
     <div class="figure">
       <svg id="gain" viewBox="0 0 640 280" role="img" aria-label="Serious hits prevented by number of cameras"></svg>
       <div class="legend">
-        <span><i style="background:var(--good)"></i>Average over the four scenarios</span>
-        <span><i style="background:var(--bad)"></i>Worst scenario</span>
-        <span>Seconds added per driver trip shown under each bar</span>
+        <span><i style="background:var(--good)"></i>average over the four scenarios</span>
+        <span><i style="background:var(--bad)"></i>worst scenario</span>
+        <span>seconds added per driver trip shown under each bar</span>
       </div>
     </div>
     <div class="figure">
       <div class="scroll"><table id="finals"></table></div>
-      <div class="cap">"Near misses" and "dangerous" are the reductions in near misses and in all dangerous encounters (hits + near misses). "Protected time" is the share of time an animal is on the road while drivers heading toward it are being warned. The recommended layout is highlighted.</div>
+      <div class="cap">"Near misses" and "dangerous" are how much near misses and all dangerous encounters (hits plus near misses) fall. "Detected early" is the share of animals seen before they reached the road. "Protected time" is the share of the time an animal is on the road while drivers heading toward it are being warned. The recommended layout is highlighted.</div>
     </div>
   </section>
 
   <section>
-    <h2>Recommended layout</h2>
+    <h2>Recommended layout (from this study)</h2>
     <div class="two">
       <div class="figure">
         <canvas id="map3" width="900" height="460" aria-label="Top-down drawing of the recommended two-camera layout"></canvas>
-        <div class="cap">Two cameras at the hotspot (shaded): one on the Hall 15 verge at x 550 looking north across the road and up the wildlife verge; one on the wildlife verge at x 400 looking south across the road. Between them they see an animal on either verge before it steps out, from either direction of travel.</div>
+        <div class="cap">Two cameras at the hotspot (shaded): one on the Hall 15 side at x 550 looking north across the road and up the wildlife verge; one on the wildlife side at x 400 looking south across the road. Between them they see an animal on either verge before it steps out, from either direction of travel.</div>
       </div>
       <div class="figure">
         <h3>Why this pair works</h3>
         <ul class="tight small">
-          <li>Each camera looks across the road, so an animal is in view while it is still on the verge: 73% of crossings are detected before the animal reaches the road, against 57% for one camera.</li>
+          <li>Each camera looks across the road, so an animal is in view while it is still on the grass: 73% of crossings are seen before the animal reaches the road, against 57% for one camera.</li>
           <li>The two face opposite verges, so crossings from either side are caught early, and each covers the lane the other sees at an angle.</li>
-          <li>At the hotspot it prevents 99–100% of serious hits; where crossings can happen anywhere, 68–73%. Its worst scenario (68%) is better than the single camera's (61%).</li>
-          <li><b>The cost:</b> about 12 s per lap for the warned driver, because the signs flash more often and the car waits at the line. One camera costs 6.5 s.</li>
-          <li><b>If budget allows one:</b> the south-verge camera at x 550 facing north, 77% (worst scenario 61%).</li>
+          <li>At the hotspot it prevents 99 to 100% of serious hits; where crossings can happen anywhere, 68 to 73%. Its worst scenario (68%) is better than the single camera's (61%).</li>
+          <li><b>The cost:</b> about 12 s per trip for the warned driver, because the signs flash more often and the car waits at the line. One camera costs 6.5 s.</li>
+          <li><b>If budget allows one:</b> the Hall 15-side camera at x 550 facing north, 77% (worst scenario 61%).</li>
         </ul>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>Sensitivity</h2>
-    <p class="prose">We re-ran the best layout for each camera count with four lenses, and with the sign visible from 320 units instead of 480.</p>
+    <h2>Does the lens or the sign distance change the answer?</h2>
+    <p class="prose">We re-ran the best layout for each number of cameras with four lenses, and with the sign visible from 320 units instead of 480.</p>
     <div class="figure">
       <div class="scroll"><table id="sens"></table></div>
-      <div class="cap">Serious hits prevented (%), averaged over the four scenarios. Today's 110°/250 lens is far ahead at every camera count; the other three lenses are within noise of each other. Sign visibility makes little difference once the camera sees the verge early.</div>
+      <div class="cap">Serious hits prevented (%), averaged over the four scenarios. The 110°/250 lens is far ahead at every camera count; the other three lenses are within noise of each other. Sign distance makes little difference once the camera sees the verge early.</div>
     </div>
   </section>
 
   <section>
     <h2>What changed since the first run</h2>
     <ul class="tight prose">
-      <li><b>Best single camera moved from the centreline to the verge.</b> The first run's winner (x 400 centreline facing east) scored 46% on near misses. With a driver who needs reaction time and can only see 21 m, what matters is seeing the animal <em>before</em> it steps out, which a camera looking across the road from the verge does and a camera looking along the road does not.</li>
-      <li><b>The recommended number fell from three to two.</b> The verge cameras cover more per camera, so the third adds only 2 points.</li>
-      <li><b>The lens matters far more than before.</b> The 110°/250 lens (adopted after the settings study) is worth 35–40 points over the 84°/150 lens on a single camera.</li>
-      <li><b>Today's demo camera is not the best one.</b> The demo keeps the centreline camera at x 590 facing west for a clear picture of "a camera watching the crossing"; this study suggests the real deployment should put the camera on the Hall 15 verge looking across.</li>
+      <li><b>The best single camera moved from the centreline to the verge.</b> The first run's winner (x 400 centreline facing east) scored 46% on near misses. With a driver who needs time to react and can only see 21 m, what matters is seeing the animal <em>before</em> it steps out, which a camera looking across the road from the verge does and a camera looking along the road does not.</li>
+      <li><b>The recommended number fell from three to two.</b> Verge cameras cover more each, so the third adds only 2 points.</li>
+      <li><b>The lens matters far more than before.</b> The 110°/250 lens is worth 35 to 40 points over the 84°/150 lens on a single camera.</li>
+      <li><b>The demo's camera is not the best one.</b> The demo keeps its centreline camera at x 590 facing west for a clear picture of "a camera watching the crossing".</li>
     </ul>
   </section>
 
   <section class="prose">
-    <h2>Limits of this study</h2>
+    <h2>What this study cannot tell you</h2>
     <ul class="tight">
-      <li>One car at a time per direction, and both cars start each lap together, so the no-system baseline shifts slightly with how long the warned car takes. The percentages compare layouts; they do not predict real collision counts.</li>
-      <li>Detection is perfect inside a camera's view, with no misses or false alarms. Glare, rain and vegetation are not modelled.</li>
-      <li>Animal arrivals, reactions and the hotspot shape are modelled, not measured; real crossing data should replace them once cameras are running.</li>
+      <li>It was run with the demo's settings, not research values: animals 5 to 8 times faster than life, a driver who reacts in 0.5 s, three in four animals from the wildlife verge, and a 110° lens that is not a real product. The Installation Study fixes all of these, and its placement answer is different.</li>
+      <li>One car at a time per direction, so there is no queuing and no delay beyond the driver's own wait.</li>
+      <li>The cameras never miss an animal in their view. Rain, glare and bushes are not modelled.</li>
     </ul>
   </section>
 
   <section class="prose">
-    <h2>Reproduce it</h2>
+    <h2>How to run it again</h2>
     <p>Open <code>research/index.html</code> in the project and press <b>Run study</b>. It runs offline in about 6 minutes and offers a CSV of every result. The numbers in this report come from <code>research/results/camera-study.csv</code>.</p>
   </section>
 </main>
