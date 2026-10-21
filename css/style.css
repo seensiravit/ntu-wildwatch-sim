@@ -115,6 +115,18 @@ html, body {
   font-size: 14px;
 }
 .controls button:hover { border-color: var(--amber-dim); }
+/* Link to the other demo page, styled like a button so it sits in the same row */
+.controls .page-link {
+  display: inline-block;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: var(--amber);
+  font-size: 14px;
+  text-decoration: none;
+}
+.controls .page-link:hover { border-color: var(--amber-dim); }
 
 /* ---- Stage: the scene twice, side by side (OFF left, ON right) ----
    Grid rows: panel titles / maps / dashboard strips. The maps take whatever
@@ -367,7 +379,7 @@ body[data-mode="installation"] .panel-dash { grid-template-columns: minmax(0, 1.
 .log-list li.log-empty { border-bottom: 0; font-family: system-ui, sans-serif; font-style: italic; }
 
 /* Header labels never stack onto two lines. */
-#topbar button, #topbar .badge, #topbar .rate-knob, #ww-tabs-slot .ww-tab { white-space: nowrap; }
+#topbar button, #topbar .badge, #topbar .page-link, #topbar .rate-knob, #ww-tabs-slot .ww-tab { white-space: nowrap; }
 
 /* Keep the header to a single row at laptop widths (it now also holds the
    dashboard tabs): drop the tagline and tray label, tighten everything else. */
@@ -380,6 +392,7 @@ body[data-mode="installation"] .panel-dash { grid-template-columns: minmax(0, 1.
   .tray-chip { padding: 6px 10px; font-size: 13px; }
   .controls { gap: 6px; }
   .controls button { padding: 6px 9px; font-size: 13px; }
+  .controls .page-link { padding: 6px 9px; font-size: 13px; }
   .rate-knob { padding: 4px 8px; font-size: 11px; gap: 6px; }
   .rate-knob input[type="range"] { width: 64px; }
   #topbar .badge { font-size: 11px; padding: 4px 8px; }
