@@ -223,7 +223,7 @@
       signMaxWaitSec: 20,      // ...or after waiting this long at the line (then go through slowly)
       signHoldSec: 0,          // a sign keeps flashing this long after its camera last saw an animal (0 = goes off at once)
       // ---- Driver policies studied in research/traffic.js (demo values here) ----
-      seePolicy: "slow",       // what a driver does on seeing an animal: "nothing" (never brakes), "slow" (showcase-day caution rules), "stop" (stops for an animal anywhere on the road)
+      seePolicy: "slow",       // what a driver does on seeing an animal: "nothing" (never brakes), "slow" (presentation-demo caution rules), "stop" (stops for an animal anywhere on the road)
       signRule: "clear",       // warned driver at the line: "slow" (never stops), "fixed" (waits signFixedWaitSec then goes), "clear" (waits until the sign has been off signClearSec, gives up after signMaxWaitSec)
       signFixedWaitSec: 5,     // for signRule "fixed"
       signTrigger: "view",     // what makes a sign flash: "view" (any animal in the camera's view) or "road" (only an animal on the carriageway or within signRoadMargin of the kerb)

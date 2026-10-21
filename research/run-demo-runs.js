@@ -79,7 +79,7 @@ function finish() {
   result.bySetting.forEach((b) => { const s = b.summary; console.log(
     pct(s.A.on).padStart(4), "(off", pct(s.A.off).padStart(4) + ")", "| hits", pct(s.hits.on).padStart(4), pct(s.hits.tie).padStart(4), pct(s.hits.off).padStart(4),
     "|", s.dist.offSerious.median + "/" + s.dist.onSerious.median, "|", s.dist.offNear.median + "/" + s.dist.onNear.median, "|", s.minutesTo80 === null ? "–" : s.minutesTo80, "|", b.label); });
-  console.log("\nBy run length (showcase day):");
+  console.log("\nBy run length (presentation demo):");
   result.byLength.forEach((b) => { const s = b.summary; console.log(
     String(b.minutes).padStart(3), "min | A", pct(s.A.on).padStart(4), "(off", pct(s.A.off).padStart(4) + ")", "| near", pct(s.near.on).padStart(4), "| hits", pct(s.hits.on).padStart(4), pct(s.hits.tie).padStart(4), pct(s.hits.off).padStart(4)); });
 }

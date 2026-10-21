@@ -71,7 +71,7 @@
   <header>
     <div class="eyebrow">NTU WildWatch · settings study · one car at a time · second run</div>
     <h1>Settings Study</h1>
-    <p class="prose">Which of the demo's settings matter? We took the showcase-day configuration and changed one thing at a time: the camera's range, lens and position, how far away the sign can be seen, whether the warned driver stops at a line, the warned speed, and then things the system does not control, like the driver's headlights, reaction time and speed, and how many animals come and how bold they are. For each, the simulation ran with the same animals on both sides of the screen: one side without the system, one with it.</p>
+    <p class="prose">Which of the demo's settings matter? We took the presentation-demo configuration and changed one thing at a time: the camera's range, lens and position, how far away the sign can be seen, whether the warned driver stops at a line, the warned speed, and then things the system does not control, like the driver's headlights, reaction time and speed, and how many animals come and how bold they are. For each, the simulation ran with the same animals on both sides of the screen: one side without the system, one with it.</p>
     <p class="meta">19,800 simulation runs · 21 settings × 800 seeds × 20 simulated minutes · combined check with 1,500 seeds · the demo's driver and 110° lens · the same seeds give the same results every time</p>
     <p class="prose muted small">This study uses the presentation demo's own pacing (fast animals, a quick driver, one car at a time). It explains why <code>index.html</code> is set the way it is. For a real installation, see the Installation Study, which uses research values and cars both ways.</p>
   </header>
@@ -80,9 +80,9 @@
     <div class="eyebrow">What this study found</div>
     <div class="answer">
       <div class="plate">
-        <span class="k">Showcase-day settings</span>
+        <span class="k">Presentation-demo settings</span>
         <span class="v">The best of everything we tried</span>
-        <p>With showcase-day configuration the system prevents 78% of serious hits (interval 77 to 79%) and 88% of near misses, leaving 0.95 serious hits per 100 crossings. None of the 20 variations has fewer serious hits with the system on.</p>
+        <p>With presentation-demo configuration the system prevents 78% of serious hits (interval 77 to 79%) and 88% of near misses, leaving 0.95 serious hits per 100 crossings. None of the 20 variations has fewer serious hits with the system on.</p>
       </div>
       <div class="plate">
         <span class="k">Nothing to change</span>
@@ -98,7 +98,7 @@
     <div class="figure">
       <h3>Words used in this report</h3>
       <dl class="terms">
-        <dt>Showcase-day settings</dt><dd>the demo configuration shown at the course showcase: the values in <code>js/config.js</code> on that day (one 110° camera with range 250 at x 590 on the centreline facing west, signs at the camera, a driver who stops at the line). The baseline of this report; every other setting changes one thing from it.</dd>
+        <dt>Presentation-demo settings</dt><dd>the configuration <code>index.html</code>, the presentation demo, runs with: the values in <code>js/config.js</code> (one 110° camera with range 250 at x 590 on the centreline facing west, signs at the camera, a driver who stops at the line). The baseline of this report; every other setting changes one thing from it.</dd>
         <dt>Serious hit</dt><dd>a car touches an animal while going faster than 30 km/h. Counted per 100 animals that walked onto the road.</dd>
         <dt>Cut</dt><dd>how many serious hits (or near misses) the system prevents, as a share of what happens without it.</dd>
         <dt>Near miss</dt><dd>the car passes an animal at more than 35 km/h without touching it.</dd>
@@ -111,8 +111,8 @@
   <section>
     <h2>How the study worked</h2>
     <ul class="tight prose">
-      <li>Each run is the demo itself with the drawing switched off: two copies of the road share the same arriving animals; one car has no camera or signs, the other has showcase-day camera and signs, and both cars start every lap together. 20 simulated minutes per run.</li>
-      <li>Each setting changes one thing from the showcase-day configuration. 800 random seeds per setting (the same 800 for all), so differences between settings come from the setting, not from luck; the intervals are about ±1 point. The best level of each system-controlled setting was then tried together, with 1,500 seeds. Run with <code>node research/run-settings-study.js</code> on 22 cores in about 43 minutes.</li>
+      <li>Each run is the demo itself with the drawing switched off: two copies of the road share the same arriving animals; one car has no camera or signs, the other has presentation-demo camera and signs, and both cars start every lap together. 20 simulated minutes per run.</li>
+      <li>Each setting changes one thing from the presentation-demo configuration. 800 random seeds per setting (the same 800 for all), so differences between settings come from the setting, not from luck; the intervals are about ±1 point. The best level of each system-controlled setting was then tried together, with 1,500 seeds. Run with <code>node research/run-settings-study.js</code> on 22 cores in about 43 minutes.</li>
       <li>Hits are split by the car's speed at contact ("serious" means over 30 km/h) and counted per 100 animals that reached the road, so busy and quiet settings compare fairly.</li>
       <li>Two scores: serious hits with the system on (<b>safest system</b>), and how much the system cuts serious hits (<b>clearest contrast</b> between the two sides of the demo).</li>
     </ul>
@@ -125,7 +125,7 @@
       <div class="legend">
         <span><i style="background:var(--good)"></i>serious hits prevented by the system</span>
         <span><i style="background:var(--muted)"></i>interval</span>
-        <span style="color:var(--amber)">● showcase-day settings</span>
+        <span style="color:var(--amber)">● presentation-demo settings</span>
       </div>
       <div class="cap">Driver and animal settings are shown too, even though the system designer does not control them: they say how robust the result is. Most settings prevent 60 to 87% of serious hits; only "crossings anywhere" breaks the system.</div>
     </div>
@@ -135,7 +135,7 @@
     <h2>Which settings make the system safest</h2>
     <div class="figure">
       <div class="scroll"><table id="t1"></table></div>
-      <div class="cap">Sorted by serious hits with the system on, per 100 crossings. Showcase-day settings are highlighted.</div>
+      <div class="cap">Sorted by serious hits with the system on, per 100 crossings. Presentation-demo settings are highlighted.</div>
     </div>
   </section>
 
@@ -145,14 +145,14 @@
       <div class="figure">
         <h3>Camera</h3>
         <ul class="tight small">
-          <li><b>The lens matters more than the range.</b> Showcase-day 110° beats the previous 84° (0.95 versus 1.62 serious hits per 100) and 60° is far worse (2.59). A longer range (350) is a near tie (0.99) with a quicker warned lap (+2.4 s instead of +5.1 s), because the car is warned earlier and waits less; 150 is too short (2.51).</li>
-          <li><b>Showcase-day position is the best of the three tried.</b> The centreline camera at x 590 facing west beats the gantry at x 400 facing east (1.11) and the south-verge camera at x 550 facing north (1.38). The placement study ranked that verge camera first when averaging both directions of travel; here, with eastbound traffic and three in four animals from the wildlife verge, it loses because it cannot see animals coming from the Hall 15 side until they are on the road.</li>
+          <li><b>The lens matters more than the range.</b> Presentation-demo 110° beats the previous 84° (0.95 versus 1.62 serious hits per 100) and 60° is far worse (2.59). A longer range (350) is a near tie (0.99) with a quicker warned lap (+2.4 s instead of +5.1 s), because the car is warned earlier and waits less; 150 is too short (2.51).</li>
+          <li><b>Presentation-demo position is the best of the three tried.</b> The centreline camera at x 590 facing west beats the gantry at x 400 facing east (1.11) and the south-verge camera at x 550 facing north (1.38). The placement study ranked that verge camera first when averaging both directions of travel; here, with eastbound traffic and three in four animals from the wildlife verge, it loses because it cannot see animals coming from the Hall 15 side until they are on the road.</li>
         </ul>
       </div>
       <div class="figure">
         <h3>Signs and the warned driver</h3>
         <ul class="tight small">
-          <li><b>How far away the sign can be seen:</b> 320 units is too short (2.13; near misses cut only 37%). 480 (showcase day) and 640 are equal (0.95 versus 0.94); 640 only adds a little waiting.</li>
+          <li><b>How far away the sign can be seen:</b> 320 units is too short (2.13; near misses cut only 37%). 480 (presentation demo) and 640 are equal (0.95 versus 0.94); 640 only adds a little waiting.</li>
           <li><b>The stop line costs 3 s a lap and buys a little:</b> without it the system side has 1.10 serious hits per 100 instead of 0.95 and the total-hit cut drops from 40% to 32%, while the warned lap is 3 s quicker. Moving the line 80 units back gives 1.13 with the same quick lap, so it is no better than no line at all.</li>
           <li><b>Warned speed 30 instead of 20</b> is slightly worse on safety (1.15, cut 74%) for a slightly quicker lap (+4.7 s instead of +5.1 s).</li>
         </ul>
@@ -186,9 +186,9 @@
 
   <section>
     <h2>Recommendation (for the demo)</h2>
-    <p class="prose">Keep showcase-day settings. The 110° lens recommended by the first run is in place and is the one setting that mattered. If the demo ever feels slow, a 350 camera range or no stop line halves the warned car's lap cost for a small safety price. Keep the animals crossing at the hotspot and the activity at its default; both are what let a single camera show its value. For the research story, note that the benefit survives the honest driver assumptions (research reaction times, brighter headlights), at a reduced but still large size.</p>
+    <p class="prose">Keep presentation-demo settings. The 110° lens recommended by the first run is in place and is the one setting that mattered. If the demo ever feels slow, a 350 camera range or no stop line halves the warned car's lap cost for a small safety price. Keep the animals crossing at the hotspot and the activity at its default; both are what let a single camera show its value. For the research story, note that the benefit survives the honest driver assumptions (research reaction times, brighter headlights), at a reduced but still large size.</p>
     <div class="figure">
-      <h3>Showcase-day settings, in one table</h3>
+      <h3>Presentation-demo settings, in one table</h3>
       <div class="scroll"><table id="t3"></table></div>
     </div>
   </section>
@@ -197,7 +197,7 @@
     <h2>What this study cannot tell you</h2>
     <ul class="tight">
       <li>It uses the presentation demo's settings, not research values: animals 5 to 8 times faster than life, a driver who reacts in 0.5 s, and a 110° lens that is not a real product. It says how the demo behaves, not how an installation would.</li>
-      <li>One setting at a time around the showcase-day settings. Interactions were checked only in the combined run.</li>
+      <li>One setting at a time around the presentation-demo settings. Interactions were checked only in the combined run.</li>
       <li>One car per direction, no queuing; and the no-system side shifts slightly between settings because both cars start each lap together, so it waits when the warned car is slow.</li>
       <li>Hits are rare, which is why 800 seeds were needed: each setting has 1,300 to 6,000 serious hits without the system, giving ±1-point intervals. Differences of a point or two are still not worth acting on.</li>
       <li>The camera never misses an animal in its view. Animal speeds and reactions are modelled, not measured.</li>
@@ -220,7 +220,7 @@
     ["nostop", "slow to 20 km/h only (no stop line)", "warned driver", 5.25, 1.10, 79, 79, 80, 87, 32, 2.2],
     ["line80", "stop line 80 before the area", "warned driver", 5.19, 1.13, 78, 78, 80, 87, 30, 2.2],
     ["sight640", "sign visible from 640", "sign", 4.20, 0.94, 78, 77, 79, 90, 37, 5.3],
-    ["base", "showcase-day settings", "baseline", 4.29, 0.95, 78, 77, 79, 88, 40, 5.1],
+    ["base", "presentation-demo settings", "baseline", 4.29, 0.95, 78, 77, 79, 88, 40, 5.1],
     ["boldx", "animals 1.5× as bold", "animal boldness", 5.13, 1.24, 76, 75, 77, 88, 33, 5.1],
     ["camE", "camera x 400 centreline facing E", "camera position", 4.44, 1.11, 75, 74, 77, 85, 26, 4.8],
     ["cruise60", "cruise 60 km/h", "driver", 7.50, 1.94, 74, 74, 76, 58, 25, 2.3],
@@ -238,7 +238,7 @@
   ];
   var COMBINED = [
     // label, OFF, ON, cut, lo, hi, near, hits, lap
-    ["showcase-day settings", 4.34, 0.95, 78, 77, 79, 88, 39, 5.1],
+    ["presentation-demo settings", 4.34, 0.95, 78, 77, 79, 88, 39, 5.1],
     ["sign visible from 640 (the only factor level that beat the baseline)", 4.27, 0.91, 79, 78, 80, 90, 38, 5.3]
   ];
   var PARAMS = [
@@ -313,7 +313,7 @@
 
   // Parameter table
   (function () {
-    var h = '<thead><tr><th>Group</th><th>Setting</th><th>Showcase day</th><th>Change</th></tr></thead><tbody>';
+    var h = '<thead><tr><th>Group</th><th>Setting</th><th>Presentation demo</th><th>Change</th></tr></thead><tbody>';
     PARAMS.forEach(function (r) {
       h += '<tr' + (r[3] ? ' class="rec"' : "") + '><td class="muted">' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + (r[3] || '<span class="muted">keep</span>') + '</td></tr>';
     });

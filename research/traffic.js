@@ -29,7 +29,7 @@
     // bottom of the south one) inside at least one camera's view; also the
     // carriageway part of it, and the carriageway over the whole map.
     corridor: { sdMul: 2, step: 5, xMin: 20, xMax: 980 },
-    // Placement stage (study 4): the placement study's grid, two-way, showcase-day lens.
+    // Placement stage (study 4): the placement study's grid, two-way, presentation-demo lens.
     xs: [250, 400, 550, 700, 850],
     laterals: [
       { id: "centre", label: "centreline gantry", y: 380 },
@@ -53,7 +53,7 @@
   //   signRule   warned driver at the line: slow (never stops) | fixed 5 / 10 s | clear + 0.5 / 2 / 5 s after the sign goes off
   //   signTrigger what makes the sign flash: any animal in view | only one on the road
   // Everything else is fixed at the research values (config.research).
-  const POLICIES = [["nothing", "driver never brakes for animals"], ["slow", "driver slows for animals (showcase day)"], ["stop", "driver stops for any animal on the road"]];
+  const POLICIES = [["nothing", "driver never brakes for animals"], ["slow", "driver slows for animals (presentation demo)"], ["stop", "driver stops for any animal on the road"]];
   const RULES = [
     ["slow", "no stop, 20 km/h past the sign", (c) => { c.tuning.signRule = "slow"; }],
     ["fixed5", "stop 5 s at the line", (c) => { c.tuning.signRule = "fixed"; c.tuning.signFixedWaitSec = 5; }],
@@ -96,7 +96,7 @@
   // The single-camera grid as camera specs: { key, x, y, deg, label }. "today" is
   // the demo camera. Keys are lens-independent so pairs/triples can be composed.
   function singleSpecs() {
-    const out = [{ key: "today", x: BASE.cameras[0].x, y: BASE.cameras[0].y, deg: BASE.cameras[0].facingAngleDeg, label: "x " + BASE.cameras[0].x + " · centreline gantry · facing W (showcase day)" }];
+    const out = [{ key: "today", x: BASE.cameras[0].x, y: BASE.cameras[0].y, deg: BASE.cameras[0].facingAngleDeg, label: "x " + BASE.cameras[0].x + " · centreline gantry · facing W (presentation demo)" }];
     S.xs.forEach((x) => S.laterals.forEach((lat) => S.facings.forEach((f) => {
       out.push({ key: x + "-" + lat.id + "-" + f.id, x: x, y: lat.y, deg: f.deg, label: "x " + x + " · " + lat.label + " · facing " + f.id, xPos: x, lat: lat.id, face: f.id });
     })));

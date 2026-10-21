@@ -44,12 +44,12 @@
       { id: "south", label: "south verge", y: 430 }, // Hall 15 side
     ],
     lens: {
-      today: { fovDeg: CFG.cameras[0].fovDeg, range: CFG.cameras[0].range, label: "showcase day " + CFG.cameras[0].fovDeg + "°/" + CFG.cameras[0].range },
+      today: { fovDeg: CFG.cameras[0].fovDeg, range: CFG.cameras[0].range, label: "presentation demo " + CFG.cameras[0].fovDeg + "°/" + CFG.cameras[0].range },
       wide: { fovDeg: 84, range: 150, label: "wide 84°/150" },   // the first study's camera
       standard: { fovDeg: 60, range: 200, label: "standard 60°/200" },
       narrow: { fovDeg: 40, range: 260, label: "narrow 40°/260" },
     },
-    sights: [CFG.tuning.signSightDistance, 320], // showcase-day sign visibility, and a shorter one
+    sights: [CFG.tuning.signSightDistance, 320], // presentation-demo sign visibility, and a shorter one
   };
   // Eight compass directions (screen angles: 0 = east, 90 = south). Includes
   // facing away from the road, i.e. watching a verge for animals approaching it.

@@ -2,7 +2,7 @@
  *
  * Runs the split-screen demo headlessly (two worlds sharing the same arrivals,
  * exactly like js/main.js) for N simulated minutes per seed, for every setting
- * in a one-factor-at-a-time grid around the showcase-day config. Two questions:
+ * in a one-factor-at-a-time grid around the presentation-demo config. Two questions:
  *   1. Best system:      fewest serious hits (> 30 km/h) and near misses on the ON side.
  *   2. Clearest contrast: biggest OFF -> ON reduction in serious hits and near misses.
  * Then a combined check: the best level of each factor the system controls, together.
@@ -31,7 +31,7 @@
     sp.traffic.wait = Math.min(sp.traffic.wait, 1 - sp.traffic.cross);
   });
   const SETTINGS = [
-    { id: "base", factor: "baseline", label: "showcase-day settings", apply: () => {} },
+    { id: "base", factor: "baseline", label: "presentation-demo settings", apply: () => {} },
     { id: "range150", factor: "camera range", system: true, label: "camera range 150", apply: (c) => { c.cameras[0].range = 150; } },
     { id: "range350", factor: "camera range", system: true, label: "camera range 350", apply: (c) => { c.cameras[0].range = 350; } },
     { id: "fov60", factor: "camera field of view", system: true, label: "camera 60° view", apply: (c) => { c.cameras[0].fovDeg = 60; } },
