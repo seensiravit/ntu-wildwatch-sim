@@ -31,7 +31,7 @@ js/stats.js       // Impact scoreboard (detections, near-misses, avoided, per-mo
 js/main.js        // game loop, input wiring
 wildwatch-dashboard.js  // teammate's DED dashboard extension (vendored)
 research/               // research pages (camera placement, settings study, demo runs, two-way traffic): headless batch runs of the sim modules; run-*.js = Node drivers across all cores
-docs/                   // scenario.md (the preset scenario), simulation-model.md (all rules + numbers), presentation-script.md, sequence-diagrams.md + uml-diagrams.md (Mermaid)
+docs/                   // scenario.md (the preset scenario), simulation-model.md (all rules + numbers), presentation-script.md, sequence-diagrams.md + uml-diagrams.md (Mermaid), simulation-settings.html (plain-language settings page)
 research/reports/       // the study reports as standalone HTML pages (generated from the results; no external assets)
 ```
 

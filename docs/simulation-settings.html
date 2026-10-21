@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<title>Simulation Settings</title>
+<style>
+  :root {
+    --bg: #f5f6f3; --surface: #ffffff; --ink: #1d232b; --muted: #5d6773; --line: #dde1e3;
+    --amber: #b87300; --good: #1f8a57; --bad: #c2412f;
+    --font-display: "Overpass", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "Overpass Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #0c1117; --surface: #131a22; --ink: #dfe5ec; --muted: #8c98a6; --line: #26313d; --amber: #ffb020; --good: #46c08a; --bad: #ff6a5f; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --bg: #0c1117; --surface: #131a22; --ink: #dfe5ec; --muted: #8c98a6; --line: #26313d; --amber: #ffb020; --good: #46c08a; --bad: #ff6a5f; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--font-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+  main { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+  .prose { max-width: 70ch; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+  h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 800; }
+  h3 { font-size: 16px; font-weight: 600; }
+  p { margin: 0; }
+  section { display: flex; flex-direction: column; gap: 14px; }
+  .eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+  .meta { font: 13px/1.5 var(--font-mono); color: var(--muted); }
+  .muted { color: var(--muted); }
+  .small { font-size: 12px; }
+  header { display: flex; flex-direction: column; gap: 12px; }
+  ul.tight, ol.tight { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .figure { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .figure .cap { font-size: 13px; color: var(--muted); }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font: 600 11px/1.3 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.n, th.n { text-align: left; font-family: var(--font-mono); font-size: 12.5px; white-space: normal; min-width: 170px; }
+  td.k { font-family: var(--font-mono); font-size: 12px; white-space: nowrap; }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .steps { counter-reset: s; display: flex; flex-direction: column; gap: 10px; }
+  .step { display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: start; }
+  .step .n { width: 32px; height: 32px; border-radius: 50%; background: var(--amber); color: #fff; font: 800 15px/32px var(--font-display); text-align: center; }
+  .step b { display: block; }
+  .step p { font-size: 14px; }
+  canvas { width: 100%; max-width: 100%; border-radius: 6px; display: block; }
+  code { font: 13px var(--font-mono); background: color-mix(in oklab, var(--muted) 14%, transparent); padding: 1px 5px; border-radius: 4px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 8px; }
+  .nav a { font: 13px/1 var(--font-mono); border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 10px; color: var(--ink); text-decoration: none; }
+  dl.terms { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 14px; }
+  dl.terms dt { font-weight: 600; } dl.terms dd { margin: 0; }
+  .tag { display: inline-block; font: 600 11px/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; background: color-mix(in oklab, var(--amber) 16%, transparent); color: var(--amber); }
+  .tag.r { background: color-mix(in oklab, var(--good) 16%, transparent); color: var(--good); }
+</style>
+
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">NTU WildWatch · how the simulation works</div>
+    <h1>Simulation Settings</h1>
+    <p class="prose">This page explains what the simulator does and every setting behind it, in the order things happen each frame: animals arrive and decide whether to cross, the cameras see them, the signs flash, the driver sees, decides and brakes, and the outcome is scored. It covers both ways the simulator is used: the <span class="tag">demo</span> (the presentation pages, paced to be watched) and the <span class="tag r">research</span> runs (values taken from published studies, used for the installation recommendation).</p>
+    <div class="nav">
+      <a href="#map">The map</a><a href="#frame">Each frame</a><a href="#animals">Animals</a><a href="#roadside">At the roadside</a><a href="#cameras">Cameras and signs</a><a href="#eyes">What the driver sees</a><a href="#decide">How the driver decides</a><a href="#traffic">Traffic and following</a><a href="#score">Scoring</a><a href="#values">Demo vs research values</a><a href="#sources">Sources</a>
+    </div>
+  </header>
+
+  <section id="map">
+    <h2>The map</h2>
+    <div class="figure">
+      <canvas id="mapcanvas" width="1000" height="560" aria-label="Top-down drawing of the simulated road: two lanes, the crossing hotspot, the verges where animals start, the demo camera and its two signs, and the stop line"></canvas>
+      <div class="cap">The whole map is 1000 × 700 units; 1 unit is about 14 cm, so the road on screen is about 140 m long. Nanyang Crescent runs left to right with two lanes. The wildlife verge is at the top, Hall 15 at the bottom. Animals start in the shaded bands and walk across near the hotspot. The demo's camera sits on the centreline at x 590 looking west; its two signs stand beside the road at the camera. The dashed amber line is where a warned eastbound driver stops.</div>
+    </div>
+    <ul class="tight prose">
+      <li>Speeds are in units per second; 100 units/s is 50 km/h. The road is 84 units (11.7 m) wide with two 42-unit lanes.</li>
+      <li>Eastbound cars drive the north lane (y 359) from x −40 to x 1040; westbound cars drive the south lane (y 401) the other way. One lap at 50 km/h takes about 11 s.</li>
+      <li>The crossing hotspot is centred at x 490 with a spread (standard deviation) of 60 units: about two thirds of animals cross within x 430 to 550.</li>
+    </ul>
+  </section>
+
+  <section id="frame">
+    <h2>What happens each frame</h2>
+    <p class="prose">The screen shows the same road twice: on the left without WildWatch, on the right with it. Every animal exists as a pair of twins, one on each side, with the same start point, speed, boldness and timing, so the two sides only differ because of the cameras and signs. Sixty times a second (or in fixed 1/60 s steps in the research runs):</p>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div><b>New animals arrive</b><p>from a random schedule (below), as twins on both sides.</p></div></div>
+      <div class="step"><span class="n">2</span><div><b>Animals move</b><p>and, when they reach the roadside, decide whether to cross, wait or turn back, looking at the cars on their own side.</p></div></div>
+      <div class="step"><span class="n">3</span><div><b>Cameras look</b><p>and the signs linked to them switch on or off (right side only).</p></div></div>
+      <div class="step"><span class="n">4</span><div><b>Each car looks, decides and moves</b><p>using its headlights, the signs it has seen, and the car in front.</p></div></div>
+      <div class="step"><span class="n">5</span><div><b>Outcomes are scored</b><p>serious hit, low-speed contact, near miss or safe pass, once per car and animal.</p></div></div>
+    </div>
+  </section>
+
+  <section id="animals">
+    <h2>When and where animals arrive</h2>
+    <p class="prose">Animals come in <b>groups</b>, and groups arrive at random with no pattern, which statisticians call a Poisson process: the time until the next group is a short minimum plus a random extra drawn from an exponential curve. Each group is one species, chosen by weight; its size is one plus a random count. Everything is drawn from a seeded random generator, so the same seed replays the same run exactly.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Setting</th><th>Demo</th><th>Research</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td>Time between groups</td><td class="n">12 s on average, never under 3 s</td><td class="n">60 s in the runs (reported per crossing; a real night hotspot is about one group every 3 hours)</td><td>The "Animal activity" slider changes it (demo: 48 s ÷ level; installation demo: 120 s ÷ level).</td></tr>
+        <tr><td>Species mix</td><td class="n">boar 45%, macaque 40%, pangolin 15%</td><td class="n">boar 75%, macaque 15%, pangolin 10%</td><td>Share of groups. At night boar dominate; macaques are mostly asleep.</td></tr>
+        <tr><td>Group size</td><td class="n">boar 1–4 (average 1.6), macaque 1–4 (average 2), pangolin 1</td><td class="n">boar 1–8 (average 2.2), macaque 1–10 (average 5), pangolin 1</td><td>Members follow each other 0.8 to 1.8 s apart with a little sideways scatter.</td></tr>
+        <tr><td>Walking speed</td><td class="n">boar 8.3 m/s, macaque 5.6, pangolin 3.1</td><td class="n">boar 1.0 m/s (2.5 when it dashes), macaque 1.0, pangolin 0.4</td><td>The demo's animals are 5 to 8 times faster than life so a 2-minute demo shows something. Each animal's speed varies ±12%.</td></tr>
+        <tr><td>Which side they start on</td><td class="n">75% from the wildlife verge</td><td class="n">half from each side</td><td>They start 100 to 140 units above the road or 50 to 80 below it, heading straight across give or take 8°.</td></tr>
+        <tr><td>Where they cross</td><td class="n" colspan="2">around x 490, spread 60 units (clipped to x 20 to 980)</td><td>The hotspot. A study setting can spread crossings evenly along the road instead.</td></tr>
+        <tr><td>Animals on screen at once</td><td class="n" colspan="2">at most 12</td><td>A safety cap.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="roadside">
+    <h2>What an animal does at the roadside</h2>
+    <p class="prose">An animal walks straight toward the road. When it is 25 units from the edge it <b>decides once</b>: cross, wait, or turn back. First it checks whether a car is a threat: a car coming toward its crossing point within a set distance, or a car stopped near the crossing point. Then, in order:</p>
+    <ol class="tight prose">
+      <li>No threatening car: <b>cross</b>.</li>
+      <li>The animal never noticed the car (each species has a chance of not noticing): <b>cross</b>.</li>
+      <li>Bold enough: <b>cross anyway</b> (a boar dashes faster than it walks).</li>
+      <li>Less bold: <b>wait</b> at the roadside, shown as three pulsing dots. It crosses once no car has threatened it for 1 s. If it has waited its species' maximum, it <b>turns back</b> instead.</li>
+      <li>Otherwise: <b>turn back</b>, shown as ↩ and counted as "turned back".</li>
+    </ol>
+    <p class="prose">Once on the road an animal keeps walking and no longer reacts to cars. (Real pangolins freeze on the road; the model does not do this.) The chances come from the response types in Jacobson et al. 2016: macaques avoid, boar dash, pangolins pause. Each group shares one boldness value; each animal rolls its own "did I notice" value.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Species</th><th>Type</th><th class="n">Notices a car</th><th class="n">Cross / wait / turn back (demo)</th><th class="n">Cross / wait / turn back (research)</th><th class="n">Gives up waiting after</th></tr></thead>
+      <tbody>
+        <tr><td>Macaque</td><td>avoider</td><td class="n">95%</td><td class="n">25 / 50 / 25%</td><td class="n">50 / 30 / 20%</td><td class="n">10 s</td></tr>
+        <tr><td>Wild boar</td><td>speeder</td><td class="n">90%</td><td class="n">50 / 35 / 15%, dash ×1.6</td><td class="n">60 / 25 / 15%, dash ×2.5</td><td class="n">6 s</td></tr>
+        <tr><td>Pangolin</td><td>pauser</td><td class="n">75%</td><td class="n">30 / 60 / 10%</td><td class="n">50 / 40 / 10%</td><td class="n">12 s</td></tr>
+      </tbody>
+    </table></div>
+    <p class="prose muted small">A car counts as a threat when it is approaching within 170 units (24 m) of the crossing point in the demo, 300 units (42 m) in the research runs, or stopped within 70 units of it.</p>
+  </section>
+
+  <section id="cameras">
+    <h2>Cameras and signs</h2>
+    <ul class="tight prose">
+      <li>A camera sees every walking animal inside its view cone. Detection is perfect inside the cone: nothing is missed and there are no false alarms. Rain, glare and bushes are not modelled.</li>
+      <li>The demo's camera has a 110° view and a 250-unit (35 m) range. The research runs use 90°, the widest real thermal lens.</li>
+      <li>A sign flashes while any camera linked to it sees an animal (optionally only while the animal is on the road, and optionally for a few seconds after). It switches off at once otherwise.</li>
+      <li>A sign's <b>warning zone</b> on the driver's path starts 480 units (67 m) before the sign, where the driver can first see it, and ends where the cameras' coverage of the lane ends. Its <b>stop line</b> is 20 units before the coverage begins.</li>
+      <li>The demo has two signs at the camera facing both directions. The research installation has one sign per direction, placed where the cameras' coverage of that lane begins.</li>
+      <li>The left side of the screen has none of this: no camera, no signs, no zone.</li>
+    </ul>
+  </section>
+
+  <section id="eyes">
+    <h2>What the driver can see</h2>
+    <p class="prose">The driver has a 40° headlight beam. An animal is <b>noticed</b> once it is on the road within the headlight range ahead, or on the grass inside the beam. Once noticed it stays noticed until the car has passed it. For each noticed animal the driver keeps two clocks: time since noticing it, and time since it entered the car's own lane.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Setting</th><th class="n">Demo</th><th class="n">Research</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Headlight range</td><td class="n">150 units (21 m)</td><td class="n">216 units (30 m); 324 (45 m) once warned by a sign</td><td>How far a driver sees a dark animal on low beam. A warned driver looks harder and sees further.</td></tr>
+        <tr><td>Reaction time</td><td class="n">0.5 s; 0.35 s once warned</td><td class="n">1.5 s; 1.0 s once warned</td><td>Demo values are quick so the car visibly stops; research values are the measured averages for a surprise.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="prose">At 50 km/h with a 1.5 s reaction the car needs about 35 m to stop, more than it can see. An animal first seen in the lane at the edge of the light gets hit. This "outdriving the headlights" is the problem the system is built to fix: the camera sees the animal on the grass before the driver can.</p>
+  </section>
+
+  <section id="decide">
+    <h2>How the driver decides, every frame</h2>
+    <p class="prose">The driver works out a target speed and a braking strength from every rule that applies. The <b>lowest target speed and the strongest braking win</b>. In order of priority:</p>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div><b>Reaction time</b><p>Nothing changes until the reaction time has passed since the animal was noticed. In the last 0.2 s the foot moves to the brake and the car coasts.</p></div></div>
+      <div class="step"><span class="n">2</span><div><b>Warned by a sign</b><p>A driver who has seen a flashing sign stays warned until the end of that sign's zone. What they do depends on the rule: wait at the stop line until the sign has been off for a moment (giving up after 20 s in the demo, 10 s in research), stop for a fixed time, or just slow to 20 km/h and go through. In the research runs only 30% of drivers follow the rule; the rest slow by 7 km/h while the sign flashes. Every warned driver reacts faster and looks further.</p></div></div>
+      <div class="step"><span class="n">3</span><div><b>Animal in the car's own lane</b><p>Stop 15 units short of it, braking a little harder than strictly needed at first and easing off, never beyond the car's limit. If even that cannot stop in time, the car hits the animal.</p></div></div>
+      <div class="step"><span class="n">4</span><div><b>Animal elsewhere on the road</b><p>Slow to a speed from which the car could still stop if the animal stepped across, but not below 20 km/h. (A study setting makes the driver stop for any animal on the road instead.)</p></div></div>
+      <div class="step"><span class="n">5</span><div><b>Animal on the grass near the kerb, lit by the headlights</b><p>Ease off to 40 km/h.</p></div></div>
+      <div class="step"><span class="n">6</span><div><b>Otherwise</b><p>Cruise at 50 km/h.</p></div></div>
+    </div>
+    <p class="prose">The braking is applied smoothly: it builds up at a limited rate (gentle, firm or emergency) and releases quickly, so the speed curves look like real driving. After a stop the car waits 0.3 s once clear, then pulls away. In the demo both cars start every lap together, 1.5 s after the slower one has left, so they meet the same animals.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Setting</th><th class="n">Demo</th><th class="n">Research</th></tr></thead>
+      <tbody>
+        <tr><td>Cruise speed</td><td class="n">50 km/h</td><td class="n">50 ± 4 km/h per car</td></tr>
+        <tr><td>Comfortable braking (for a sign)</td><td class="n">3.3 m/s²</td><td class="n">3.4 m/s²</td></tr>
+        <tr><td>Hardest braking</td><td class="n">8 m/s²</td><td class="n">7 m/s²</td></tr>
+        <tr><td>Stop for a sign only if it needs at most</td><td class="n">6.3 m/s²</td><td class="n">5 m/s²</td></tr>
+        <tr><td>How fast braking builds up (gentle / firm / emergency)</td><td class="n">2.5 / 6 / 12 m/s³</td><td class="n">2 / 6 / 10 m/s³</td></tr>
+        <tr><td>Pulling away</td><td class="n">2.5 m/s²</td><td class="n">1.5 m/s²</td></tr>
+        <tr><td>Warned speed through the area; after the sign is off</td><td class="n" colspan="2">20 km/h; 35 km/h</td></tr>
+        <tr><td>Drive on after the sign has been off for</td><td class="n" colspan="2">0.5 s</td></tr>
+        <tr><td>Give up waiting at the line after</td><td class="n">20 s</td><td class="n">10 s</td></tr>
+        <tr><td>Follows the sign rule</td><td class="n">every driver</td><td class="n">30%; the rest slow by 7 km/h</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="traffic">
+    <h2>Traffic and car-following (installation demo and research runs)</h2>
+    <p class="prose">The presentation demo has one car per side. The installation demo and the research runs release a <b>stream of cars in both directions</b>, so queues and waiting can be measured.</p>
+    <ul class="tight prose">
+      <li><b>Arrivals.</b> Cars arrive at random in each direction, a 2 s minimum gap plus an exponential extra: about one every 45 s per direction in the research runs (80 cars an hour), every 20 s in the installation demo. Each car has its own cruise speed (50 ± 4 km/h), so faster cars catch slower ones. Both sides of the screen get the same cars.</li>
+      <li><b>Getting on.</b> A car enters only when there is room behind the last car; otherwise it waits off the map and the wait counts as delay.</li>
+      <li><b>Following.</b> A standard car-following model (the Intelligent Driver Model): keep a 2 m gap plus 1.0 s of travel, brake harder the shorter the gap, up to 2.0 m/s². A follower notices the car ahead braking only after 0.5 s, and cannot see an animal hidden behind it. Every other driving rule still applies.</li>
+      <li><b>Westbound cars</b> use the south lane with their own warning zones.</li>
+      <li><b>What is measured per car:</b> delay against an empty road, stops, time stopped, time at the stop line, time waiting to get on. Per side: queue length, how much of the time the sign is on with no animal on the road, and far-lane hits (an animal hit in the second lane it entered).</li>
+    </ul>
+  </section>
+
+  <section id="score">
+    <h2>Scoring</h2>
+    <dl class="terms">
+      <dt>Encounter</dt><dd>opens when a walking animal is in the car's lane within 150 units ahead; the car's speed at its closest approach is the one that counts.</dd>
+      <dt>Hit</dt><dd>the car body touches the animal, at any speed, whoever moved into whom. Above 30 km/h it is a <b>serious hit</b>; otherwise a <b>low-speed contact</b>, which includes an animal walking into a stopped car.</dd>
+      <dt>Near miss</dt><dd>no contact, but the car was faster than 35 km/h at its closest.</dd>
+      <dt>Safe pass</dt><dd>no contact and the car was at 35 km/h or slower by then.</dd>
+      <dt>Turned back</dt><dd>an animal that gave up at the roadside because of a car.</dd>
+    </dl>
+    <p class="prose">Each animal is scored once per car per lap. If an animal already counted as a near miss or safe pass touches the car later, it moves to hits. The scoreboard tiles, the DED dashboard, the scenario card and the research pages all read these counters.</p>
+  </section>
+
+  <section id="values">
+    <h2>Why there are two sets of values</h2>
+    <div class="two">
+      <div class="figure">
+        <h3><span class="tag">Demo</span> values (index.html, the scenario)</h3>
+        <p class="small">Paced for a two-minute presentation: animals 5 to 8 times faster than life, a group every 12 s, a 0.5 s driver, one car per side, a 110° lens. Right for showing the idea; not for predicting an installation.</p>
+      </div>
+      <div class="figure">
+        <h3><span class="tag r">Research</span> values (installation.html, the studies)</h3>
+        <p class="small">Every number taken from published studies where one exists: animal speeds and behaviour, driver reaction and braking, seeing distances, traffic volume, sign compliance, lens. Cars both ways with following. The installation demo runs these at 2× speed so the slow animals are watchable. The Installation Study report lists each value's source and how solid it is.</p>
+      </div>
+    </div>
+    <p class="prose muted small">In the code the demo values are the base configuration (<code>js/config.js</code>) and the research values are a block (<code>config.research</code>) laid over them by the research runs and the installation page; the demo itself never applies them.</p>
+  </section>
+
+  <section id="sources">
+    <h2>Where the numbers come from</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>What</th><th>Basis</th></tr></thead>
+      <tbody>
+        <tr><td>Random group arrivals</td><td>standard road-crossing and collision models (Jaarsma et al.; arXiv 2507.17058)</td></tr>
+        <tr><td>Species mix, group sizes, crossing rate</td><td>Tay et al. 2024 (boar 68% of crossings on a Singapore forest road); Koh, Webb & Leung 2018 (boar groups); Riley et al. 2015 (macaque troops)</td></tr>
+        <tr><td>Walking speeds</td><td>Higurashi 2019 and Courtine 2005 (macaque); observational boar speeds; pangolin is a guess ("slow-moving", NParks)</td></tr>
+        <tr><td>Cross / wait / turn back</td><td>response types from Jacobson et al. 2016; Brieger et al. 2022 (boar least affected by vehicles). The percentages are estimates.</td></tr>
+        <tr><td>Headlight seeing distance</td><td>Olson & Sivak 1983; Roper & Howard; Wood et al. 2005 (dark pedestrians on low beam)</td></tr>
+        <tr><td>Reaction times</td><td>Green 2000; SHRP2 naturalistic data (1.5 s surprise, 1.0 s expected). Demo values are deliberately quick.</td></tr>
+        <tr><td>Braking</td><td>AASHTO 3.4 m/s² comfortable; SAE 2023-01-0616 for hard stops; Markkula et al. 2016 for how braking builds up</td></tr>
+        <tr><td>Car-following</td><td>Treiber, Hennecke & Helbing 2000; Treiber & Kesting's city calibration</td></tr>
+        <tr><td>Drivers and warning signs</td><td>Huijser et al. 2009 and 2017; Gordon et al. 2004; Gagnon et al. 2019 (signs alone slow drivers 3 to 8 km/h)</td></tr>
+        <tr><td>Traffic volume at night</td><td>a proxy: about 2.4% of daily traffic at 22:00 (VanDelden et al. 2008) on a 5,000 to 10,000 vehicle road</td></tr>
+        <tr><td>Lens</td><td>thermal lens catalogues: 7.5 mm ≈ 90°, 13 mm ≈ 45°, 19 mm ≈ 32°</td></tr>
+      </tbody>
+    </table></div>
+    <p class="prose muted small">Full links are in the project README ("Fixed parameters for the research runs", "Driver model", "Animal arrivals and roadside behaviour"). The settings themselves are in <code>js/config.js</code>; the logic files never hard-code them, so a later version can swap in the real map by editing the config only.</p>
+  </section>
+</main>
+
+<script>
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function drawMap() {
+    var c = document.getElementById("mapcanvas"), ctx = c.getContext("2d");
+    var x0 = 0, x1 = 1000, y0 = 150, y1 = 610;
+    var sx = c.width / (x1 - x0), sy = c.height / (y1 - y0);
+    var P = function (x, y) { return [(x - x0) * sx, (y - y0) * sy]; };
+    var ink = cssVar("--ink"), muted = cssVar("--muted"), amber = cssVar("--amber"), good = cssVar("--good");
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.fillStyle = cssVar("--surface"); ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = "rgba(70,192,138,0.10)"; ctx.fillRect(0, 0, c.width, c.height);
+    // start bands: north 100–140 above the road edge (y 198–238), south 50–80 below (y 472–502)
+    ctx.fillStyle = "rgba(70,192,138,0.22)";
+    ctx.fillRect(0, P(0, 198)[1], c.width, P(0, 238)[1] - P(0, 198)[1]);
+    ctx.fillRect(0, P(0, 472)[1], c.width, P(0, 502)[1] - P(0, 472)[1]);
+    // hotspot band ±1 sd and ±2 sd
+    var h0 = P(430, 0)[0], h1 = P(550, 0)[0], g0 = P(370, 0)[0], g1 = P(610, 0)[0];
+    ctx.fillStyle = amber; ctx.globalAlpha = 0.06; ctx.fillRect(g0, 0, g1 - g0, c.height); ctx.globalAlpha = 0.10; ctx.fillRect(h0, 0, h1 - h0, c.height); ctx.globalAlpha = 1;
+    // road
+    var r0 = P(0, 338)[1], r1 = P(0, 422)[1], cy = P(0, 380)[1];
+    ctx.fillStyle = "#3a414b"; ctx.fillRect(0, r0, c.width, r1 - r0);
+    ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.setLineDash([16, 14]); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(c.width, cy); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "#e9edf1"; ctx.font = "600 14px " + cssVar("--font-mono"); ctx.textAlign = "left";
+    ctx.fillText("eastbound lane (y 359)  →", P(640, 0)[0], P(0, 359)[1] + 5);
+    ctx.textAlign = "right"; ctx.fillText("←  westbound lane (y 401)", P(970, 0)[0], P(0, 401)[1] + 5);
+    // demo camera cone (590,380) facing W, 110°, 250
+    var cam = { x: 590, y: 380, deg: 180, fov: 110, range: 250 };
+    var a0 = (cam.deg - cam.fov / 2) * Math.PI / 180, a1 = (cam.deg + cam.fov / 2) * Math.PI / 180, p = P(cam.x, cam.y);
+    ctx.beginPath(); ctx.moveTo(p[0], p[1]);
+    for (var i = 0; i <= 24; i++) { var a = a0 + (a1 - a0) * i / 24; var q = P(cam.x + Math.cos(a) * cam.range, cam.y + Math.sin(a) * cam.range); ctx.lineTo(q[0], q[1]); }
+    ctx.closePath(); ctx.fillStyle = amber; ctx.globalAlpha = 0.18; ctx.fill(); ctx.globalAlpha = 0.9; ctx.strokeStyle = amber; ctx.lineWidth = 2; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.fillStyle = amber; ctx.beginPath(); ctx.arc(p[0], p[1], 8, 0, Math.PI * 2); ctx.fill();
+    // signs at (554,281) and (569,440)
+    [[554, 281], [569, 440]].forEach(function (s) { var q = P(s[0], s[1]); ctx.fillStyle = amber; ctx.fillRect(q[0] - 7, q[1] - 11, 14, 22); ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.strokeRect(q[0] - 7, q[1] - 11, 14, 22); });
+    // stop line x 320 across the east lane
+    ctx.strokeStyle = amber; ctx.lineWidth = 4; ctx.setLineDash([10, 6]);
+    ctx.beginPath(); ctx.moveTo(P(320, 338)[0], r0 + 2); ctx.lineTo(P(320, 380)[0], cy - 1); ctx.stroke(); ctx.setLineDash([]);
+    // a car and an animal for scale
+    var car = P(80, 359); ctx.fillStyle = "#e6ebf2"; ctx.fillRect(car[0] - 18 * sx, car[1] - 9 * sy, 36 * sx, 18 * sy);
+    var an = P(470, 300); ctx.fillStyle = good; ctx.beginPath(); ctx.arc(an[0], an[1], 18 * sx, 0, Math.PI * 2); ctx.fill();
+    // labels
+    ctx.fillStyle = ink; ctx.font = "600 14px " + cssVar("--font-mono"); ctx.textAlign = "left";
+    ctx.fillText("wildlife verge (north): animals start here", 14, P(0, 190)[1]);
+    ctx.fillText("Hall 15 side (south): animals start here", 14, P(0, 525)[1]);
+    ctx.textAlign = "center";
+    ctx.fillText("crossing hotspot: x 490 ± 60 (lighter: ± 120)", (h0 + h1) / 2, P(0, 170)[1]);
+    ctx.fillText("demo camera · x 590 · 110° · 35 m · looking west", P(700, 0)[0], P(0, 560)[1]);
+    ctx.fillText("sign", P(554, 0)[0], P(0, 262)[1]);
+    ctx.fillText("sign", P(569, 0)[0], P(0, 470)[1]);
+    ctx.fillText("stop line (x 320)", P(320, 0)[0], P(0, 318)[1]);
+    ctx.fillText("a car (5 m)", car[0], P(0, 330)[1]);
+    ctx.textAlign = "right"; ctx.fillText("a boar", an[0] - 24, an[1] + 5); ctx.textAlign = "center";
+    var b0 = P(880, 0)[0], b1 = P(952, 0)[0], by = c.height - 22;
+    ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(b0, by); ctx.lineTo(b1, by); ctx.stroke();
+    ctx.fillText("10 m", (b0 + b1) / 2, by - 6);
+  }
+  drawMap();
+  if (window.matchMedia) { var mq = window.matchMedia("(prefers-color-scheme: dark)"); if (mq.addEventListener) mq.addEventListener("change", drawMap); }
+  new MutationObserver(drawMap).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawMap);
+</script>
+</body>
+</html>

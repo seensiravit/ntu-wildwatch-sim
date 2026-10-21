@@ -18,7 +18,7 @@ full design.
 | See the system as it would be **installed**, with research values and cars both ways | `installation.html` |
 | **Present** the project in 2½ minutes | [docs/presentation-script.md](docs/presentation-script.md), and [docs/scenario.md](docs/scenario.md) for what each act shows |
 | Know **what to recommend** (where the cameras go, what the sign does, what it costs drivers) | [research/reports/installation-study.html](research/reports/installation-study.html), the one report to cite; its "Conclusion for each setting" table is the summary |
-| Understand **how the simulation works**, in plain language | [research/reports/simulation-settings.html](research/reports/simulation-settings.html) |
+| Understand **how the simulation works**, in plain language | [docs/simulation-settings.html](docs/simulation-settings.html) (same page as in `research/reports/`) |
 | Look up **a rule or a number** and where it comes from | [docs/simulation-model.md](docs/simulation-model.md), and the "Fixed parameters" table below for the research values and their sources |
 | See the **code structure** (modules, data, state machines) or **who calls whom** | [docs/uml-diagrams.md](docs/uml-diagrams.md) and [docs/sequence-diagrams.md](docs/sequence-diagrams.md) |
 | **Change** the map, cameras, signs, animals or driver | `js/config.js` only (see "Editing the scene" below); nothing else hard-codes a number |
@@ -256,9 +256,10 @@ Sources:
 
 ## Further reading
 
-- [research/reports/simulation-settings.html](research/reports/simulation-settings.html):
-  one page, in plain language, explaining how the simulation works and every setting
-  behind it, demo values beside research values, with a drawing of the map.
+- [docs/simulation-settings.html](docs/simulation-settings.html) (also in
+  `research/reports/`): one page, in plain language, explaining how the simulation works
+  and every setting behind it, demo values beside research values, with a drawing of
+  the map.
 - [research/reports/](research/reports/): the four study reports as standalone pages that
   open offline: [installation-study.html](research/reports/installation-study.html)
   (research parameters, two-way traffic, placement with area coverage: the
