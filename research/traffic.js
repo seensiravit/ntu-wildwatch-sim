@@ -24,6 +24,11 @@
     combinedSeeds: QUICK ? [101, 102] : range(101, 120),
     seriousKmh: (CFG.scenario && CFG.scenario.seriousKmh) || 30,
     realCrossingsPerHour: 0.3,   // a night hotspot on a forested Singapore road (Tay et al. 2024): used to convert delay per crossing into delay per car
+    // Area coverage (placement stages): share of a grid over the crossing corridor
+    // (hotspot ± 2 sd along the road, from the top of the north start band to the
+    // bottom of the south one) inside at least one camera's view; also the
+    // carriageway part of it, and the carriageway over the whole map.
+    corridor: { sdMul: 2, step: 5, xMin: 20, xMax: 980 },
     // Placement stage (study 4): the placement study's grid, two-way, today's lens.
     xs: [250, 400, 550, 700, 850],
     laterals: [
@@ -88,21 +93,54 @@
   // Placement stage: every single-camera placement for a lens, with per-direction
   // signs, plus three two-camera layouts. "p90-today" is the demo camera with
   // per-direction signs so the grid has a like-for-like reference.
+  // The single-camera grid as camera specs: { key, x, y, deg, label }. "today" is
+  // the demo camera. Keys are lens-independent so pairs/triples can be composed.
+  function singleSpecs() {
+    const out = [{ key: "today", x: CFG.cameras[0].x, y: CFG.cameras[0].y, deg: CFG.cameras[0].facingAngleDeg, label: "x 590 · centreline gantry · facing W (today)" }];
+    S.xs.forEach((x) => S.laterals.forEach((lat) => S.facings.forEach((f) => {
+      out.push({ key: x + "-" + lat.id + "-" + f.id, x: x, y: lat.y, deg: f.deg, label: "x " + x + " · " + lat.label + " · facing " + f.id, xPos: x, lat: lat.id, face: f.id });
+    })));
+    return out;
+  }
+  function specByKey(key) { return singleSpecs().find((s) => s.key === key); }
+  // A layout from camera specs: cameras[0] is reshaped to the first spec (keeping
+  // the lens), the others are added as cam2, cam3…
+  function layoutSetting(id, specs, fovDeg, extra) {
+    const fov = fovDeg || CFG.research.camera.fovDeg;
+    return Object.assign({
+      id: id, factor: "placement", system: true, perDirSigns: true, lens: fov, cams: specs.length,
+      label: specs.map((s) => s.label).join(" + "),
+      apply: (c) => {
+        const base = c.cameras[0];
+        Object.assign(base, { x: specs[0].x, y: specs[0].y, facingAngleDeg: specs[0].deg, fovDeg: fov });
+        specs.slice(1).forEach((s, i) => c.cameras.push(Object.assign({}, base, { id: "cam" + (i + 2), name: "Cam " + (i + 2), x: s.x, y: s.y, facingAngleDeg: s.deg })));
+      },
+    }, extra || {});
+  }
+  // Stage: every single camera (121) for a lens.
   function placementSettings(fovDeg) {
     const L = "p" + (fovDeg || CFG.research.camera.fovDeg) + "-";
-    const lens = (c) => { c.cameras.forEach((cam) => { cam.fovDeg = fovDeg || CFG.research.camera.fovDeg; }); };
-    const out = [{ id: L + "today", factor: "placement", system: true, label: "today's camera (x 590 centreline facing W)", apply: lens, perDirSigns: true, lens: fovDeg }];
-    S.xs.forEach((x) => S.laterals.forEach((lat) => S.facings.forEach((f) => {
-      out.push({ id: L + x + "-" + lat.id + "-" + f.id, factor: "placement", system: true,
-        label: "x " + x + " · " + lat.label + " · facing " + f.id, apply: (c) => { cam(x, lat.y, f.deg)(c); lens(c); }, perDirSigns: true,
-        x: x, lat: lat.id, face: f.id, lens: fovDeg });
-    })));
-    const pair = (id, label, a, b) => out.push({ id: L + id, factor: "placement", system: true, label: label, perDirSigns: true, lens: fovDeg, pair: true,
-      apply: (c) => { Object.assign(c.cameras[0], a); c.cameras.push(Object.assign({}, c.cameras[0], { id: "cam2", name: "Cam 2" }, b)); lens(c); } });
-    pair("pair-verges", "pair at x 490: north verge facing S + south verge facing N", { x: 490, y: 330, facingAngleDeg: 90 }, { x: 490, y: 430, facingAngleDeg: 270 });
-    pair("pair-split", "pair: x 400 north verge facing S + x 550 south verge facing N", { x: 400, y: 330, facingAngleDeg: 90 }, { x: 550, y: 430, facingAngleDeg: 270 });
-    pair("pair-b2b", "pair at x 490 centreline: facing W + facing E", { x: 490, y: 380, facingAngleDeg: 180 }, { x: 490, y: 380, facingAngleDeg: 0 });
+    return singleSpecs().map((s) => layoutSetting(L + s.key, [s], fovDeg, { x: s.xPos === undefined ? null : s.xPos, lat: s.lat, face: s.face, key: s.key }));
+  }
+  // Stage: pairs = a fixed first camera plus each other single, plus hand pairs and
+  // the mirror of the first camera across the road.
+  function pairSettings(fovDeg, firstKey) {
+    const L = "p" + (fovDeg || CFG.research.camera.fovDeg) + "-pair-";
+    const first = specByKey(firstKey);
+    const out = singleSpecs().filter((s) => s.key !== firstKey).map((s) => layoutSetting(L + firstKey + "+" + s.key, [first, s], fovDeg, { pair: true, key: s.key, x: s.xPos === undefined ? null : s.xPos, lat: s.lat, face: s.face }));
+    const mirror = { key: "mirror", x: first.x, y: 2 * CFG.road.centerline[0].y - first.y, deg: (360 - first.deg) % 360, label: "mirror of the first camera across the road" };
+    out.push(layoutSetting(L + firstKey + "+mirror", [first, mirror], fovDeg, { pair: true, key: "mirror" }));
+    out.push(layoutSetting(L + "hand-verges", [{ key: "490-north-S", x: 490, y: 330, deg: 90, label: "x 490 · north verge · facing S" }, { key: "490-south-N", x: 490, y: 430, deg: 270, label: "x 490 · south verge · facing N" }], fovDeg, { pair: true, key: "hand-verges" }));
+    out.push(layoutSetting(L + "hand-split", [{ key: "400-north-S", x: 400, y: 330, deg: 90, label: "x 400 · north verge · facing S" }, { key: "550-south-N", x: 550, y: 430, deg: 270, label: "x 550 · south verge · facing N" }], fovDeg, { pair: true, key: "hand-split" }));
+    out.push(layoutSetting(L + "hand-b2b", [{ key: "490-centre-W", x: 490, y: 380, deg: 180, label: "x 490 · centreline · facing W" }, { key: "490-centre-E", x: 490, y: 380, deg: 0, label: "x 490 · centreline · facing E" }], fovDeg, { pair: true, key: "hand-b2b" }));
     return out;
+  }
+  // Stage: triples = a fixed pair plus each other single.
+  function tripleSettings(fovDeg, firstKey, secondKey) {
+    const L = "p" + (fovDeg || CFG.research.camera.fovDeg) + "-triple-";
+    const first = specByKey(firstKey), second = specByKey(secondKey);
+    return singleSpecs().filter((s) => s.key !== firstKey && s.key !== secondKey).map((s) =>
+      layoutSetting(L + firstKey + "+" + secondKey + "+" + s.key, [first, second, s], fovDeg, { triple: true, key: s.key, x: s.xPos === undefined ? null : s.xPos, lat: s.lat, face: s.face }));
   }
 
   // ---- Config snapshot / restore -----------------------------------------------
@@ -145,7 +183,34 @@
 
   // One sign per camera per direction, at the upstream edge of the camera's
   // coverage along that direction's lane (as the placement study did).
-  function perDirectionSigns() { CFG.signals = WW.car.directionSigns({ kerbOffset: 0, message: "" }); }
+  function perDirectionSigns() { CFG.signals = WW.car.directionSigns({ kerbOffset: 0, message: "", onePerDirection: true }); }
+
+  // ---- Area coverage of a camera layout (geometric, no run needed) ------------------
+  function coverageOf(cameras) {
+    const c = S.corridor, sp = CFG.spawning, road = CFG.road;
+    const x0 = sp.hotspot.x - c.sdMul * sp.hotspot.sd, x1 = sp.hotspot.x + c.sdMul * sp.hotspot.sd;
+    const roadTop = road.centerline[0].y - road.roadWidth / 2, roadBot = road.centerline[0].y + road.roadWidth / 2;
+    const y0 = roadTop - sp.northStart[1], y1 = roadBot + sp.southStart[1];
+    const seen = (x, y) => cameras.some((cam) => WW.geo.pointInCone(x, y, cam));
+    const share = (xa, xb, ya, yb) => {
+      let n = 0, k = 0;
+      for (let x = xa; x <= xb; x += c.step) for (let y = ya; y <= yb; y += c.step) { n++; if (seen(x, y)) k++; }
+      return n ? k / n : 0;
+    };
+    return {
+      corridor: share(x0, x1, y0, y1),            // verges + road around the hotspot
+      corridorRoad: share(x0, x1, roadTop, roadBot), // the carriageway around the hotspot
+      road: share(c.xMin, c.xMax, roadTop, roadBot), // the carriageway over the whole map
+      corridorBox: { x0, x1, y0, y1 },
+    };
+  }
+  // Coverage for a setting (applies it to a fresh config, then restores).
+  function layoutCoverage(setting) {
+    baseline(); setting.apply(CFG);
+    const cov = coverageOf(CFG.cameras);
+    restore();
+    return cov;
+  }
 
   // ---- One two-way run ---------------------------------------------------------------
   function snapshot(w) {
@@ -158,7 +223,7 @@
       cars: m.delays.length, delaySum: m.delaySum, delaySq: m.delaySq, delays: sorted,
       stops: m.stops, stoppedSec: m.stoppedSec, lineSec: m.lineSec, blockedSec: m.blockedSec,
       queueSum: m.queueSum, queueMax: m.queueMax, steps: m.steps, unneededSteps: m.unneededSteps, signOnSteps: m.signOnSteps,
-      entered: m.entered, compliers: m.compliers,
+      entered: m.entered, compliers: m.compliers, early: m.early,
     };
   }
 
@@ -178,7 +243,7 @@
       if (setting.perDirSigns !== false) { perDirectionSigns(); WW.car.reset(); }
       WW.detection.reset(); WW.stats.reset();
       w.car.state.visible = false; // the primary car is parked: the stream drives
-      w.m = { hitKmh: [], farLane: 0, seriousBy: { east: 0, west: 0 }, crossings: 0, reached: new Set(), fromNorth: new Map(),
+      w.m = { hitKmh: [], farLane: 0, seriousBy: { east: 0, west: 0 }, crossings: 0, reached: new Set(), fromNorth: new Map(), early: 0, earlySeen: new Set(),
         delays: [], delaySum: 0, delaySq: 0, stops: 0, stoppedSec: 0, lineSec: 0, blockedSec: 0,
         queueSum: 0, queueMax: 0, steps: 0, unneededSteps: 0, signOnSteps: 0, entered: 0, compliers: 0 };
       w.recs = new Map();                 // car -> flow record
@@ -243,11 +308,15 @@
         m.queueSum += queued; m.queueMax = Math.max(m.queueMax, queued); m.steps++;
         // Crossings, which side each animal came from, and unneeded warnings.
         let onRoad = false;
+        const cams = w.systemOn ? WW.detection.camState : null;
         for (const a of w.animals) {
           const d = WW.geo.distToPolyline(a.x, a.y, CFG.road.centerline);
           if (d <= halfRoad) {
             onRoad = true;
-            if (!m.reached.has(a.id)) { m.reached.add(a.id); m.crossings++; m.fromNorth.set(a.id, a.y < centreY); }
+            if (!m.reached.has(a.id)) { m.reached.add(a.id); m.crossings++; m.fromNorth.set(a.id, a.y < centreY); if (m.earlySeen.has(a.id)) m.early++; }
+          } else if (cams && !m.reached.has(a.id) && !m.earlySeen.has(a.id)) {
+            // Seen by a camera while still on the verge: an early detection.
+            for (const id in cams) { if (cams[id].episodes && cams[id].episodes.has(a.id)) { m.earlySeen.add(a.id); break; } }
           }
         }
         if (w.systemOn) {
@@ -277,7 +346,7 @@
   function side(rows) {
     const o = {};
     ["hits", "serious", "crawl", "near", "safe", "back", "speedSum", "speedCount", "crossings", "farLane", "seriousEast", "seriousWest",
-      "cars", "delaySum", "delaySq", "stops", "stoppedSec", "lineSec", "blockedSec", "queueSum", "queueMax", "steps", "unneededSteps", "signOnSteps", "entered", "compliers"]
+      "cars", "delaySum", "delaySq", "stops", "stoppedSec", "lineSec", "blockedSec", "queueSum", "queueMax", "steps", "unneededSteps", "signOnSteps", "entered", "compliers", "early"]
       .forEach((k) => { o[k] = k === "queueMax" ? Math.max.apply(null, rows.map((r) => r[k])) : sum(rows, k); });
     const per100 = (v) => (o.crossings ? (100 * v) / o.crossings : 0);
     const perCar = (v) => (o.cars ? v / o.cars : 0);
@@ -295,6 +364,7 @@
       queueMean: o.steps ? o.queueSum / o.steps : 0, queueMax: o.queueMax,
       unneededShare: o.signOnSteps ? o.unneededSteps / o.signOnSteps : 0, signOnShare: o.steps ? o.signOnSteps / o.steps : 0,
       complianceShare: o.entered ? o.compliers / o.entered : 0,
+      earlyShare: o.crossings ? o.early / o.crossings : 0,
     };
   }
   const cut = (a, b) => (a ? 1 - b / a : 0);
@@ -327,7 +397,8 @@
     const realDelayPerCar = delayPerCrossing * S.realCrossingsPerHour / (3600 / headway);
     return {
       id: setting.id, factor: setting.factor, label: setting.label, system: !!setting.system, seeds: perSeed.length,
-      policy: setting.policy, rule: setting.rule, trigger: setting.trigger, lens: setting.lens, pair: !!setting.pair,
+      policy: setting.policy, rule: setting.rule, trigger: setting.trigger, lens: setting.lens, pair: !!setting.pair, triple: !!setting.triple, cams: setting.cams, key: setting.key,
+      coverage: setting.factor === "placement" ? layoutCoverage(setting) : null,
       headwayMeanSec: headway, delayPerCrossing: delayPerCrossing, realDelayPerCar: realDelayPerCar,
       x: setting.x, lat: setting.lat, face: setting.face,
       off, on,
@@ -395,10 +466,11 @@
     const names = ["crossings", "cars", "hits", "serious", "crawl", "near", "safe", "far_lane", "serious_east", "serious_west",
       "serious_per100", "near_per100", "hits_per100", "far_lane_per100", "avg_kmh", "delay_mean_s", "delay_p95_s", "stops_per_car", "stopped_s_per_car", "line_s_per_car", "blocked_s_per_car", "queue_mean", "queue_max", "unneeded_share", "sign_on_share"];
     const head = ["id", "factor", "setting", "seeds", "headway_s"].concat(names.map((n) => "off_" + n), names.map((n) => "on_" + n),
-      ["serious_cut", "serious_cut_lo", "serious_cut_hi", "near_cut", "hits_cut", "far_lane_cut", "delay_diff_s", "delay_diff_lo", "delay_diff_hi", "sec_per_hit_prevented", "delay_per_crossing_s", "real_delay_per_car_s", "compliance_share"]);
+      ["serious_cut", "serious_cut_lo", "serious_cut_hi", "near_cut", "hits_cut", "far_lane_cut", "delay_diff_s", "delay_diff_lo", "delay_diff_hi", "sec_per_hit_prevented", "delay_per_crossing_s", "real_delay_per_car_s", "compliance_share", "early_share_on", "cov_corridor", "cov_corridor_road", "cov_road"]);
     const rows = r.grid.concat([r.combined, r.baseline].filter(Boolean)).map((g) =>
       [g.id, g.factor, g.label, g.seeds, g.headwayMeanSec].concat(sideCols(g.off), sideCols(g.on),
-        [g.seriousCut, g.seriousCutCI[0], g.seriousCutCI[1], g.nearCut, g.hitCut, g.farLaneCut, g.delayDiff, g.delayDiffCI[0], g.delayDiffCI[1], g.secPerHitPrevented, g.delayPerCrossing, g.realDelayPerCar, g.on.complianceShare]));
+        [g.seriousCut, g.seriousCutCI[0], g.seriousCutCI[1], g.nearCut, g.hitCut, g.farLaneCut, g.delayDiff, g.delayDiffCI[0], g.delayDiffCI[1], g.secPerHitPrevented, g.delayPerCrossing, g.realDelayPerCar, g.on.complianceShare, g.on.earlyShare,
+          g.coverage ? g.coverage.corridor : null, g.coverage ? g.coverage.corridorRoad : null, g.coverage ? g.coverage.road : null]));
     const esc = (v) => (v === null || v === undefined ? "" : typeof v === "number" ? (Number.isInteger(v) ? v : v.toFixed(4)) : '"' + String(v).replace(/"/g, '""') + '"');
     return [head.join(",")].concat(rows.map((row) => row.map(esc).join(","))).join("\n");
   }
@@ -430,6 +502,6 @@
     document.getElementById("meta").textContent = SETTINGS.length + " settings (3 driver policies × 6 sign rules × 2 sign triggers) × " + S.seeds.length + " seeds × " + S.minutes + " simulated minutes, two-way traffic at the research values; combined check with " + S.combinedSeeds.length + " seeds" + (QUICK ? " · QUICK MODE" : "");
   }
 
-  window.TrafficStudy = { S, SETTINGS, placementSettings, sensitivitySettings, run, evaluate, runTwoWay, summarise, pickCombined, toCSV, restore, baseline, applyResearch, perDirectionSigns };
+  window.TrafficStudy = { S, SETTINGS, placementSettings, pairSettings, tripleSettings, singleSpecs, sensitivitySettings, run, evaluate, runTwoWay, summarise, pickCombined, toCSV, restore, baseline, applyResearch, perDirectionSigns, coverageOf, layoutCoverage };
   if (window.addEventListener && typeof document !== "undefined") window.addEventListener("DOMContentLoaded", init);
 })();
