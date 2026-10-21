@@ -240,6 +240,15 @@ Sources:
 
 ## Further reading
 
+- [research/reports/](research/reports/): the four study reports as standalone pages that
+  open offline: [installation-study.html](research/reports/installation-study.html)
+  (research parameters, two-way traffic, placement with area coverage: the
+  recommendation), [two-way-traffic-study.html](research/reports/two-way-traffic-study.html)
+  (first two-way pass at the demo's parameters),
+  [settings-study.html](research/reports/settings-study.html) and
+  [camera-placement-study.html](research/reports/camera-placement-study.html) (one-car
+  studies at the demo's parameters).
+
 - [docs/scenario.md](docs/scenario.md): the preset scenario act by act, the results card,
   how to change the script, presenter notes.
 - [docs/simulation-model.md](docs/simulation-model.md): every rule and number behind the

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<title>Camera Placement Study</title>
+<style>
+  /* Layout: one reading column (~70ch) with wider figure blocks; road-signage type over a night-road palette. */
+  :root {
+    --bg: #f5f6f3; --surface: #ffffff; --ink: #1d232b; --muted: #5d6773; --line: #dde1e3;
+    --amber: #b87300; --good: #1f8a57; --bad: #c2412f; --road: #3a414b; --verge: #dfe8dc; --heat0: #ffffff;
+    --font-display: "Overpass", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "Overpass Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #0c1117; --surface: #131a22; --ink: #dfe5ec; --muted: #8c98a6; --line: #26313d; --amber: #ffb020; --good: #46c08a; --bad: #ff6a5f; --road: #2a313b; --verge: #15241b; --heat0: #131a22; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --bg: #0c1117; --surface: #131a22; --ink: #dfe5ec; --muted: #8c98a6; --line: #26313d; --amber: #ffb020; --good: #46c08a; --bad: #ff6a5f; --road: #2a313b; --verge: #15241b; --heat0: #131a22; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--font-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+  main { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+  .prose { max-width: 70ch; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+  h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 800; }
+  h3 { font-size: 16px; font-weight: 600; }
+  p { margin: 0; }
+  section { display: flex; flex-direction: column; gap: 14px; }
+  .eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+  .meta { font: 13px/1.5 var(--font-mono); color: var(--muted); }
+  .muted { color: var(--muted); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  header { display: flex; flex-direction: column; gap: 12px; }
+  .answer { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .plate { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--amber); border-radius: 6px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .plate .k { font: 600 12px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .plate .v { font: 800 22px/1.2 var(--font-display); }
+  .plate p { font-size: 14px; }
+  ul.tight { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: 13px/1 var(--font-mono); border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 10px; }
+  .figure { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .figure .cap { font-size: 13px; color: var(--muted); }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font: 600 11px/1.3 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.n, th.n { text-align: right; font-family: var(--font-mono); white-space: nowrap; }
+  tr.hl td { background: color-mix(in oklab, var(--amber) 12%, transparent); }
+  #finals td:first-child { min-width: 240px; }
+  .small { font-size: 12px; }
+  table.heat td.cell { text-align: center; font-family: var(--font-mono); font-weight: 600; min-width: 56px; border: 2px solid var(--surface); }
+  table.heat th { text-align: center; }
+  table.heat th:first-child, table.heat td:first-child { text-align: left; }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  svg text { fill: var(--muted); font: 12px var(--font-mono); }
+  svg .lab { fill: var(--ink); font-weight: 600; }
+  canvas { width: 100%; max-width: 100%; border-radius: 6px; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  code { font: 13px var(--font-mono); background: color-mix(in oklab, var(--muted) 14%, transparent); padding: 1px 5px; border-radius: 4px; }
+</style>
+
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">NTU WildWatch · Prong 1 deployment study · second run</div>
+    <h1>Camera Placement Study</h1>
+    <p class="prose">Where should the cameras go on Nanyang Crescent opposite Hall 15, which way should they point, and how many are worth installing? We ran the WildWatch simulator for every candidate layout against the same animal crossings and counted how many <b>serious hits</b> (the car touching an animal at over 30 km/h) each layout prevents compared with no system.</p>
+    <p class="meta">3,788 simulated runs · 120 single-camera setups · 1 to 4 cameras · 4 scenarios · today's lens (110° / 250) · results reproduce exactly (seeded)</p>
+    <p class="prose muted small">This is the second run. The first used a simpler driver and the old 84°/150 camera. The driver now reacts after a reaction time, brakes realistically, stops at a stop line when a sign flashes, and only sees 21 m by headlight; animals cross in groups and react to the car. The headline changed from "near misses" to serious hits, which is how the demo now scores. The conclusions shifted: see "What changed since the first run".</p>
+  </header>
+
+  <section>
+    <div class="eyebrow">The answer</div>
+    <div class="answer">
+      <div class="plate">
+        <span class="k">Position</span>
+        <span class="v">Next to the hotspot, on the Hall 15 verge</span>
+        <p>The best single camera stands on the south verge at x 550 and looks north across the road and up the wildlife verge. It prevents 77% of serious hits. Any camera within 150 units of the hotspot (x 400–700) that looks across the road prevents 60–77%; at x 850 the best is 21%.</p>
+      </div>
+      <div class="plate">
+        <span class="k">Angle</span>
+        <span class="v">Look across the road, not along it</span>
+        <p>Facing north from the south verge (or south from the north verge) puts the whole crossing in view before the animal reaches the lane. Looking along the road from the same spot drops to 21–45%.</p>
+      </div>
+      <div class="plate">
+        <span class="k">Number</span>
+        <span class="v">Two cameras</span>
+        <p>One camera prevents 77% of serious hits, two 85%, three 87%, four 90%. The second camera adds 8 points for 6 s more per lap; the third and fourth add 2–3 points each. Two is where the benefit levels off.</p>
+      </div>
+    </div>
+    <p class="prose muted small">Today's demo camera (x 590, on the centreline, facing west, 110°/250) was not in the grid; the nearest grid cell (x 550 centreline facing west) scores 60%. The lens matters more than any other factor: with the old 84°/150 lens the best single camera prevents only 36–40%, and with 60° or 40° lenses 32–40%. Sign visibility (480 vs 320 units) barely matters.</p>
+  </section>
+
+  <section>
+    <h2>How the study worked</h2>
+    <ul class="tight prose">
+      <li>We used the demo's own simulation code (animals, car, cameras, warning signs), stepped without drawing, so the results match what the demo shows.</li>
+      <li>Every layout faced the same seeded animal crossings: 200 per run, arriving in groups as in the demo, three in four from the wildlife verge. Each layout was compared with the same crossings and no system.</li>
+      <li>Each camera drives warning signs placed where its view begins along the driver's lane. The warned driver stops at a stop line before the camera's coverage while the sign flashes, as in the demo.</li>
+      <li>A <b>serious hit</b> is the car touching an animal at more than 30 km/h. The headline is the percentage of serious hits prevented, averaged over four scenarios:</li>
+    </ul>
+    <div class="chips">
+      <span class="chip">Hotspot crossings · eastbound</span>
+      <span class="chip">Hotspot crossings · westbound</span>
+      <span class="chip">Crossings anywhere · eastbound</span>
+      <span class="chip">Crossings anywhere · westbound</span>
+    </div>
+    <p class="prose muted small">Hotspot crossings cluster around x 490 (the Tamarind green verge, spread ±60). "Anywhere" spreads them evenly from x 60 to 940. Near-miss and "all dangerous encounters" reductions are reported alongside. Differences under about 5 points are within run-to-run noise.</p>
+  </section>
+
+  <section>
+    <h2>Position and angle: one camera</h2>
+    <p class="prose">Every single camera was tried at five positions along the road, in three mounting spots (a centreline gantry, the north verge, the south verge) and facing eight compass directions. The grid shows the best mounting spot for each position and direction.</p>
+    <div class="figure">
+      <div class="scroll"><table class="heat" id="heat"></table></div>
+      <div class="cap">Serious hits prevented (%) by one camera, averaged over the four scenarios. Rows are positions along the road; the hotspot is centred at x 490. N = facing north (toward the wildlife verge). Darker green means more prevented.</div>
+    </div>
+    <div class="two">
+      <div class="figure">
+        <h3>What the grid shows</h3>
+        <ul class="tight small">
+          <li>The three positions around the hotspot (x 400, 550, 700) do well in any direction that covers the road; x 250 only works facing east (toward the hotspot) and x 850 doesn't work at all.</li>
+          <li><b>Across beats along.</b> From x 550, facing N gives 77% and facing S 65%; facing W along the road gives 60% and facing E 21%. A camera looking across sees the animal on the verge before it steps out; one looking along the road sees it only once it is near the lane.</li>
+          <li>The diagonals (NE from x 400, NW from x 700) are nearly as good as straight across, so exact aim is not critical.</li>
+        </ul>
+      </div>
+      <div class="figure">
+        <h3>Mounting spot matters a little</h3>
+        <div class="scroll"><table id="lat"></table></div>
+        <div class="cap">Best result per mounting spot. The south (Hall 15) verge is best at the hotspot: from there the camera looks across the road <em>and</em> up the wildlife verge where three in four animals come from.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Number of cameras</h2>
+    <p class="prose">Starting from the best single camera, we repeatedly added whichever camera improved the result most, up to four. We also tested three layouts designed by hand. The finalists were re-run with 10 seeds.</p>
+    <div class="figure">
+      <svg id="gain" viewBox="0 0 640 280" role="img" aria-label="Serious hits prevented by number of cameras"></svg>
+      <div class="legend">
+        <span><i style="background:var(--good)"></i>Average over the four scenarios</span>
+        <span><i style="background:var(--bad)"></i>Worst scenario</span>
+        <span>Seconds added per driver trip shown under each bar</span>
+      </div>
+    </div>
+    <div class="figure">
+      <div class="scroll"><table id="finals"></table></div>
+      <div class="cap">"Near misses" and "dangerous" are the reductions in near misses and in all dangerous encounters (hits + near misses). "Protected time" is the share of time an animal is on the road while drivers heading toward it are being warned. The recommended layout is highlighted.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommended layout</h2>
+    <div class="two">
+      <div class="figure">
+        <canvas id="map3" width="900" height="460" aria-label="Top-down drawing of the recommended two-camera layout"></canvas>
+        <div class="cap">Two cameras at the hotspot (shaded): one on the Hall 15 verge at x 550 looking north across the road and up the wildlife verge; one on the wildlife verge at x 400 looking south across the road. Between them they see an animal on either verge before it steps out, from either direction of travel.</div>
+      </div>
+      <div class="figure">
+        <h3>Why this pair works</h3>
+        <ul class="tight small">
+          <li>Each camera looks across the road, so an animal is in view while it is still on the verge: 73% of crossings are detected before the animal reaches the road, against 57% for one camera.</li>
+          <li>The two face opposite verges, so crossings from either side are caught early, and each covers the lane the other sees at an angle.</li>
+          <li>At the hotspot it prevents 99–100% of serious hits; where crossings can happen anywhere, 68–73%. Its worst scenario (68%) is better than the single camera's (61%).</li>
+          <li><b>The cost:</b> about 12 s per lap for the warned driver, because the signs flash more often and the car waits at the line. One camera costs 6.5 s.</li>
+          <li><b>If budget allows one:</b> the south-verge camera at x 550 facing north, 77% (worst scenario 61%).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sensitivity</h2>
+    <p class="prose">We re-ran the best layout for each camera count with four lenses, and with the sign visible from 320 units instead of 480.</p>
+    <div class="figure">
+      <div class="scroll"><table id="sens"></table></div>
+      <div class="cap">Serious hits prevented (%), averaged over the four scenarios. Today's 110°/250 lens is far ahead at every camera count; the other three lenses are within noise of each other. Sign visibility makes little difference once the camera sees the verge early.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What changed since the first run</h2>
+    <ul class="tight prose">
+      <li><b>Best single camera moved from the centreline to the verge.</b> The first run's winner (x 400 centreline facing east) scored 46% on near misses. With a driver who needs reaction time and can only see 21 m, what matters is seeing the animal <em>before</em> it steps out, which a camera looking across the road from the verge does and a camera looking along the road does not.</li>
+      <li><b>The recommended number fell from three to two.</b> The verge cameras cover more per camera, so the third adds only 2 points.</li>
+      <li><b>The lens matters far more than before.</b> The 110°/250 lens (adopted after the settings study) is worth 35–40 points over the 84°/150 lens on a single camera.</li>
+      <li><b>Today's demo camera is not the best one.</b> The demo keeps the centreline camera at x 590 facing west for a clear picture of "a camera watching the crossing"; this study suggests the real deployment should put the camera on the Hall 15 verge looking across.</li>
+    </ul>
+  </section>
+
+  <section class="prose">
+    <h2>Limits of this study</h2>
+    <ul class="tight">
+      <li>One car at a time per direction, and both cars start each lap together, so the no-system baseline shifts slightly with how long the warned car takes. The percentages compare layouts; they do not predict real collision counts.</li>
+      <li>Detection is perfect inside a camera's view, with no misses or false alarms. Glare, rain and vegetation are not modelled.</li>
+      <li>Animal arrivals, reactions and the hotspot shape are modelled, not measured; real crossing data should replace them once cameras are running.</li>
+    </ul>
+  </section>
+
+  <section class="prose">
+    <h2>Reproduce it</h2>
+    <p>Open <code>research/index.html</code> in the project and press <b>Run study</b>. It runs offline in about 6 minutes and offers a CSV of every result. The numbers in this report come from <code>research/results/camera-study.csv</code>.</p>
+  </section>
+</main>
+
+<script>
+  // ---- Study results (research/results/study-run.json, second run) ----
+  var FACES = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"];
+  var HEAT = { // best mounting spot per position x direction, % serious hits prevented
+    250: [58.6, 52.4, 27.1, 2.6, 11.5, 6.2, 34.5, 54.6],
+    400: [65.8, 64.4, 63.6, 23.7, 21.5, 31.3, 70.9, 69.3],
+    550: [21.4, 45.5, 65.2, 67.3, 59.6, 65.5, 76.9, 45.4],
+    700: [13.7, 8.5, 35.3, 60.8, 67, 67.3, 46.7, 15.8],
+    850: [3, 4.3, 9.3, 12.1, 19, 21.2, 7.5, 1.9]
+  };
+  var LAT = { 250: [58.6, 54.2, 54.6], 400: [63.3, 65.8, 70.9], 550: [70.7, 67.3, 76.9], 700: [60.1, 67, 67.3], 850: [19, 17.8, 21.2] };
+  var FINALS = [
+    { name: "Best 1 camera", detail: "x 550 · south verge · facing N", cams: 1, red: 77.2, worst: 60.7, near: 76.8, danger: 66.8, early: 57, prot: 56, extra: 6.48 },
+    { name: "Best 2 cameras", detail: "+ x 400 · north verge · facing S", cams: 2, red: 85.0, worst: 68.0, near: 87.8, danger: 72.0, early: 73, prot: 76, extra: 12.1, rec: true },
+    { name: "Best 3 cameras", detail: "+ x 400 · south verge · facing N", cams: 3, red: 87.1, worst: 72.0, near: 89.3, danger: 75.3, early: 80, prot: 79, extra: 13.09 },
+    { name: "Best 4 cameras", detail: "+ x 700 · south verge · facing NW", cams: 4, red: 89.5, worst: 78.5, near: 90.1, danger: 77.4, early: 82, prot: 82, extra: 13.75 },
+    { name: "Back-to-back pair", detail: "x 490 · centreline · facing W and E", cams: 2, red: 73.2, worst: 52.3, near: 80.4, danger: 66.9, early: 59, prot: 76, extra: 6.06 },
+    { name: "Opposite verges", detail: "x 490 · both verges · facing across", cams: 2, red: 85.0, worst: 68.2, near: 86.9, danger: 78.1, early: 74, prot: 72, extra: 21.31 },
+    { name: "Evenly spaced trio", detail: "x 250 / 500 / 750 · south verge · facing N", cams: 3, red: 84.0, worst: 71.0, near: 91.4, danger: 73.6, early: 78, prot: 81, extra: 8.09 }
+  ];
+  var SENS = [ // [cams, lens, sight, reduction %, worst %]
+    [1, "110°/250 (today)", 480, 76.9, 55.3], [1, "110°/250 (today)", 320, 77.5, 59.6], [1, "84°/150", 480, 35.6, -6.4], [1, "84°/150", 320, 39.5, 10.6], [1, "60°/200", 480, 36.4, -34], [1, "60°/200", 320, 36.7, -12.8], [1, "40°/260", 480, 39.8, 4.3], [1, "40°/260", 320, 31.7, 2.1],
+    [2, "110°/250 (today)", 480, 85.5, 71], [2, "110°/250 (today)", 320, 79.8, 57.4], [2, "84°/150", 480, 53.1, 10.6], [2, "84°/150", 320, 54.8, 8.5], [2, "60°/200", 480, 62.4, 21.3], [2, "60°/200", 320, 60.4, 23.4], [2, "40°/260", 480, 61.9, 19.1], [2, "40°/260", 320, 53.4, 4.3],
+    [3, "110°/250 (today)", 480, 84.8, 63.8], [3, "110°/250 (today)", 320, 83.9, 53.2], [3, "84°/150", 480, 65.9, 21.3], [3, "84°/150", 320, 63.7, 14.9], [3, "60°/200", 480, 68.8, 25.5], [3, "60°/200", 320, 67.6, 31.9], [3, "40°/260", 480, 73.8, 42.6], [3, "40°/260", 320, 63.8, 29.8],
+    [4, "110°/250 (today)", 480, 88, 72.3], [4, "110°/250 (today)", 320, 84.1, 51.1], [4, "84°/150", 480, 67, 27.7], [4, "84°/150", 320, 67.7, 25.5], [4, "60°/200", 480, 67.2, 31.9], [4, "60°/200", 320, 72.3, 40.4], [4, "40°/260", 480, 67.5, 31.9], [4, "40°/260", 320, 67.2, 36.2]
+  ];
+  var LAYOUT = [{ x: 550, y: 430, deg: 270 }, { x: 400, y: 330, deg: 90 }];
+  var LENS = { fov: 110, range: 250 };
+
+  function el(id) { return document.getElementById(id); }
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  (function () {
+    var max = 80;
+    var h = "<thead><tr><th>Position</th>" + FACES.map(function (f) { return "<th>" + f + "</th>"; }).join("") + "</tr></thead><tbody>";
+    Object.keys(HEAT).forEach(function (x) {
+      h += "<tr><td class=\"num\">x " + x + (x === "400" || x === "550" || x === "700" ? " <span class=\"muted small\">· around the hotspot</span>" : "") + "</td>";
+      HEAT[x].forEach(function (v) {
+        var pct = Math.round(Math.max(0, Math.min(1, v / max)) * 85), dark = pct > 45;
+        h += "<td class=\"cell\" style=\"background:color-mix(in oklab, var(--good) " + pct + "%, var(--heat0));" + (dark ? "color:#fff" : "") + "\">" + Math.round(v) + "</td>";
+      });
+      h += "</tr>";
+    });
+    el("heat").innerHTML = h + "</tbody>";
+  })();
+
+  (function () {
+    var h = "<thead><tr><th>Position</th><th class=\"n\">Gantry</th><th class=\"n\">North verge</th><th class=\"n\">South verge</th></tr></thead><tbody>";
+    Object.keys(LAT).forEach(function (x) { h += "<tr><td class=\"num\">x " + x + "</td>" + LAT[x].map(function (v) { return "<td class=\"n\">" + Math.round(v) + "%</td>"; }).join("") + "</tr>"; });
+    el("lat").innerHTML = h + "</tbody>";
+  })();
+
+  (function () {
+    var h = "<thead><tr><th>Layout</th><th class=\"n\">Cameras</th><th class=\"n\">Serious hits prevented</th><th class=\"n\">Worst scenario</th><th class=\"n\">Near misses</th><th class=\"n\">Dangerous</th><th class=\"n\">Detected early</th><th class=\"n\">Protected time</th><th class=\"n\">Added s / trip</th></tr></thead><tbody>";
+    FINALS.forEach(function (f) {
+      h += "<tr" + (f.rec ? " class=\"hl\"" : "") + "><td><b>" + f.name + "</b><div class=\"muted small\">" + f.detail + "</div></td>" +
+        "<td class=\"n\">" + f.cams + "</td><td class=\"n\"><b>" + Math.round(f.red) + "%</b></td><td class=\"n\">" + Math.round(f.worst) + "%</td>" +
+        "<td class=\"n\">" + Math.round(f.near) + "%</td><td class=\"n\">" + Math.round(f.danger) + "%</td><td class=\"n\">" + f.early + "%</td><td class=\"n\">" + f.prot + "%</td><td class=\"n\">" + f.extra.toFixed(1) + "</td></tr>";
+    });
+    el("finals").innerHTML = h + "</tbody>";
+  })();
+
+  (function () {
+    var lenses = ["110°/250 (today)", "84°/150", "60°/200", "40°/260"];
+    var h = "<thead><tr><th>Cameras</th>" + lenses.map(function (l) { return "<th class=\"n\">" + l + " · sight 480</th><th class=\"n\">" + l + " · sight 320</th>"; }).join("") + "</tr></thead><tbody>";
+    [1, 2, 3, 4].forEach(function (n) {
+      h += "<tr><td class=\"num\">" + n + "</td>";
+      lenses.forEach(function (l) { [480, 320].forEach(function (s) { var r = SENS.filter(function (x) { return x[0] === n && x[1] === l && x[2] === s; })[0]; h += "<td class=\"n\">" + Math.round(r[3]) + "%</td>"; }); });
+      h += "</tr>";
+    });
+    el("sens").innerHTML = h + "</tbody>";
+  })();
+
+  (function () {
+    var svg = el("gain"), W = 640, H = 280, L = 48, R = 16, T = 18, B = 52;
+    var rows = FINALS.filter(function (f) { return /^Best/.test(f.name); });
+    var y = function (v) { return T + (H - T - B) * (1 - v / 100); };
+    var bw = (W - L - R) / rows.length, s = "";
+    [0, 25, 50, 75, 100].forEach(function (v) {
+      s += "<line x1=\"" + L + "\" x2=\"" + (W - R) + "\" y1=\"" + y(v) + "\" y2=\"" + y(v) + "\" stroke=\"var(--line)\" stroke-width=\"1\"/>";
+      s += "<text x=\"" + (L - 8) + "\" y=\"" + (y(v) + 4) + "\" text-anchor=\"end\">" + v + "%</text>";
+    });
+    rows.forEach(function (f, i) {
+      var cx = L + bw * i + bw / 2, w = Math.min(70, bw * 0.5);
+      s += "<rect x=\"" + (cx - w / 2) + "\" y=\"" + y(f.red) + "\" width=\"" + w + "\" height=\"" + (y(0) - y(f.red)) + "\" rx=\"3\" fill=\"var(--good)\"/>";
+      s += "<text class=\"lab\" x=\"" + cx + "\" y=\"" + (y(f.red) - 8) + "\" text-anchor=\"middle\">" + Math.round(f.red) + "%</text>";
+      s += "<circle cx=\"" + cx + "\" cy=\"" + y(f.worst) + "\" r=\"5\" fill=\"var(--bad)\" stroke=\"var(--surface)\" stroke-width=\"2\"/>";
+      s += "<text class=\"lab\" x=\"" + cx + "\" y=\"" + (H - B + 20) + "\" text-anchor=\"middle\">" + f.cams + " camera" + (f.cams > 1 ? "s" : "") + "</text>";
+      s += "<text x=\"" + cx + "\" y=\"" + (H - B + 38) + "\" text-anchor=\"middle\">+" + f.extra.toFixed(1) + " s / trip</text>";
+      if (i > 0) s += "<text x=\"" + (cx - bw / 2) + "\" y=\"" + (y(Math.max(f.red, rows[i - 1].red)) - 26) + "\" text-anchor=\"middle\">+" + Math.round(f.red - rows[i - 1].red) + "</text>";
+    });
+    svg.innerHTML = s;
+  })();
+
+  function drawMap() {
+    var c = el("map3"), ctx = c.getContext("2d");
+    var x0 = 150, x1 = 850, y0 = 160, y1 = 600;
+    var sx = c.width / (x1 - x0), sy = c.height / (y1 - y0);
+    function P(x, y) { return [(x - x0) * sx, (y - y0) * sy]; }
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.fillStyle = cssVar("--verge"); ctx.fillRect(0, 0, c.width, c.height);
+    var h0 = P(430, 0)[0], h1 = P(550, 0)[0];
+    ctx.fillStyle = cssVar("--amber"); ctx.globalAlpha = 0.12; ctx.fillRect(h0, 0, h1 - h0, c.height); ctx.globalAlpha = 1;
+    var r0 = P(0, 338)[1], r1 = P(0, 422)[1];
+    ctx.fillStyle = cssVar("--road"); ctx.fillRect(0, r0, c.width, r1 - r0);
+    ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.setLineDash([16, 14]); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, P(0, 380)[1]); ctx.lineTo(c.width, P(0, 380)[1]); ctx.stroke(); ctx.setLineDash([]);
+    var amber = cssVar("--amber");
+    LAYOUT.forEach(function (cam) {
+      var a0 = (cam.deg - LENS.fov / 2) * Math.PI / 180, a1 = (cam.deg + LENS.fov / 2) * Math.PI / 180;
+      ctx.beginPath(); var p = P(cam.x, cam.y); ctx.moveTo(p[0], p[1]);
+      for (var i = 0; i <= 20; i++) { var a = a0 + (a1 - a0) * i / 20; var q = P(cam.x + Math.cos(a) * LENS.range, cam.y + Math.sin(a) * LENS.range); ctx.lineTo(q[0], q[1]); }
+      ctx.closePath(); ctx.fillStyle = amber; ctx.globalAlpha = 0.22; ctx.fill(); ctx.globalAlpha = 0.9; ctx.strokeStyle = amber; ctx.lineWidth = 2; ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.fillStyle = amber; ctx.beginPath(); ctx.arc(p[0], p[1], 8, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.fillStyle = cssVar("--ink"); ctx.font = "600 22px " + cssVar("--font-mono");
+    ctx.fillText("Wildlife verge", 16, 32); ctx.fillText("Hall 15 side", 16, c.height - 18);
+    ctx.textAlign = "center"; ctx.fillText("hotspot", (h0 + h1) / 2, 32); ctx.textAlign = "left";
+    ctx.fillStyle = "#e9edf1"; ctx.fillText("Nanyang Crescent", c.width - 250, P(0, 410)[1]);
+  }
+  drawMap();
+  if (window.matchMedia) { var mq = window.matchMedia("(prefers-color-scheme: dark)"); if (mq.addEventListener) mq.addEventListener("change", drawMap); }
+  new MutationObserver(drawMap).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawMap);
+</script>
+</body>
+</html>

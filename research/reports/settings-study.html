@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<title>Settings Study</title>
+<style>
+  /* Layout: one reading column (~70ch) with wider figure blocks; road-signage type over a night-road palette. Sibling of the Camera Placement Study report. */
+  :root {
+    --bg: #f5f6f3; --surface: #ffffff; --ink: #1d232b; --muted: #5d6773; --line: #dde1e3;
+    --amber: #b87300; --good: #1f8a57; --bad: #c2412f; --heat0: #ffffff;
+    --font-display: "Overpass", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "Overpass Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c1117; --surface: #131a22; --ink: #dfe5ec; --muted: #8c98a6; --line: #26313d;
+      --amber: #ffb020; --good: #46c08a; --bad: #ff6a5f; --heat0: #131a22; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c1117; --surface: #131a22; --ink: #dfe5ec; --muted: #8c98a6; --line: #26313d;
+    --amber: #ffb020; --good: #46c08a; --bad: #ff6a5f; --heat0: #131a22; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--font-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+  main { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+  .prose { max-width: 70ch; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+  h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 800; }
+  h3 { font-size: 16px; font-weight: 600; }
+  p { margin: 0; }
+  section { display: flex; flex-direction: column; gap: 14px; }
+  .eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+  .meta { font: 13px/1.5 var(--font-mono); color: var(--muted); }
+  .muted { color: var(--muted); }
+  .small { font-size: 12px; }
+  header { display: flex; flex-direction: column; gap: 12px; }
+  .answer { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .plate { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--amber); border-radius: 6px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .plate .k { font: 600 12px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .plate .v { font: 800 22px/1.2 var(--font-display); }
+  .plate p { font-size: 14px; }
+  ul.tight { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .figure { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .figure .cap { font-size: 13px; color: var(--muted); }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font: 600 11px/1.3 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.n, th.n { text-align: right; font-family: var(--font-mono); white-space: nowrap; }
+  tr.hl td { background: color-mix(in oklab, var(--amber) 12%, transparent); }
+  tr.rec td { background: color-mix(in oklab, var(--good) 12%, transparent); }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  svg text { fill: var(--muted); font: 12px var(--font-mono); }
+  svg .lab { fill: var(--ink); }
+  svg .base { fill: var(--amber); font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  code { font: 13px var(--font-mono); background: color-mix(in oklab, var(--muted) 14%, transparent); padding: 1px 5px; border-radius: 4px; }
+</style>
+
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">NTU WildWatch · simulation study · second run</div>
+    <h1>Settings Study</h1>
+    <p class="prose">Under which settings does the camera-and-sign system work best, and which settings make the difference between System OFF and System ON clearest in the demo? We ran the split-screen simulation for 21 settings, changing one factor at a time from today's configuration, with the same animals on both sides.</p>
+    <p class="meta">19,800 twin runs · 21 settings × 800 seeds × 20 simulated minutes · combined check with 1,500 seeds · today's driver and 110° camera · results reproduce exactly (seeded)</p>
+  </header>
+
+  <section>
+    <div class="eyebrow">The answer</div>
+    <div class="answer">
+      <div class="plate">
+        <span class="k">Today's settings</span>
+        <span class="v">The best system configuration tried</span>
+        <p>With today's configuration the system cuts serious hits (over 30 km/h) by 78% (interval 77–79%) and near misses by 88%, leaving 0.95 serious hits per 100 crossings. None of the 20 variations has fewer serious hits on the ON side.</p>
+      </div>
+      <div class="plate">
+        <span class="k">Nothing to change</span>
+        <span class="v">The 110° lens was the win; the rest are ties or trade-offs</span>
+        <p>The first run recommended the 110° view, which is now in place: against the previous 84° lens it is 0.95 vs 1.62 serious hits per 100 crossings. A sign visible from 640 is a tie (0.94). A 350 range or dropping the stop line halves the warned car's lap cost (+2.3 s instead of +5.1 s) but costs a few more serious hits and more low-speed contacts. The combined check confirmed it: 79% vs 78% on the same 1,500 seeds.</p>
+      </div>
+      <div class="plate">
+        <span class="k">What weakens the demo</span>
+        <span class="v">Crossings anywhere, quiet traffic</span>
+        <p>If animals cross anywhere along the road instead of at the hotspot, one camera cuts serious hits by only 21%. A quiet road (a group every 24 s) still shows 72% but with fewer events to watch. A busy road (every 6 s) shows 87% but the warned car waits 13 s more per lap. Keep the hotspot and the default activity.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How the study worked</h2>
+    <ul class="tight prose">
+      <li>Each run is the demo itself, headless: two worlds share the same arriving animals, the OFF car has no camera or signs, the ON car has today's camera and signs, and both cars start every lap together. 20 simulated minutes per run.</li>
+      <li>Each setting changes one factor from today's configuration. 800 seeds per setting (the same 800 for all), so differences between settings come from the setting, not from luck; the intervals are about ±1 point. The best level of each system-controlled factor was then tried together, with 1,500 seeds. Run with <code>node research/run-settings-study.js</code> across 22 cores in 43 minutes.</li>
+      <li><b>Serious hit</b> = the car touched an animal while going faster than 30 km/h. <b>Near miss</b> = faster than 35 km/h at its closest approach, no contact. Counts are per 100 animals that reached the road, so busy and quiet settings compare fairly.</li>
+      <li>Two scores: the ON side's serious hits per 100 crossings (<b>best system</b>), and the OFF → ON reduction in serious hits (<b>clearest contrast</b>). The interval on each reduction is a bootstrap over seeds.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Goal 2: which settings show the difference most clearly</h2>
+    <div class="figure">
+      <svg id="chart" viewBox="0 0 900 640" role="img" aria-label="Serious-hit reduction from OFF to ON for each setting, with 95% intervals"></svg>
+      <div class="legend">
+        <span><i style="background:var(--good)"></i>Reduction in serious hits, OFF → ON</span>
+        <span><i style="background:var(--muted)"></i>95% interval (bootstrap over seeds)</span>
+        <span style="color:var(--amber)">● today's settings</span>
+      </div>
+      <div class="cap">Driver and animal factors are shown too, even though the system designer doesn't control them: they say how robust the result is. Most settings cut serious hits by 60–87%; only "crossings anywhere" breaks the system.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Goal 1: which settings make the system safest</h2>
+    <div class="figure">
+      <div class="scroll"><table id="t1"></table></div>
+      <div class="cap">Sorted by serious hits on the ON side per 100 crossings. "ON lap +s" is how much longer the warned car takes per lap than the unwarned one: the driver's cost. Today's settings are highlighted.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reading the factors</h2>
+    <div class="two">
+      <div class="figure">
+        <h3>Camera</h3>
+        <ul class="tight small">
+          <li><b>View angle matters more than range.</b> Today's 110° beats the previous 84° (0.95 vs 1.62 serious ON hits per 100) and 60° is far worse (2.59). A longer range (350) is a near tie (0.99) with a quicker warned lap (+2.4 s instead of +5.1 s), because the car is warned earlier and waits less; 150 is too short (2.51).</li>
+          <li><b>Today's position is the best of the three tried.</b> The centreline camera at x 590 facing west beats the gantry at x 400 facing east (1.11) and the south-verge camera at x 550 facing north (1.38). The placement study ranked that verge camera first when averaging both directions of travel; here, with eastbound traffic and three in four animals arriving from the wildlife verge, it loses because it cannot see animals coming from the Hall 15 side until they are on the road (with all animals from the north it beats today's camera, 83% vs 74%; with all from the south it falls to 57% against 86%).</li>
+        </ul>
+      </div>
+      <div class="figure">
+        <h3>Signs and the warned driver</h3>
+        <ul class="tight small">
+          <li><b>Sign visibility:</b> 320 units is too short (2.13; near misses cut only 37%). 480 (today) and 640 are equal (0.95 vs 0.94); 640 only adds a little waiting.</li>
+          <li><b>The stop line costs 3 s a lap and buys a little:</b> without it the ON side has 1.10 serious hits per 100 instead of 0.95 and the total-hit cut drops from 40% to 32%, while the warned lap is 3 s quicker. Moving the line 80 units back gives 1.13 and the same quick lap, so it is no better than no line at all.</li>
+          <li><b>Warned speed 30 instead of 20</b> is slightly worse on safety (1.15, cut 74%) for a slightly quicker lap (+4.7 s instead of +5.1 s).</li>
+        </ul>
+      </div>
+      <div class="figure">
+        <h3>Driver (not controlled by the system)</h3>
+        <ul class="tight small">
+          <li><b>Research-mean reaction times</b> (1.1 s / 0.7 s instead of the demo's quick 0.5 / 0.35) still leave a 72% cut in serious hits: the benefit doesn't depend on the quick-driver assumption.</li>
+          <li><b>Headlights that reach 32 m</b> instead of 21 m make the OFF driver much safer (1.86 serious per 100 instead of 4.29), so the contrast shrinks to 58%. The demo's 21 m is the unalerted-driver figure.</li>
+          <li><b>Cruise speed:</b> at 40 km/h the unwarned driver can mostly stop in time, so the system has less to add (68%). At 60 km/h both sides get worse; the cut is 74% but near misses are cut only 58%.</li>
+        </ul>
+      </div>
+      <div class="figure">
+        <h3>Animals</h3>
+        <ul class="tight small">
+          <li><b>Busy traffic</b> (a group every 6 s) gives the biggest contrast, 87%, but the warned car waits so often that its laps take 13 s longer, which makes the demo drag. <b>Quiet traffic</b> (every 24 s) still shows 72%.</li>
+          <li><b>Boldness</b> moves both sides together; the contrast stays at 76–81%.</li>
+          <li><b>Crossings anywhere</b> along the road cut the system's effect to 21%: one camera covers one place. This is the case for deploying at a known hotspot (and for the camera-placement study).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Combined check (1,500 seeds)</h2>
+    <div class="figure">
+      <div class="scroll"><table id="t2"></table></div>
+      <div class="cap">Taking the best level of each system-controlled factor from the grid (fewest serious ON hits per 100, the baseline level counting too) and running them together on 1,500 seeds. Only the 640 sign distance beat the baseline in the grid, by 0.01; together they are 79% against 78%, inside noise.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommendation</h2>
+    <p class="prose">Keep today's settings. The 110° view recommended by the first run is in place and is the one setting that mattered. If the demo ever feels slow, a 350 camera range or no stop line halves the warned car's lap cost for a small safety price. Keep the animals crossing at the hotspot and the activity at its default; both are what let a single camera show its value. For the research story, note that the benefit survives the honest driver assumptions (research reaction times, brighter headlights), at a reduced but still large size.</p>
+    <div class="figure">
+      <h3>Parameter table: today's settings</h3>
+      <div class="scroll"><table id="t3"></table></div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>Limits of this study</h2>
+    <ul class="tight">
+      <li>One factor at a time around today's settings. Interactions were checked only in the combined run.</li>
+      <li>One car per direction, no traffic queueing; and OFF results shift slightly between settings because both cars start each lap together, so the OFF car waits when the ON car is slow.</li>
+      <li>Hits are rare, which is why 800 seeds were needed: each setting has 1,300–6,000 serious OFF hits, giving ±1-point intervals. Differences of a point or two are still not worth acting on.</li>
+      <li>Detection is perfect inside the camera's view. Animal speeds and reactions are modelled, not measured, as described in the project README.</li>
+    </ul>
+  </section>
+
+  <section class="prose">
+    <h2>Reproduce it</h2>
+    <p>Run <code>node research/run-settings-study.js</code> in the project (about 45 minutes on 22 cores), or open <code>research/settings.html</code> and press <b>Run study</b> for the 10-seed version (about 6 minutes, offline; <code>?quick</code> for a 30-second smoke run). The numbers here are in <code>research/results/settings-study.csv</code>.</p>
+  </section>
+</main>
+
+<script>
+  // Results from research/results/settings-study.json (800 seeds × 20 min; serious = hit above 30 km/h; per 100 crossings).
+  var GRID = [
+    // id, label, factor, OFF serious/100, ON serious/100, cut %, lo, hi, near cut %, all-hits cut %, ON lap +s
+    ["gap6", "a group every 6 s (busy)", "animal activity", 2.78, 0.36, 87, 86, 88, 93, 21, 12.8],
+    ["shy", "animals half as bold", "animal boldness", 3.54, 0.69, 81, 80, 82, 88, 49, 5.1],
+    ["range350", "camera range 350", "camera range", 5.08, 0.99, 80, 80, 82, 87, 30, 2.4],
+    ["nostop", "slow to 20 km/h only (no stop line)", "warned driver", 5.25, 1.10, 79, 79, 80, 87, 32, 2.2],
+    ["line80", "stop line 80 before the area", "warned driver", 5.19, 1.13, 78, 78, 80, 87, 30, 2.2],
+    ["sight640", "sign visible from 640", "sign", 4.20, 0.94, 78, 77, 79, 90, 37, 5.3],
+    ["base", "today's settings", "baseline", 4.29, 0.95, 78, 77, 79, 88, 40, 5.1],
+    ["boldx", "animals 1.5× as bold", "animal boldness", 5.13, 1.24, 76, 75, 77, 88, 33, 5.1],
+    ["camE", "camera x 400 centreline facing E", "camera position", 4.44, 1.11, 75, 74, 77, 85, 26, 4.8],
+    ["cruise60", "cruise 60 km/h", "driver", 7.50, 1.94, 74, 74, 76, 58, 25, 2.3],
+    ["warn30", "warned speed 30 km/h", "warned driver", 4.41, 1.15, 74, 73, 75, 88, 40, 4.7],
+    ["gap24", "a group every 24 s (quiet)", "animal activity", 5.53, 1.53, 72, 71, 74, 86, 46, 2.3],
+    ["react11", "reaction 1.1 / 0.7 s (research means)", "driver", 6.22, 1.72, 72, 72, 74, 72, 17, 2.1],
+    ["camS", "camera x 550 south verge facing N", "camera position", 4.58, 1.38, 70, 69, 71, 87, 27, 4.3],
+    ["cruise40", "cruise 40 km/h", "driver", 1.57, 0.50, 68, 66, 70, 93, 17, 4.8],
+    ["fov84", "camera 84° view (previous)", "camera view", 4.82, 1.62, 66, 66, 68, 80, 34, 3.4],
+    ["sight320", "sign visible from 320", "sign", 5.58, 2.13, 62, 61, 63, 37, 12, 1.4],
+    ["light230", "headlights reach 32 m (230)", "driver", 1.86, 0.77, 58, 56, 61, 86, 10, 4.9],
+    ["range150", "camera range 150", "camera range", 5.31, 2.51, 53, 52, 55, 66, 21, 2.0],
+    ["fov60", "camera 60° view", "camera view", 5.33, 2.59, 51, 51, 53, 71, 27, 2.0],
+    ["uniform", "crossings anywhere along the road", "crossing pattern", 5.81, 4.57, 21, 21, 23, 25, 11, 1.2]
+  ];
+  var COMBINED = [
+    // label, OFF, ON, cut, lo, hi, near, hits, lap
+    ["today's settings", 4.34, 0.95, 78, 77, 79, 88, 39, 5.1],
+    ["sign visible from 640 (the only factor level that beat the baseline)", 4.27, 0.91, 79, 78, 80, 90, 38, 5.3]
+  ];
+  var PARAMS = [
+    ["Camera", "position", "x 590 on the centreline, facing west", ""],
+    ["Camera", "field of view", "110° (84° before the first run)", ""],
+    ["Camera", "range", "250 units (≈35 m)", ""],
+    ["Signs", "position", "two signs flanking the road at the camera", ""],
+    ["Signs", "visible from", "480 units (≈67 m)", ""],
+    ["Warned driver", "stop line", "20 units before the camera's coverage (x 320)", ""],
+    ["Warned driver", "drive on after sign off / max wait", "0.5 s / 20 s", ""],
+    ["Warned driver", "speed through the area", "20 km/h while flashing, 35 km/h after", ""],
+    ["Driver", "cruise speed", "50 km/h", ""],
+    ["Driver", "headlight range, beam", "150 units (≈21 m), 40°", ""],
+    ["Driver", "reaction time unwarned / warned", "0.5 s / 0.35 s", ""],
+    ["Driver", "braking", "builds up at 2.5 / 6 / 12 m/s³, max 8 m/s², stops 15 units short", ""],
+    ["Driver", "after a stop", "moves off after 0.3 s, accelerates at 2.5 m/s²", ""],
+    ["Animals", "arrivals", "a group every 12 s on average (3 s minimum gap)", ""],
+    ["Animals", "crossing points", "Normal(x 490, sd 60); 75% from the north verge", ""],
+    ["Animals", "species share / group size", "boar 45% (avg 1.6), macaque 40% (avg 2), pangolin 15% (1)", ""],
+    ["Animals", "notices a nearby car", "macaque 95%, boar 90%, pangolin 75%", ""],
+    ["Animals", "if noticed: cross / wait / turn back", "macaque 25/50/25%, boar 50/35/15%, pangolin 30/60/10%", ""],
+    ["Scoring", "serious hit / near miss", "contact above 30 km/h / closest approach above 35 km/h, no contact", ""]
+  ];
+
+  function el(id) { return document.getElementById(id); }
+  function pct(v) { return v === null ? "–" : v + "%"; }
+
+  // Chart: horizontal bars of the serious-hit cut with interval ticks, sorted.
+  (function () {
+    var rows = GRID.slice().sort(function (a, b) { return b[5] - a[5]; });
+    var W = 900, L = 330, R = 60, top = 10, rowH = 29, H = top + rows.length * rowH + 30;
+    var svg = el("chart"); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    var x = function (v) { return L + (W - L - R) * v / 100; };
+    var s = "";
+    [0, 25, 50, 75, 100].forEach(function (v) {
+      s += '<line x1="' + x(v) + '" x2="' + x(v) + '" y1="' + top + '" y2="' + (H - 24) + '" stroke="var(--line)"/>';
+      s += '<text x="' + x(v) + '" y="' + (H - 8) + '" text-anchor="middle">' + v + '%</text>';
+    });
+    rows.forEach(function (r, i) {
+      var y = top + i * rowH + rowH / 2, base = r[0] === "base";
+      s += '<text class="' + (base ? "base" : "lab") + '" x="' + (L - 10) + '" y="' + (y + 4) + '" text-anchor="end">' + (base ? "● " : "") + r[1] + '</text>';
+      s += '<rect x="' + x(0) + '" y="' + (y - 9) + '" width="' + (x(r[5]) - x(0)) + '" height="18" rx="3" fill="var(--good)"/>';
+      s += '<line x1="' + x(r[6]) + '" x2="' + x(r[7]) + '" y1="' + y + '" y2="' + y + '" stroke="var(--muted)" stroke-width="2"/>';
+      s += '<line x1="' + x(r[6]) + '" x2="' + x(r[6]) + '" y1="' + (y - 5) + '" y2="' + (y + 5) + '" stroke="var(--muted)" stroke-width="2"/>';
+      s += '<line x1="' + x(r[7]) + '" x2="' + x(r[7]) + '" y1="' + (y - 5) + '" y2="' + (y + 5) + '" stroke="var(--muted)" stroke-width="2"/>';
+      s += '<text class="lab" x="' + (x(r[7]) + 8) + '" y="' + (y + 4) + '">' + r[5] + '%</text>';
+    });
+    svg.innerHTML = s;
+  })();
+
+  // Goal 1 table
+  (function () {
+    var rows = GRID.slice().sort(function (a, b) { return a[4] - b[4]; });
+    var h = '<thead><tr><th>Setting</th><th class="n">OFF serious /100</th><th class="n">ON serious /100</th><th class="n">Serious-hit cut</th><th class="n">Near-miss cut</th><th class="n">All-hits cut</th><th class="n">ON lap +s</th></tr></thead><tbody>';
+    rows.forEach(function (r) {
+      h += '<tr' + (r[0] === "base" ? ' class="hl"' : r[0] === "fov110" ? ' class="rec"' : "") + '><td><b>' + r[1] + '</b><div class="muted small">' + r[2] + '</div></td>' +
+        '<td class="n">' + r[3].toFixed(2) + '</td><td class="n"><b>' + r[4].toFixed(2) + '</b></td><td class="n">' + r[5] + '% <span class="muted">[' + r[6] + '–' + r[7] + ']</span></td>' +
+        '<td class="n">' + r[8] + '%</td><td class="n">' + r[9] + '%</td><td class="n">+' + r[10].toFixed(1) + '</td></tr>';
+    });
+    el("t1").innerHTML = h + "</tbody>";
+  })();
+
+  // Combined table
+  (function () {
+    var h = '<thead><tr><th>Setting (1,500 seeds)</th><th class="n">OFF serious /100</th><th class="n">ON serious /100</th><th class="n">Serious-hit cut</th><th class="n">Near-miss cut</th><th class="n">All-hits cut</th><th class="n">ON lap +s</th></tr></thead><tbody>';
+    COMBINED.forEach(function (r, i) {
+      h += '<tr' + (i === 0 ? ' class="hl"' : "") + '><td><b>' + r[0] + '</b></td><td class="n">' + r[1].toFixed(2) + '</td><td class="n"><b>' + r[2].toFixed(2) + '</b></td>' +
+        '<td class="n">' + r[3] + '%' + (r[4] === null ? "" : ' <span class="muted">[' + r[4] + '–' + r[5] + ']</span>') + '</td><td class="n">' + r[6] + '%</td><td class="n">' + r[7] + '%</td><td class="n">+' + r[8].toFixed(1) + '</td></tr>';
+    });
+    el("t2").innerHTML = h + "</tbody>";
+  })();
+
+  // Parameter table
+  (function () {
+    var h = '<thead><tr><th>Group</th><th>Setting</th><th>Today</th><th>Change</th></tr></thead><tbody>';
+    PARAMS.forEach(function (r) {
+      h += '<tr' + (r[3] ? ' class="rec"' : "") + '><td class="muted">' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + (r[3] || '<span class="muted">keep</span>') + '</td></tr>';
+    });
+    el("t3").innerHTML = h + "</tbody>";
+  })();
+</script>
+</body>
+</html>
