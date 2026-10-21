@@ -10,6 +10,22 @@ and **System ON** on the right, so you can see whether the system actually helps
 real AI or computer vision** — every detection is simulated. See `SPEC.md` for the
 full design.
 
+## Where to look
+
+| If you want to… | Open |
+|---|---|
+| **See the demo** (the one for presentations) | `index.html`, double-click it. Press **S** for the scripted 3-act scenario. |
+| See the system as it would be **installed**, with research values and cars both ways | `installation.html` |
+| **Present** the project in 2½ minutes | [docs/presentation-script.md](docs/presentation-script.md), and [docs/scenario.md](docs/scenario.md) for what each act shows |
+| Know **what to recommend** (where the cameras go, what the sign does, what it costs drivers) | [research/reports/installation-study.html](research/reports/installation-study.html), the one report to cite; its "Conclusion for each setting" table is the summary |
+| Understand **how the simulation works**, in plain language | [research/reports/simulation-settings.html](research/reports/simulation-settings.html) |
+| Look up **a rule or a number** and where it comes from | [docs/simulation-model.md](docs/simulation-model.md), and the "Fixed parameters" table below for the research values and their sources |
+| See the **code structure** (modules, data, state machines) or **who calls whom** | [docs/uml-diagrams.md](docs/uml-diagrams.md) and [docs/sequence-diagrams.md](docs/sequence-diagrams.md) |
+| **Change** the map, cameras, signs, animals or driver | `js/config.js` only (see "Editing the scene" below); nothing else hard-codes a number |
+| Read the **earlier studies** and why their answers changed | [research/reports/](research/reports/): camera placement, settings, two-way traffic; each says at the top what superseded it |
+| **Re-run a study** | the `research/*.html` pages (few seeds, in the browser) or `node research/run-*.js` (all cores); results land in `research/results/` |
+| Know what the project **does not** do | the "Scope" section at the end, and "What this study cannot tell you" in each report |
+
 ## Run it
 
 **Just double-click `index.html`** — it opens in Chrome or Edge and runs fully
