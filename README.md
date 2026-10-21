@@ -259,6 +259,9 @@ Sources:
   car decides to slow, stop and move on (in priority order), scoring, sources, tuning.
 - [docs/presentation-script.md](docs/presentation-script.md): a 2½-minute spoken script
   for presenting the demo, with timings and where each number comes from.
+- [docs/sequence-diagrams.md](docs/sequence-diagrams.md): sequence diagrams (Mermaid,
+  rendered on GitHub) of one frame of the demo, an animal becoming a warning, the
+  driver reacting to an animal, one research run, and the installation demo's start.
 
 ## Editing the scene (`js/config.js`)
 
