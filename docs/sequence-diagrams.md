@@ -80,7 +80,7 @@ sequenceDiagram
     detection->>detection: new episode: confidence drawn once, addLog(cam, a)
     detection->>stats: onDetection()
     detection->>DED: record({species, location, camera, confidence})
-    detection->>sign: flashing = true (trigger "view": any animal in view; "road": only on the carriageway)
+    detection->>sign: flashing = true (trigger "view": any animal in view, "road": only on the carriageway)
     car->>sign: activeZone(): is the car inside a zone whose sign is flashing?
     sign-->>car: yes: signTimer starts
     Note over car: after driverReactionSec the driver is "warned" until the end of the zone
@@ -119,7 +119,7 @@ sequenceDiagram
     animal-->>car: noticed: seen.set(id, {sec: 0, laneSec})
     Note over car: stays noticed until the car has passed it
     car->>plan: noticed list with ahead, where (lane / road / verge), clocks
-    plan->>plan: reaction: nothing until driverReactionSec (alertReactionSec if warned); coast in the last footMoveSec
+    plan->>plan: reaction: nothing until driverReactionSec (alertReactionSec if warned), coast in the last footMoveSec
     alt animal in the car's own lane (laneSec ≥ alertReactionSec)
         plan->>plan: stop stopGap short of it (front-loaded braking, ≤ maxDecel)
     else animal elsewhere on the road
@@ -129,9 +129,9 @@ sequenceDiagram
     end
     plan->>plan: car-following (IDM) against the leader, if any
     plan-->>move: {targetV, decel, coast, stopping, atLine, queued}: lowest speed and strongest braking win
-    move->>move: applyJerk(aCmd): braking builds at a limited rate; brake lights
+    move->>move: applyJerk(aCmd): braking builds at a limited rate, brake lights
     move->>stats: detectEncounters(): hit (serious > 30 km/h) / near miss (> 35 km/h at closest) / safe pass, once per animal per lap
-    move->>move: integrate speed and position; off the map → visible = false
+    move->>move: integrate speed and position, off the map → visible = false
 ```
 
 Notes: (1) `seePolicy "nothing"` skips perceive entirely (research baseline). (6) if even
@@ -154,16 +154,16 @@ sequenceDiagram
 
     driver->>cfg: restore() demo config, applyResearch(), setting.apply()
     driver->>traffic: runTwoWay(seed, minutes, setting)
-    traffic->>world: reset car / detection / stats; park the primary car
-    traffic->>car: directionSigns({onePerDirection}) → config.signals; reset()
-    traffic->>streams: createStream(seed) for animals; createCarStream(seed') per direction
+    traffic->>world: reset car / detection / stats, park the primary car
+    traffic->>car: directionSigns({onePerDirection}) → config.signals, reset()
+    traffic->>streams: createStream(seed) for animals, createCarStream(seed') per direction
     loop every 1/60 s until the end
         traffic->>streams: due(t)
         streams-->>traffic: animal groups (spawned as twins) and car releases (same cars for both worlds)
         loop for each world
             traffic->>car: admit waiting cars when entryClear(dir, cruise): addCar(), startLap(car)
             traffic->>world: animals.update, detection.update, car.update (all cars)
-            traffic->>traffic: per car: stops, stopped time, time at the line; retire cars that left: delay = trip time − free-flow time
+            traffic->>traffic: per car: stops, stopped time, time at the line, retire cars that left: delay = trip time − free-flow time
             traffic->>traffic: per world: queue length, sign-on with no animal on the road, crossings, early detections, far-lane hits
         end
     end
@@ -191,7 +191,7 @@ sequenceDiagram
     participant cfg as config
     participant car as car.js
     participant dashboard as dashboard.js
-    participant loop as main.js loop()
+    participant frame as main.js loop()
 
     page->>main: DOMContentLoaded
     main->>cfg: applyInstallation(): WW.applyResearch(), merge config.installation (cameras, pacing, sign rule)
@@ -199,11 +199,11 @@ sequenceDiagram
     main->>dashboard: build(): tiles, one feed per camera, one pill per sign
     main->>main: resetAll(): park the primary cars, create car streams, warm up warmupSec of car-only traffic, zero the flow counters
     loop every frame, fast-forwarded by installation.timeScale and sub-stepped
-        loop->>loop: trafficRelease(h): release twin cars, admit when entryClear
-        loop->>car: update(h) for every car in each world
-        loop->>loop: trafficRetire(): cars off the map → delay, cars through
+        frame->>frame: trafficRelease(h): release twin cars, admit when entryClear
+        frame->>car: update(h) for every car in each world
+        frame->>frame: trafficRetire(): cars off the map → delay, cars through
     end
-    loop->>dashboard: update(): tiles plus "cars through, avg delay" from WW.flow
+    frame->>dashboard: update(): tiles plus "cars through, avg delay" from WW.flow
 ```
 
 Notes: (2) the demo page never calls `applyResearch`, so `index.html` keeps its own
