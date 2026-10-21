@@ -155,7 +155,7 @@ the car arrives at the animal still doing about 20 km/h. This is the "outdriving
 headlights" problem the camera and signs exist to fix. A warned driver, already at
 20 km/h or waiting at the stop line, needs only about 5 m.
 
-**What this means for the demo.** Over 1,500 fast-forwarded 20-minute demos of showcase-day
+**What this means for the demo.** Over 1,500 fast-forwarded 20-minute demos at the showcase-day
 settings (the settings study's baseline, 244,000 crossings per side; counts per 100
 animals that reached the road, hits split by the car's speed at contact):
 
