@@ -240,6 +240,9 @@ Sources:
 
 ## Further reading
 
+- [research/reports/simulation-settings.html](research/reports/simulation-settings.html):
+  one page, in plain language, explaining how the simulation works and every setting
+  behind it, demo values beside research values, with a drawing of the map.
 - [research/reports/](research/reports/): the four study reports as standalone pages that
   open offline: [installation-study.html](research/reports/installation-study.html)
   (research parameters, two-way traffic, placement with area coverage: the
