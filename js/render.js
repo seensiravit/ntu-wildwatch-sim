@@ -82,8 +82,8 @@
   function drawLinks(ctx, cfg, P, sx) {
     if (!WW.system.enabled) return; // no camera->sign relationship without the system
     cfg.signals.forEach((sig) => {
-      const cam = cfg.cameras.find((c) => c.id === sig.linkedCameraId);
-      if (!cam) return;
+      const ids = sig.linkedCameraIds || [sig.linkedCameraId];
+      cfg.cameras.filter((c) => ids.indexOf(c.id) >= 0).forEach((cam) => {
       const a = P(cam), b = P(sig);
       const active = WW.detection.isSignalActive(sig.id);
       ctx.save();
@@ -94,6 +94,9 @@
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(b.x, b.y);
       ctx.stroke();
+      ctx.restore();
+      });
+      return;
       ctx.restore();
     });
   }

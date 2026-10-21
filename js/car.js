@@ -160,9 +160,12 @@
     const sight = WW.config.tuning.signSightDistance || 0;
     WW.config.signals.forEach((sig) => {
       if (sig.dir && sig.dir !== r.dir) return;
-      const cam = WW.config.cameras.find((c) => c.id === sig.linkedCameraId);
+      // The crossing area the sign warns about: the union of its cameras' coverage.
+      const ids = sig.linkedCameraIds || [sig.linkedCameraId];
+      const cams = WW.config.cameras.filter((c) => ids.indexOf(c.id) >= 0);
       const sSignal = projectOnRoute(r, sig.x, sig.y);
-      const cov = cam ? coverageOn(r, cam) : { start: sSignal, end: sSignal };
+      let cov = { start: sSignal, end: sSignal };
+      cams.forEach((cam, i) => { const c = coverageOn(r, cam); cov = i === 0 ? c : { start: Math.min(cov.start, c.start), end: Math.max(cov.end, c.end) }; });
       // stopS: where a driver who sees the sign flashing stops to wait, just before
       // the camera's coverage (the crossing area) begins along the path.
       r.warnZones.push({
@@ -592,23 +595,36 @@
   function kmhOf(c) { return c.state.speedUnitsPerSec * WW.config.tuning.unitsPerSecToKmh; }
   function currentKmh() { return kmhOf(car); }
 
-  // One sign per camera per direction, at the upstream edge of the camera's
-  // coverage along that direction's lane, set kerbOffset beyond the kerb on the
-  // driver's near side (research/traffic.js and installation.html; the demo keeps
-  // its two gantry signs). Returns new signal objects; the caller assigns them to
-  // config.signals and calls reset() so the warning zones are rebuilt.
+  // Signs per direction at the upstream edge of the cameras' coverage along that
+  // direction's lane, set kerbOffset beyond the kerb on the driver's near side
+  // (research/traffic.js and installation.html; the demo keeps its two gantry
+  // signs). One sign per camera per direction, or with onePerDirection one sign
+  // per direction driven by every camera (at the earliest coverage edge). Returns
+  // new signal objects; the caller assigns them to config.signals and calls
+  // reset() so the warning zones are rebuilt.
   function directionSigns(opts) {
     opts = opts || {};
     const off = WW.config.road.laneWidth / 2 + (opts.kerbOffset || 0);
+    const message = opts.message || "WILDLIFE AHEAD – SLOW DOWN";
     const signs = [];
+    const place = (r, start) => {
+      const p = posOn(r, Math.max(0, start));
+      const h = WW.geo.degToRad(p.headingDeg);
+      return { x: p.x + Math.sin(h) * off, y: p.y - Math.cos(h) * off };
+    };
     Object.keys(routes).forEach((dir) => {
       const r = routes[dir];
+      if (opts.onePerDirection) {
+        const start = Math.min.apply(null, WW.config.cameras.map((cam) => coverageOn(r, cam).start));
+        const p = place(r, start);
+        signs.push({ id: "sign-" + dir, name: "Sign " + dir, x: p.x, y: p.y, dir: dir, message: message,
+          linkedCameraId: WW.config.cameras[0].id, linkedCameraIds: WW.config.cameras.map((cam) => cam.id) });
+        return;
+      }
       WW.config.cameras.forEach((cam) => {
-        const cov = coverageOn(r, cam);
-        const p = posOn(r, Math.max(0, cov.start));
-        const h = WW.geo.degToRad(p.headingDeg);
-        signs.push({ id: "sign-" + dir + "-" + cam.id, name: "Sign " + dir + " · " + cam.name, x: p.x + Math.sin(h) * off, y: p.y - Math.cos(h) * off,
-          linkedCameraId: cam.id, dir: dir, message: opts.message || "WILDLIFE AHEAD – SLOW DOWN" });
+        const p = place(r, coverageOn(r, cam).start);
+        signs.push({ id: "sign-" + dir + "-" + cam.id, name: "Sign " + dir + " · " + cam.name, x: p.x, y: p.y,
+          linkedCameraId: cam.id, dir: dir, message: message });
       });
     });
     return signs;

@@ -313,6 +313,12 @@
     // level) and a car every 20 s per direction. One sign per direction at the
     // edge of the camera's coverage, on the kerb beside that lane.
     installation: {
+      // The study's two-camera layout: opposite verges at the hotspot, each
+      // looking across the road (93% of serious hits prevented vs 91% for one).
+      cameras: [
+        { id: "camN", name: "Cam N · wildlife verge", x: 490, y: 330, facingAngleDeg: 90,  fovDeg: 90, range: 250 },
+        { id: "camS", name: "Cam S · Hall 15 side",   x: 490, y: 430, facingAngleDeg: 270, fovDeg: 90, range: 250 },
+      ],
       spawning: { meanGapSec: 30 },
       traffic: { headwayMeanSec: 20 },
       tuning: { signRule: "slow" },  // the sign asks drivers to slow; no stop line
@@ -325,7 +331,7 @@
       hint: "Installation demo at 2× speed: research parameters, cars both ways, 30% of drivers obey the sign. Drag an animal to try it.",
       panelSub: {
         off: "Today: no cameras, no warning — 1 m/s animals, 1.5 s reactions, cars both ways",
-        on: "Recommended installation: 90° camera, a sign per direction, flashing for any animal in view",
+        on: "Installation: two 90° cameras on opposite verges, a sign per direction, flashing for any animal in view",
       },
     },
 
@@ -467,6 +473,8 @@
       // one of the extension's locations (its own four, or extraLocations below).
       cameraLocations: {
         cam1: { name: "Tamarind area", cam: "CAM-04" },
+        camN: { name: "Tamarind area", cam: "CAM-04" }, // installation demo pair
+        camS: { name: "Tamarind area", cam: "CAM-05" },
       },
       // Optional extra cameras/roads/labels for its map (see [host-config] there).
       extraLocations: [],

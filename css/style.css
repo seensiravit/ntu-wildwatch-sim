@@ -292,6 +292,8 @@ html, body {
   gap: 10px;
   min-width: 0;
 }
+/* Installation demo: two cameras, so four cards per strip (impact, two feeds, signs). */
+body[data-mode="installation"] .panel-dash { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1fr); }
 
 /* ---- Cards ---- */
 .card {
@@ -389,6 +391,7 @@ html, body {
   .panel-sub { font-size: 11px; }
   /* Four outcome tiles need the room more than the camera feed does. */
   .panel-dash { gap: 8px; grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.85fr) minmax(0, 1fr); }
+  body[data-mode="installation"] .panel-dash { grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.7fr) minmax(0, 0.7fr) minmax(0, 1fr); }
   .card { padding: 8px; }
   .card-header { font-size: 12px; margin-bottom: 6px; }
   .stats-grid { gap: 6px; }

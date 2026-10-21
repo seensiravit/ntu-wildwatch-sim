@@ -228,11 +228,13 @@
     WW.applyResearch(WW.config);
     const inst = WW.config.installation;
     ["spawning", "traffic", "tuning"].forEach((k) => { if (inst[k]) WW.mergeConfig(WW.config[k], inst[k]); });
-    // One sign per direction at the camera's coverage edge (needs the routes, so
-    // build them once here; the dashboard then builds its sign pills from these).
+    if (inst.cameras) WW.config.cameras = JSON.parse(JSON.stringify(inst.cameras));
+    // One sign per direction at the cameras' coverage edge, driven by every camera
+    // (needs the routes, so build them once here; the dashboard then builds its
+    // sign pills from these).
     WW.useWorld(WORLDS[0]);
     WW.car.reset();
-    WW.config.signals = WW.car.directionSigns({ kerbOffset: inst.signKerbOffset });
+    WW.config.signals = WW.car.directionSigns({ kerbOffset: inst.signKerbOffset, onePerDirection: true });
     const sc = document.getElementById("btn-scenario");
     if (sc) sc.hidden = true;
     const subs = document.querySelectorAll(".panel-head .panel-sub");

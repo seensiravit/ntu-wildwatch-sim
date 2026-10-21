@@ -20,11 +20,12 @@ offline. No install, no build step, no internet, no dependencies.
 
 ### Installation demo (`installation.html`)
 
-A second page, same code, different settings: `installation.html` runs the **recommended
-installation from the installation study** on the **research values** (1 m/s animals,
-1.5 s reactions, 90° lens, a sign for each direction at the edge of the camera's
-coverage, flashing for any animal in view, asking drivers to slow; 30% of drivers obey
-it, the rest slow by 7 km/h) with a **stream of cars in both directions** (a car every
+A second page, same code, different settings: `installation.html` runs the
+installation study's **two-camera layout** on the **research values** (1 m/s animals,
+1.5 s reactions; two 90° cameras on opposite verges at the hotspot, each looking across
+the road, the study's 93% option; one sign for each direction at the edge of their
+coverage, driven by both cameras, flashing for any animal in view, asking drivers to
+slow; 30% of drivers obey it, the rest slow by 7 km/h) with a **stream of cars in both directions** (a car every
 20 s per direction, each with its own speed, following and queuing). Animals arrive
 every 30 s at knob level 4 so there is something to watch, and the whole scene runs at
 **2× speed** (`config.installation.timeScale`, sub-stepped) because a 1 m/s animal is

@@ -133,16 +133,21 @@
         const road = WW.config.road, reach = road.roadWidth / 2 + (t.signRoadMargin || 0);
         trigger = nowInCone.some((h) => WW.geo.distToPolyline(h.animal.x, h.animal.y, road.centerline) <= reach);
       }
-      // Every signal linked to this camera flashes while it is triggered, and
-      // for tuning.signHoldSec after the last detection (0 in the demo: the sign
-      // goes off at once). A camera can drive several signs (signal.linkedCameraId).
-      const holdMs = (t.signHoldSec || 0) * 1000, nowMs = WW.clock ? WW.clock.ms : 0;
-      WW.config.signals.forEach((sig) => {
-        const ss = sigState[sig.id];
-        if (sig.linkedCameraId !== cam.id || !ss) return;
-        if (trigger) { ss.flashing = true; ss.lastOnMs = nowMs; }
-        else ss.flashing = holdMs > 0 && ss.lastOnMs !== undefined && nowMs - ss.lastOnMs < holdMs;
-      });
+      cs.trigger = trigger;
+    });
+
+    // Every signal flashes while any camera it is linked to is triggered
+    // (signal.linkedCameraId, or several in linkedCameraIds), and for
+    // tuning.signHoldSec after the last detection (0 in the demo: the sign goes
+    // off at once). A camera can drive several signs.
+    const holdMs = (t.signHoldSec || 0) * 1000, nowMs = WW.clock ? WW.clock.ms : 0;
+    WW.config.signals.forEach((sig) => {
+      const ss = sigState[sig.id];
+      if (!ss) return;
+      const ids = sig.linkedCameraIds || [sig.linkedCameraId];
+      const on = ids.some((id) => camState[id] && camState[id].trigger);
+      if (on) { ss.flashing = true; ss.lastOnMs = nowMs; }
+      else ss.flashing = holdMs > 0 && ss.lastOnMs !== undefined && nowMs - ss.lastOnMs < holdMs;
     });
   }
 
